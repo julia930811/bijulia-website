@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img">
+  <title>Pearls</title>
+  <defs>
+    <radialGradient id="vg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#FFFCF8"/>
+      <stop offset="72%" stop-color="#F6F1EA"/>
+      <stop offset="100%" stop-color="#EFE4DA"/>
+    </radialGradient>
+    <linearGradient id="metalRose" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F0D7C6"/><stop offset="50%" stop-color="#C6A288"/><stop offset="100%" stop-color="#A6856A"/>
+    </linearGradient>
+    <linearGradient id="metalGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F3E4BF"/><stop offset="50%" stop-color="#C4AE7A"/><stop offset="100%" stop-color="#9C8654"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F8EFE8"/><stop offset="55%" stop-color="#F3E4DA"/><stop offset="100%" stop-color="#E7D5C8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#vg)"/>
+  <path d="M 230 300.0 Q 400 820 570 300" fill="none" stroke="#E7D5CC" stroke-width="1.2" stroke-linecap="round"/><defs><radialGradient id="id110" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="291.2" cy="453.5" r="10.0" fill="url(#id110)"/>
+    <circle cx="288.4" cy="450.3" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id111" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="318.4" cy="500.1" r="10.0" fill="url(#id111)"/>
+    <circle cx="315.6" cy="496.9" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id112" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="345.6" cy="533.4" r="10.0" fill="url(#id112)"/>
+    <circle cx="342.8" cy="530.2" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id113" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="372.8" cy="553.3" r="10.0" fill="url(#id113)"/>
+    <circle cx="370.0" cy="550.1" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id114" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="400.0" cy="560.0" r="10.0" fill="url(#id114)"/>
+    <circle cx="397.2" cy="556.8" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id115" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="427.2" cy="553.3" r="10.0" fill="url(#id115)"/>
+    <circle cx="424.4" cy="550.1" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id116" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="454.4" cy="533.4" r="10.0" fill="url(#id116)"/>
+    <circle cx="451.6" cy="530.2" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id117" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="481.6" cy="500.1" r="10.0" fill="url(#id117)"/>
+    <circle cx="478.8" cy="496.9" r="1.8" fill="#fff" opacity="0.8"/><defs><radialGradient id="id118" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="508.8" cy="453.5" r="10.0" fill="url(#id118)"/>
+    <circle cx="506.0" cy="450.3" r="1.8" fill="#fff" opacity="0.8"/><path d="M 230 307.2 Q 400 1036 570 300" fill="none" stroke="#E7D5CC" stroke-width="1.2" stroke-linecap="round"/><defs><radialGradient id="id119" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="291.2" cy="522.1" r="11.0" fill="url(#id119)"/>
+    <circle cx="288.1" cy="518.6" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id120" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="313.0" cy="575.6" r="11.0" fill="url(#id120)"/>
+    <circle cx="309.9" cy="572.1" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id121" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="334.7" cy="617.2" r="11.0" fill="url(#id121)"/>
+    <circle cx="331.6" cy="613.7" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id122" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="356.5" cy="646.7" r="11.0" fill="url(#id122)"/>
+    <circle cx="353.4" cy="643.2" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id123" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="378.2" cy="664.3" r="11.0" fill="url(#id123)"/>
+    <circle cx="375.2" cy="660.7" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id124" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="400.0" cy="669.8" r="11.0" fill="url(#id124)"/>
+    <circle cx="396.9" cy="666.3" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id125" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="421.8" cy="663.3" r="11.0" fill="url(#id125)"/>
+    <circle cx="418.7" cy="659.8" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id126" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="443.5" cy="644.9" r="11.0" fill="url(#id126)"/>
+    <circle cx="440.4" cy="641.4" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id127" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="465.3" cy="614.4" r="11.0" fill="url(#id127)"/>
+    <circle cx="462.2" cy="610.9" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id128" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="487.0" cy="572.0" r="11.0" fill="url(#id128)"/>
+    <circle cx="484.0" cy="568.4" r="2.0" fill="#fff" opacity="0.8"/><defs><radialGradient id="id129" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="508.8" cy="517.5" r="11.0" fill="url(#id129)"/>
+    <circle cx="505.7" cy="514.0" r="2.0" fill="#fff" opacity="0.8"/><path d="M 230 314.4 Q 400 1252 570 300" fill="none" stroke="#E7D5CC" stroke-width="1.2" stroke-linecap="round"/><defs><radialGradient id="id130" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="291.2" cy="590.7" r="12.0" fill="url(#id130)"/>
+    <circle cx="287.8" cy="586.9" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id131" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="309.3" cy="649.1" r="12.0" fill="url(#id131)"/>
+    <circle cx="306.0" cy="645.2" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id132" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="327.5" cy="696.7" r="12.0" fill="url(#id132)"/>
+    <circle cx="324.1" cy="692.8" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id133" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="345.6" cy="733.5" r="12.0" fill="url(#id133)"/>
+    <circle cx="342.2" cy="729.7" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id134" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="363.7" cy="759.6" r="12.0" fill="url(#id134)"/>
+    <circle cx="360.4" cy="755.8" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id135" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="381.9" cy="775.0" r="12.0" fill="url(#id135)"/>
+    <circle cx="378.5" cy="771.2" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id136" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="400.0" cy="779.6" r="12.0" fill="url(#id136)"/>
+    <circle cx="396.6" cy="775.8" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id137" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="418.1" cy="773.5" r="12.0" fill="url(#id137)"/>
+    <circle cx="414.8" cy="769.6" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id138" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="436.3" cy="756.6" r="12.0" fill="url(#id138)"/>
+    <circle cx="432.9" cy="752.7" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id139" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="454.4" cy="728.9" r="12.0" fill="url(#id139)"/>
+    <circle cx="451.0" cy="725.1" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id140" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="472.5" cy="690.5" r="12.0" fill="url(#id140)"/>
+    <circle cx="469.2" cy="686.7" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id141" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="490.7" cy="641.4" r="12.0" fill="url(#id141)"/>
+    <circle cx="487.3" cy="637.5" r="2.2" fill="#fff" opacity="0.8"/><defs><radialGradient id="id142" cx="32%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFFcf8"/><stop offset="100%" stop-color="#E3D6CC"/>
+    </radialGradient></defs>
+    <circle cx="508.8" cy="581.5" r="12.0" fill="url(#id142)"/>
+    <circle cx="505.4" cy="577.7" r="2.2" fill="#fff" opacity="0.8"/>
+</svg>
