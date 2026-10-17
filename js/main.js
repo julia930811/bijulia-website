@@ -192,7 +192,6 @@ function card(product) {
       <div class="card-info">
         <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
-        ${product.soldOut ? `<p class="fine"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></p>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
@@ -540,7 +539,6 @@ function renderProduct() {
           <p class="kicker">${esc(collection ? collection.name : "")}</p>
           <h1>${esc(product.name)}</h1>
           <p class="price">${priceText(product)}</p>
-          ${product.soldOut ? `<p class="sold-note"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></p>` : ""}
           ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
           <div class="desc-wrap">
             <p class="desc">${esc(product.description)}</p>
