@@ -77,7 +77,7 @@ function shell() {
     const on =
       (key === "new" && path.startsWith("/shop") && filter === "new") ||
       (key === "shop" && (path.startsWith("/shop") || path.startsWith("/product")) && filter !== "new") ||
-      (key === "collections" && path.startsWith("/collections")) ||
+      (key === "looks" && path === "/" && location.hash === "#looks") ||
       (key === "about" && path.startsWith("/about")) ||
       (key === "journal" && path.startsWith("/journal"));
     return on ? ' aria-current="page"' : "";
@@ -100,18 +100,9 @@ function shell() {
               ${sub("/shop/", "All pieces")}
               ${sub("/shop/?filter=necklace", "Necklaces")}
               ${sub("/shop/?filter=sticker", "Stickers")}
-              ${sub("/collections/rose-garden/", "Rose Garden")}
-              ${sub("/collections/lace-ribbons/", "Lace & Ribbons")}
-              ${sub("/collections/vintage-treasures/", "Vintage Treasures")}
-              ${sub("/collections/pearl-collection/", "Pearl Collection")}
             </div>
           </div>
-          <div class="has-sub">
-            <a href="/collections/"${mark("collections")}>Collections</a>
-            <div class="submenu">
-              ${collections.map((item) => sub(`/collections/${item.slug}/`, item.name)).join("")}
-            </div>
-          </div>
+          <a href="/#looks"${mark("looks")}>Outfit</a>
           <a href="/about/"${mark("about")}>About</a>
           <a href="/journal/"${mark("journal")}>Journal</a>
         </nav>
@@ -130,10 +121,7 @@ function shell() {
           <a href="/shop/">All pieces</a>
           <a href="/shop/?filter=necklace">Necklaces</a>
           <a href="/shop/?filter=sticker">Stickers</a>
-          <a href="/collections/rose-garden/">Rose Garden</a>
-          <a href="/collections/lace-ribbons/">Lace &amp; Ribbons</a>
-          <a href="/collections/vintage-treasures/">Vintage Treasures</a>
-          <a href="/collections/pearl-collection/">Pearl Collection</a>
+          <a href="/#looks">Outfit</a>
         </div>
         <div>
           <h2>Customer Care</h2>
@@ -147,7 +135,7 @@ function shell() {
           <h2>About</h2>
           <a href="/about/">Our Story</a>
           <a href="/journal/">Journal</a>
-          <a href="/collections/">Collections</a>
+          <a href="/#looks">Outfit</a>
         </div>
         <div>
           <h2>Instagram</h2>
@@ -186,11 +174,7 @@ function shell() {
       <a href="/shop/">Shop</a>
       <a class="sub" href="/shop/?filter=necklace">Necklaces</a>
       <a class="sub" href="/shop/?filter=sticker">Stickers</a>
-      <a class="sub" href="/collections/rose-garden/">Rose Garden</a>
-      <a class="sub" href="/collections/lace-ribbons/">Lace &amp; Ribbons</a>
-      <a class="sub" href="/collections/vintage-treasures/">Vintage Treasures</a>
-      <a class="sub" href="/collections/pearl-collection/">Pearl Collection</a>
-      <a href="/collections/">Collections</a>
+      <a href="/#looks">Outfit</a>
       <a href="/about/">About</a>
       <a href="/journal/">Journal</a>
     </div>
@@ -309,21 +293,29 @@ function line(item, compact) {
   `;
 }
 
+const looks = [
+  ["lace-butterfly-choker", "/images/products/lace-butterfly-choker-worn.jpg", "Lace Butterfly Choker"],
+  ["ivory-lace-cross", "/images/products/ivory-lace-cross-worn.jpg", "Ivory Lace Cross"],
+  ["lock-and-key-chain", "/images/products/lock-and-key-chain-worn.jpg", "Lock and Key Chain"],
+  ["button-drop-necklace", "/images/products/button-drop-necklace-worn.jpg", "Button Drop Necklace"],
+];
+
 function renderHome() {
   const newest = products.filter((item) => item.isNew && item.category === "necklace").slice(0, 4);
   const sellers = products.filter((item) => item.isBestSeller && item.category === "necklace").slice(0, 4);
   const stickers = products.filter((item) => item.category === "sticker");
-  const homeCollections = collections.filter((item) => item.home);
   return `
     <section class="hero">
       <div class="hero-copy">
-        <h1>BiJulia</h1>
-        <p>${esc(site.tagline)}</p>
+        <div class="hero-text">
+          <h1>BiJulia</h1>
+          <p>${esc(site.tagline)}</p>
+        </div>
         <a class="btn" href="/shop/">Shop now</a>
       </div>
     </section>
     <section class="scene-band" aria-label="Fairy and fountain">
-      <img src="/images/fairy-fountain.gif" alt="A fairy beside a flowered fountain">
+      <img src="/images/fairy-fountain.gif?v=3" alt="A fairy beside a flowered fountain">
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
@@ -332,15 +324,17 @@ function renderHome() {
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">View all</a></p>
       </div>
     </section>
-    <section class="section" id="collections">
+    <section class="section" id="looks">
       <div class="wrap">
-        <div class="section-head"><h2>Collections</h2></div>
-        <div class="collection-grid">
-          ${homeCollections.map((item) => `
-            <a class="tile" href="/collections/${item.slug}/">
-              <img src="${item.image}" alt="" class="${fitClass(item)}">
-              <span>${esc(item.name)}</span>
-            </a>
+        <div class="section-head"><h2>Outfit</h2></div>
+        <div class="look-grid">
+          ${looks.map(([slug, src, name], index) => `
+            <article class="look" style="animation-delay:${index * -1.4}s">
+              <a class="look-frame" href="/product/${slug}/">
+                <img src="${src}" alt="${esc(name)}, worn" class="photo">
+              </a>
+              <a class="look-name" href="/product/${slug}/">${esc(name)}</a>
+            </article>
           `).join("")}
         </div>
       </div>
@@ -406,10 +400,6 @@ const filterOptions = [
   ["best", "Best Sellers"],
   ["necklace", "Necklaces"],
   ["sticker", "Stickers"],
-  ["rose-garden", "Rose Garden"],
-  ["lace-ribbons", "Lace & Ribbons"],
-  ["vintage-treasures", "Vintage Treasures"],
-  ["pearl-collection", "Pearls"],
 ];
 
 function applyFilter(list, filter) {
