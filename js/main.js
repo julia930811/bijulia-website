@@ -324,6 +324,7 @@ function renderHome() {
         <div class="section-head"><h2>Outfit</h2></div>
       </div>
       <div class="look-marquee">
+        <button class="look-nav look-prev" type="button" aria-label="上一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>
         <div class="look-track">
           ${[false, true].map((hidden) => `
             <div class="look-set"${hidden ? ' aria-hidden="true"' : ""}>
@@ -337,6 +338,7 @@ function renderHome() {
             </div>
           `).join("")}
         </div>
+        <button class="look-nav look-next" type="button" aria-label="下一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
       </div>
     </section>
     <section class="section sticker-feature" id="stickers">
@@ -1060,9 +1062,54 @@ function onKey(event) {
   if (event.key === "Escape") closeOverlays();
 }
 
+function bindLooks() {
+  const marquee = document.querySelector(".look-marquee");
+  if (!marquee || marquee.dataset.bound) return;
+  const track = marquee.querySelector(".look-track");
+  const set = marquee.querySelector(".look-set");
+  if (!track || !set) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  marquee.dataset.bound = "1";
+  let offset = 0;
+  let paused = false;
+  let slide = null;
+  const speed = 0.4;
+  function limit() {
+    return set.getBoundingClientRect().width;
+  }
+  function draw() {
+    const span = limit();
+    if (span > 0) offset = ((offset % span) + span) % span;
+    track.style.transform = `translateX(${-offset}px)`;
+  }
+  function frame(now) {
+    if (slide) {
+      const t = Math.min(1, (now - slide.start) / 480);
+      const eased = 1 - Math.pow(1 - t, 3);
+      offset = slide.from + (slide.to - slide.from) * eased;
+      if (t >= 1) slide = null;
+    } else if (!paused) {
+      offset += speed;
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  marquee.addEventListener("mouseenter", () => { paused = true; });
+  marquee.addEventListener("mouseleave", () => { paused = false; });
+  function nudge(dir) {
+    const card = marquee.querySelector(".look");
+    const distance = (card ? card.getBoundingClientRect().width : 280) + 20;
+    slide = { from: offset, to: offset + dir * distance, start: performance.now() };
+  }
+  marquee.querySelector(".look-next").addEventListener("click", () => nudge(1));
+  marquee.querySelector(".look-prev").addEventListener("click", () => nudge(-1));
+}
+
 function boot() {
   document.body.insertAdjacentHTML("afterbegin", shell());
   renderMain();
+  bindLooks();
   refreshChrome();
   applyOverlay();
   if (location.hash) {
