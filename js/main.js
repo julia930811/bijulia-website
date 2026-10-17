@@ -7,7 +7,7 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js?v=6";
+} from "./data.js?v=7";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -332,7 +332,6 @@ function renderHome() {
                   <a class="look-frame" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>
                     <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
                   </a>
-                  <a class="look-name" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>${esc(name)}</a>
                 </article>
               `).join("")}
             </div>
