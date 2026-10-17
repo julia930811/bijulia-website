@@ -236,7 +236,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .scene-shop:hover { background: transparent; color: inherit; }
 .scene-shop img {
-  width: min(260px, 48vw);
+  width: min(208px, 38vw);
   height: auto;
   filter: none;
 }
@@ -318,7 +318,7 @@ h1, h2, h3, p { margin: 0; }
   filter: none;
 }
 .section-head .title-mark { margin: 0 auto; }
-#new-in .title-mark { width: min(200px, 46vw); }
+#new-in .title-mark { width: min(140px, 32vw); }
 #new-in.section { padding-top: 48px; padding-bottom: 56px; }
 #new-in .section-head { margin-bottom: 28px; }
 .new-in-mark {
