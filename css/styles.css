@@ -234,7 +234,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .scene-shop:hover { background: transparent; color: inherit; }
 .scene-shop img {
-  width: min(190px, 34vw);
+  width: min(260px, 48vw);
   height: auto;
   filter: none;
 }
