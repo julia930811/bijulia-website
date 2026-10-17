@@ -322,8 +322,8 @@ function renderHome() {
         <a class="btn" href="/shop/">Shop now</a>
       </div>
     </section>
-    <section class="scene-band" aria-label="Swans and fountain">
-      <img src="/images/swans-fountain.gif" alt="Two swans beside a flowered fountain">
+    <section class="scene-band" aria-label="Fairy and fountain">
+      <img src="/images/fairy-fountain.gif" alt="A fairy beside a flowered fountain">
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
