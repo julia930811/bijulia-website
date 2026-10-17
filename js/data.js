@@ -21,6 +21,7 @@ export const products = [
     maxQty: 5,
     image: "/images/products/lace-butterfly-choker.jpg",
     images: ["/images/products/lace-butterfly-choker.jpg", "/images/products/lace-butterfly-choker-worn.jpg"],
+    illustration: "/images/butterfly-moon.gif",
     imageFit: "cover",
     length: "Choker",
     materials: "Light blue lace, silver filigree butterfly, green beads",

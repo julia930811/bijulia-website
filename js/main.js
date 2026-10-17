@@ -300,11 +300,8 @@ function renderHome() {
         <a class="btn" href="/shop/">Shop now</a>
       </div>
     </section>
-    <section class="swan-band" aria-label="Swans">
-      <img src="/images/swans.gif" alt="Two glittering swans">
-    </section>
-    <section class="fountain-band" aria-label="Fountain">
-      <img src="/images/fountain.gif" alt="A fountain with a bird, flowers, and a sign">
+    <section class="scene-band" aria-label="Swans and fountain">
+      <img src="/images/swans-fountain.gif" alt="Two swans beside a flowered fountain">
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
@@ -526,6 +523,7 @@ function renderProduct() {
       <article class="pdp">
         <div class="pdp-gallery">
           ${(product.images && product.images.length ? product.images : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? ", worn" : ""}" class="${fitClass(product)}">`).join("")}
+          ${product.illustration ? `<img class="pdp-illustration" src="${product.illustration}" alt="Illustration for ${esc(product.name)}">` : ""}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" controls playsinline preload="metadata"></video>` : ""}
         </div>
         <div class="pdp-info">
