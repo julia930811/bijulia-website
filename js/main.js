@@ -38,9 +38,6 @@ function priceText(product, qty = 1) {
   return money(amount);
 }
 
-function iconHeart() {
-  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.2c-.3 0-7.2-4.1-9.1-8.2C1.4 9.2 2.6 6 5.8 6c1.8 0 3.1 1 3.8 2.3C10.3 7 11.6 6 13.4 6c3.2 0 4.4 3.2 2.7 6-1.9 4.1-8.8 8.2-9.1 8.2z"></path></svg>';
-}
 function iconSearch() {
   return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M16 16.5 20 20.5"></path></svg>';
 }
@@ -120,7 +117,6 @@ function shell() {
         </nav>
         <div class="tools">
           <button class="icon-btn" type="button" data-open-search aria-label="Search">${iconSearch()}</button>
-          <a class="icon-btn" href="/wishlist/" aria-label="Wishlist">${iconHeart()}<span class="count" data-wish-count hidden>0</span></a>
           <button class="icon-btn" type="button" data-open-drawer aria-label="Shopping bag">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
         </div>
       </div>
@@ -202,12 +198,10 @@ function shell() {
 }
 
 function card(product) {
-  const saved = store.hasWish(product.slug);
   return `
     <article class="card">
       <div class="card-media">
         <a href="/product/${product.slug}/"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>
-        <button class="wish ${saved ? "is-on" : ""}" type="button" data-wish="${product.slug}" aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}: ${esc(product.name)}">${iconHeart()}</button>
         ${product.soldOut
           ? `<span class="quick-add is-sold">Sold out</span>`
           : product.colors
@@ -532,7 +526,6 @@ function renderProduct() {
   if (!product) return renderNotFound();
   document.title = `${product.name} — BiJulia`;
   const collection = collectionBySlug(product.collection);
-  const saved = store.hasWish(product.slug);
   const specs = product.category === "sticker"
     ? [["Set", "3 stickers"], ["Price", "NT$50"], ["Made", "In small batches"]]
     : [["Length", product.length], ["Materials", product.materials], ["Made", "By hand, in small batches"]];
@@ -574,7 +567,6 @@ function renderProduct() {
             <button type="button" data-qty-step="1" aria-label="Increase quantity">+</button>
           </div>`}
           <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? "Sold out" : "Add to bag"}</button>
-          <button class="linkish wish-text ${saved ? "is-on" : ""}" type="button" data-wish="${product.slug}">${saved ? "Saved to wishlist" : "Save to wishlist"}</button>
           <details open>
             <summary>Details</summary>
             <p>${esc(product.details)}</p>
@@ -627,29 +619,6 @@ function renderCart() {
           <p class="fine" style="margin-top:12px">We confirm each order by email before payment. Nothing is charged on this preview.</p>
         </aside>
       </div>
-    </div>
-  `;
-}
-
-function renderWishlist() {
-  const saved = store.getWishlist().map(productBySlug).filter(Boolean);
-  if (!saved.length) {
-    return `
-      <div class="page">
-        <div class="empty">
-          <h1>Wishlist</h1>
-          <p class="fine">Nothing saved yet. The heart on a piece will keep it here.</p>
-          <a class="btn" href="/shop/">Shop the atelier</a>
-        </div>
-      </div>
-    `;
-  }
-  return `
-    <div class="page">
-      ${crumbs([{ href: "/", label: "Home" }, { label: "Wishlist" }])}
-      <h1 class="page-title">Wishlist</h1>
-      <p class="count-line">${saved.length} saved</p>
-      ${grid(saved)}
     </div>
   `;
 }
@@ -825,7 +794,6 @@ function renderMain() {
     collection: renderCollection,
     product: renderProduct,
     cart: renderCart,
-    wishlist: renderWishlist,
     checkout: renderCheckout,
     about: renderAbout,
     journal: renderJournal,
@@ -838,7 +806,6 @@ function renderMain() {
     shop: "Shop — BiJulia",
     collections: "Collections — BiJulia",
     cart: "Your Bag — BiJulia",
-    wishlist: "Wishlist — BiJulia",
     checkout: "Request an Order — BiJulia",
     about: "About — BiJulia",
     journal: "Journal — BiJulia",
@@ -868,23 +835,12 @@ function drawerHtml() {
 
 function refreshChrome() {
   const cartN = store.cartCount();
-  const wishN = store.wishCount();
   document.querySelectorAll("[data-cart-count]").forEach((node) => {
     node.textContent = String(cartN);
     node.hidden = cartN === 0;
   });
-  document.querySelectorAll("[data-wish-count]").forEach((node) => {
-    node.textContent = String(wishN);
-    node.hidden = wishN === 0;
-  });
   const bagBtn = document.querySelector("[data-open-drawer]");
   if (bagBtn) bagBtn.setAttribute("aria-label", cartN ? `Shopping bag, ${cartN} items` : "Shopping bag");
-  document.querySelectorAll("[data-wish]").forEach((node) => {
-    const on = store.hasWish(node.dataset.wish);
-    node.classList.toggle("is-on", on);
-    if (node.classList.contains("wish-text")) node.textContent = on ? "Saved to wishlist" : "Save to wishlist";
-    else node.setAttribute("aria-label", `${on ? "Remove from wishlist" : "Save to wishlist"}: ${node.getAttribute("aria-label")?.split(":").slice(1).join(":").trim() || ""}`);
-  });
   drawerHtml();
 }
 
@@ -976,12 +932,6 @@ function buildMailto(data) {
 }
 
 function onClick(event) {
-  const wish = event.target.closest("[data-wish]");
-  if (wish) {
-    event.preventDefault();
-    store.toggleWish(wish.dataset.wish);
-    return;
-  }
   const colorBtn = event.target.closest(".color-option");
   if (colorBtn) {
     const group = colorBtn.closest(".color-options");
@@ -1125,7 +1075,7 @@ function boot() {
     refreshChrome();
   });
   store.subscribe(() => {
-    if (page === "cart" || page === "wishlist" || page === "checkout") renderMain();
+    if (page === "cart" || page === "checkout") renderMain();
     refreshChrome();
   });
 }

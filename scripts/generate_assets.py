@@ -431,7 +431,6 @@ def main():
     page("index.html", "BiJulia — Handmade jewelry for romantic souls", "home")
     page("shop/index.html", "Shop — BiJulia", "shop")
     page("cart/index.html", "Your Bag — BiJulia", "cart")
-    page("wishlist/index.html", "Wishlist — BiJulia", "wishlist")
     page("checkout/index.html", "Request an Order — BiJulia", "checkout")
     page("about/index.html", "About — BiJulia", "about")
     page("journal/index.html", "Journal — BiJulia", "journal")

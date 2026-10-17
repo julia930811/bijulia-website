@@ -1,7 +1,7 @@
 const KEY = "bijulia-atelier-v1";
 
 function emptyState() {
-  return { cart: [], wishlist: [] };
+  return { cart: [] };
 }
 
 function load() {
@@ -10,10 +10,7 @@ function load() {
     const cart = Array.isArray(raw.cart)
       ? raw.cart.filter((item) => item && typeof item.slug === "string" && item.qty > 0)
       : [];
-    const wishlist = Array.isArray(raw.wishlist)
-      ? raw.wishlist.filter((slug) => typeof slug === "string")
-      : [];
-    return { cart, wishlist };
+    return { cart };
   } catch {
     return emptyState();
   }
@@ -44,20 +41,8 @@ export function getCart() {
   return state.cart.map((item) => ({ ...item }));
 }
 
-export function getWishlist() {
-  return [...state.wishlist];
-}
-
 export function cartCount() {
   return state.cart.reduce((sum, item) => sum + item.qty, 0);
-}
-
-export function wishCount() {
-  return state.wishlist.length;
-}
-
-export function hasWish(slug) {
-  return state.wishlist.includes(slug);
 }
 
 function cleanQty(qty) {
@@ -89,14 +74,5 @@ export function setQty(slug, qty, max = 5, color = "") {
 export function removeFromCart(slug, color = "") {
   const tone = color || "";
   state.cart = state.cart.filter((item) => !(item.slug === slug && (item.color || "") === tone));
-  emit();
-}
-
-export function toggleWish(slug) {
-  if (state.wishlist.includes(slug)) {
-    state.wishlist = state.wishlist.filter((entry) => entry !== slug);
-  } else {
-    state.wishlist = [slug, ...state.wishlist];
-  }
   emit();
 }
