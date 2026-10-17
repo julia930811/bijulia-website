@@ -3,7 +3,6 @@ import {
   products,
   collections,
   journal,
-  instagramShots,
   productBySlug,
   collectionBySlug,
   articleBySlug,
@@ -140,7 +139,6 @@ function shell() {
         <div>
           <h2>Instagram</h2>
           <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
-          <p class="fine">Studio days, new ribbons, and shells on the table.</p>
         </div>
       </div>
       <div class="footer-base">
@@ -307,15 +305,13 @@ function renderHome() {
   return `
     <section class="hero">
       <div class="hero-copy">
-        <div class="hero-text">
-          <h1>BiJulia</h1>
-          <p>${esc(site.tagline)}</p>
-        </div>
-        <a class="btn" href="/shop/">Shop now</a>
+        <h1>BiJulia</h1>
+        <p>${esc(site.tagline)}</p>
       </div>
     </section>
     <section class="scene-band" aria-label="Fairy and fountain">
       <img src="/images/fairy-fountain.gif?v=3" alt="A fairy beside a flowered fountain">
+      <a class="btn scene-shop" href="/shop/">Shop now</a>
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
@@ -324,17 +320,23 @@ function renderHome() {
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">View all</a></p>
       </div>
     </section>
-    <section class="section" id="looks">
+    <section class="section looks-section" id="looks">
       <div class="wrap">
         <div class="section-head"><h2>Outfit</h2></div>
-        <div class="look-grid">
-          ${looks.map(([slug, src, name], index) => `
-            <article class="look" style="animation-delay:${index * -1.4}s">
-              <a class="look-frame" href="/product/${slug}/">
-                <img src="${src}" alt="${esc(name)}, worn" class="photo">
-              </a>
-              <a class="look-name" href="/product/${slug}/">${esc(name)}</a>
-            </article>
+      </div>
+      <div class="look-marquee">
+        <div class="look-track">
+          ${[false, true].map((hidden) => `
+            <div class="look-set"${hidden ? ' aria-hidden="true"' : ""}>
+              ${looks.map(([slug, src, name]) => `
+                <article class="look">
+                  <a class="look-frame" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>
+                    <img src="${src}" alt="${esc(name)}, worn" class="photo">
+                  </a>
+                  <a class="look-name" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>${esc(name)}</a>
+                </article>
+              `).join("")}
+            </div>
           `).join("")}
         </div>
       </div>
@@ -371,13 +373,6 @@ function renderHome() {
         <div class="section-head">
           <h2>Instagram</h2>
           <p class="lede"><a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a></p>
-        </div>
-        <div class="ig-grid">
-          ${instagramShots.map((shot) => `
-            <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">
-              <img src="${shot.src}" alt="${esc(shot.alt)}" class="${fitClass(shot)}">
-            </a>
-          `).join("")}
         </div>
       </div>
     </section>
