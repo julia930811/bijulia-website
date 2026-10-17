@@ -127,10 +127,7 @@ function shell() {
         </div>
         <div>
           <h2>About</h2>
-          <a href="/about/">Our Story</a>
           <a href="/#looks">Outfit</a>
-        </div>
-        <div>
           <h2>Instagram</h2>
           <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
         </div>
