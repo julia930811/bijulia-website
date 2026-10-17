@@ -303,6 +303,9 @@ function renderHome() {
     <section class="swan-band" aria-label="Swans">
       <img src="/images/swans.gif" alt="Two glittering swans">
     </section>
+    <section class="fountain-band" aria-label="Fountain">
+      <img src="/images/fountain.gif" alt="A fountain with a bird, flowers, and a sign">
+    </section>
     <section class="section" id="new-in">
       <div class="wrap">
         <div class="section-head"><h2>New In</h2></div>
