@@ -623,7 +623,7 @@ function renderOrderSent() {
         <h1 class="page-title"><a href="${site.instagram}">${esc(site.instagramHandle)}</a></h1>
         <p>請私訊討論更多細節。</p>
         <a class="btn" href="${site.instagram}">${esc(site.instagramHandle)}</a>
-        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡寄出訂單。</a></p>` : ""}
+        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡。寄出後，你的 Gmail 會收到下單成功通知。</a></p>` : ""}
       </div>
     </div>
   `;
@@ -647,7 +647,7 @@ function renderCheckout() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { href: "/cart/", label: "Your bag" }, { label: "Request" }])}
       <h1 class="page-title">Request an order</h1>
-      <p class="fine" style="max-width:52ch;margin-bottom:28px">留下姓名、電話、Gmail 和 7-11 店名。這會打開 Gmail，把訂單寄到工作室，不會在這裡付款。</p>
+      <p class="fine" style="max-width:52ch;margin-bottom:28px">留下姓名、電話、Gmail 和 7-11 店名。這會打開 Gmail，寄給工作室，也寄到你的 Gmail，通知下單成功。請在 Gmail 按寄出。不會在這裡付款。</p>
       <form id="request-form" style="max-width:440px">
           <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
           <label class="field"><span>電話</span><input name="phone" type="tel" required autocomplete="tel"></label>
@@ -907,6 +907,10 @@ function buildGmailUrl(data) {
   }).filter(Boolean);
   const sums = totals();
   const body = [
+    `${data.name}，你的 BiJulia 訂單已送出。`,
+    "這封信會寄到工作室，也會寄到你的 Gmail。",
+    "請到 Instagram 私訊 @2sbijulia，討論更多細節。",
+    "",
     `姓名：${data.name}`,
     `電話：${data.phone}`,
     `Gmail：${data.gmail}`,
@@ -923,8 +927,8 @@ function buildGmailUrl(data) {
   const query = new URLSearchParams({
     view: "cm",
     fs: "1",
-    to: site.email,
-    su: `BiJulia 訂單，來自 ${data.name}`,
+    to: `${site.email},${data.gmail}`,
+    su: "BiJulia 下單成功",
     body,
   });
   return `https://mail.google.com/mail/?${query.toString()}`;
