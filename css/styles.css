@@ -381,7 +381,7 @@ h1, h2, h3, p { margin: 0; }
   display: grid;
   place-items: center;
 }
-.quick-add.is-sold { color: var(--ink-soft); pointer-events: none; background: transparent; }
+.quick-add.is-sold { color: var(--ink-soft); pointer-events: none; background: #fff; }
 .sold-out-mark {
   display: block;
   width: auto;
@@ -390,7 +390,12 @@ h1, h2, h3, p { margin: 0; }
   margin: 0 auto;
   filter: none;
 }
-.quick-add .sold-out-mark { height: 34px; }
+.quick-add .sold-out-mark {
+  width: 100%;
+  height: 32px;
+  max-height: none;
+  object-fit: contain;
+}
 .btn .sold-out-mark { height: 40px; }
 .btn.is-sold,
 .btn.is-sold:hover {

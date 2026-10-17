@@ -71,6 +71,11 @@ export function setQty(slug, qty, max = 5, color = "") {
   emit();
 }
 
+export function clearCart() {
+  state.cart = [];
+  emit();
+}
+
 export function removeFromCart(slug, color = "") {
   const tone = color || "";
   state.cart = state.cart.filter((item) => !(item.slug === slug && (item.color || "") === tone));

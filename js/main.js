@@ -7,8 +7,8 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js?v=3";
-import * as store from "./store.js";
+} from "./data.js?v=5";
+import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
@@ -606,14 +606,31 @@ function renderCart() {
           <div class="summary-row"><strong>合計</strong><strong>${money(sums.total)}</strong></div>
           <p class="fine">${esc(shippingNote(sums.sub))}</p>` : ""}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
-          <p class="fine" style="margin-top:12px">每一筆訂單都會先以電子郵件確認，再付款。這個頁面不會扣款。</p>
+          <p class="fine" style="margin-top:12px">下單後請到 Instagram 私訊，討論更多細節。這個頁面不會扣款。</p>
         </aside>
       </div>
     </div>
   `;
 }
 
+function renderOrderSent() {
+  let mail = "";
+  try { mail = sessionStorage.getItem("bijulia-order-mail") || ""; } catch { /* ignore */ }
+  return `
+    <div class="page">
+      <div class="empty">
+        <p class="kicker">Instagram</p>
+        <h1 class="page-title"><a href="${site.instagram}">${esc(site.instagramHandle)}</a></h1>
+        <p>請私訊討論更多細節。</p>
+        <a class="btn" href="${site.instagram}">${esc(site.instagramHandle)}</a>
+        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡寄出訂單。</a></p>` : ""}
+      </div>
+    </div>
+  `;
+}
+
 function renderCheckout() {
+  if (params().get("sent") === "1") return renderOrderSent();
   const items = store.getCart();
   if (!items.length) {
     return `
@@ -626,33 +643,18 @@ function renderCheckout() {
       </div>
     `;
   }
-  const sums = totals();
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { href: "/cart/", label: "Your bag" }, { label: "Request" }])}
       <h1 class="page-title">Request an order</h1>
-      <p class="fine" style="max-width:52ch;margin-bottom:28px">手工的作品會由人親自確認。這會開啟一封帶著清單的信，不會在這裡付款。</p>
-      <div class="checkout-layout">
-        <form id="request-form">
+      <p class="fine" style="max-width:52ch;margin-bottom:28px">留下姓名、電話、Gmail 和 7-11 店名。這會打開 Gmail，把訂單寄到工作室，不會在這裡付款。</p>
+      <form id="request-form" style="max-width:440px">
           <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
-          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-          <label class="field"><span>要寄到哪裡？</span><input name="place" autocomplete="shipping address-level2"></label>
-          <label class="field"><span>備註</span><textarea name="note" placeholder="長度、想要的珍珠，或一個日期。"></textarea></label>
-          <button class="btn btn-fill" type="submit">Email this request</button>
-          <p class="form-note fine" id="request-note"></p>
-        </form>
-        <aside class="summary">
-          <h2>Pieces</h2>
-          ${items.map((item) => {
-            const product = productBySlug(item.slug);
-            if (!product) return "";
-            return `<div class="summary-row"><span>${esc(product.name)} × ${item.qty}</span><span>${priceText(product, item.qty)}</span></div>`;
-          }).join("")}
-          ${summaryMoney(sums)}
-          ${sums.sub ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : money(sums.ship)}</span></div>
-          <div class="summary-row"><strong>合計</strong><strong>${money(sums.total)}</strong></div>` : ""}
-        </aside>
-      </div>
+          <label class="field"><span>電話</span><input name="phone" type="tel" required autocomplete="tel"></label>
+          <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
+          <label class="field"><span>7-11 店名</span><input name="store" required></label>
+          <button class="btn btn-fill" type="submit">Send</button>
+      </form>
     </div>
   `;
 }
@@ -737,14 +739,14 @@ function renderCare() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Customer Care" }])}
       <h1 class="page-title">Customer Care</h1>
-      <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，寫信來。</p>
+      <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
         <p>滿 ${money(site.freeShipping)} 免運。未滿則運費 ${money(site.shippingFee)}。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
         <h2>Returns</h2>
-        <p>未穿過的項鍊可在 14 天內退回，請放回原來的袋子。貼紙只有完全未使用、仍在封套裡才能退。寄回之前請先寫信告訴我們。</p>
+        <p>未穿過的項鍊可在 14 天內退回，請放回原來的袋子。貼紙只有完全未使用、仍在封套裡才能退。寄回之前請先到 Instagram 私訊告訴我們。</p>
       </section>
       <section class="care-block" id="care">
         <h2>Jewelry Care</h2>
@@ -752,7 +754,7 @@ function renderCare() {
       </section>
       <section class="care-block" id="contact">
         <h2>Contact</h2>
-        <p>訂單、修理，或關於一顆珍珠的問題，請寫信到 <a class="linkish" href="mailto:${site.email}">${esc(site.email)}</a>。</p>
+        <p>訂單、修理，或關於一顆珍珠的問題，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。</p>
       </section>
     </div>
   `;
@@ -896,7 +898,7 @@ function renderSearch(query) {
   box.innerHTML = `<p class="search-label">${esc(label)}</p>${rows}${empty}`;
 }
 
-function buildMailto(data) {
+function buildGmailUrl(data) {
   const items = store.getCart().map((item) => {
     const product = productBySlug(item.slug);
     const tone = product && colorById(product, item.color);
@@ -906,8 +908,9 @@ function buildMailto(data) {
   const sums = totals();
   const body = [
     `姓名：${data.name}`,
-    `電子郵件：${data.email}`,
-    `寄到：${data.place || "—"}`,
+    `電話：${data.phone}`,
+    `Gmail：${data.gmail}`,
+    `7-11 店名：${data.store}`,
     "",
     "作品：",
     ...items,
@@ -916,10 +919,15 @@ function buildMailto(data) {
     sums.sub ? `飾品：${money(sums.sub)}` : "",
     sums.sub ? `運費：${sums.ship === 0 ? "免運" : money(sums.ship)}` : "",
     sums.sub ? `飾品合計：${money(sums.total)}` : "",
-    "",
-    `備註：${data.note || "—"}`,
-  ].join("\n");
-  return `mailto:${site.email}?subject=${encodeURIComponent(`BiJulia 訂單請求，來自 ${data.name}`)}&body=${encodeURIComponent(body)}`;
+  ].filter((line) => line !== undefined).join("\n");
+  const query = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: site.email,
+    su: `BiJulia 訂單，來自 ${data.name}`,
+    body,
+  });
+  return `https://mail.google.com/mail/?${query.toString()}`;
 }
 
 function onClick(event) {
@@ -1016,9 +1024,11 @@ function onSubmit(event) {
   if (event.target.id === "request-form") {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target).entries());
-    const note = document.getElementById("request-note");
-    note.innerHTML = `郵件程式應該會打開這封請求。如果沒有，請寫信到 <a href="mailto:${site.email}">${esc(site.email)}</a>。`;
-    window.location.href = buildMailto(data);
+    const url = buildGmailUrl(data);
+    store.clearCart();
+    try { sessionStorage.setItem("bijulia-order-mail", url); } catch { /* ignore */ }
+    window.open(url, "_blank", "noopener");
+    location.href = "/checkout/?sent=1";
   }
 }
 

@@ -1,6 +1,6 @@
 export const site = {
   name: "BiJulia",
-  email: "hello@bijulia.com",
+  email: "jiayiwu009@gmail.com",
   instagram: "https://www.instagram.com/2sbijulia/",
   instagramHandle: "@2sbijulia",
   freeShipping: 180,
