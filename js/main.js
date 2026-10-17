@@ -184,7 +184,7 @@ function card(product) {
       <div class="card-media">
         <a href="/product/${product.slug}/"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>
         ${product.soldOut
-          ? `<span class="quick-add is-sold">Sold out</span>`
+          ? `<span class="quick-add is-sold"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></span>`
           : product.colors
             ? `<a class="quick-add" href="/product/${product.slug}/">Choose color</a>`
             : `<button class="quick-add" type="button" data-add="${product.slug}">Add to bag</button>`}
@@ -192,7 +192,7 @@ function card(product) {
       <div class="card-info">
         <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
-        ${product.soldOut ? `<p class="fine">已售完</p>` : ""}
+        ${product.soldOut ? `<p class="fine"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></p>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
@@ -539,7 +539,7 @@ function renderProduct() {
           <p class="kicker">${esc(collection ? collection.name : "")}</p>
           <h1>${esc(product.name)}</h1>
           <p class="price">${priceText(product)}</p>
-          ${product.soldOut ? `<p class="sold-note">已售完</p>` : ""}
+          ${product.soldOut ? `<p class="sold-note"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></p>` : ""}
           ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
           <div class="desc-wrap">
             <p class="desc">${esc(product.description)}</p>
@@ -555,7 +555,7 @@ function renderProduct() {
             <input data-qty-input value="1" inputmode="numeric" aria-label="數量">
             <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
           </div>`}
-          <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? "Sold out" : "Add to bag"}</button>
+          <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>
           <details open>
             <summary>細節</summary>
             <p>${esc(product.details)}</p>
