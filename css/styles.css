@@ -358,6 +358,10 @@ h1, h2, h3, p { margin: 0; }
   aspect-ratio: 1;
   background: #fff;
 }
+.card-media:has(img.fit-stack),
+.tile:has(img.fit-stack) {
+  aspect-ratio: 9 / 16;
+}
 .card-media img.fit-full,
 .tile img.fit-full,
 .pdp-gallery img.fit-full,
@@ -731,6 +735,7 @@ img.photo { filter: none; }
 }
 .pdp-gallery img.fit-contain { object-fit: contain; padding: 8%; }
 .pdp-gallery img.fit-full { aspect-ratio: 1; }
+.pdp-gallery img.fit-stack { aspect-ratio: 9 / 16; object-fit: cover; height: auto; }
 .pdp-gallery video {
   width: 100%;
   height: auto;

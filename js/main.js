@@ -7,7 +7,7 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js?v=5";
+} from "./data.js?v=6";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -52,7 +52,7 @@ function iconClose() {
 
 function fitClass(item) {
   const mode = item && (item.imageFit || item.fit);
-  const fit = mode === "contain" ? "fit-contain" : mode === "full" ? "fit-full" : "";
+  const fit = mode === "contain" ? "fit-contain" : mode === "full" ? "fit-full" : mode === "stack" ? "fit-stack" : "";
   const src = item && (item.image || item.src) ? item.image || item.src : "";
   const photo = /\.(jpe?g|png|gif|webp)$/i.test(src) ? "photo" : "";
   return [fit, photo].filter(Boolean).join(" ");
@@ -532,7 +532,7 @@ function renderProduct() {
         <div class="pdp-gallery">
           ${product.colors && product.colors.length
             ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}，${esc(product.colors[0].name)}" class="${fitClass(product)}">`
-            : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${fitClass(product)}">`).join("")}
+            : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${src === product.image ? fitClass(product) : "photo"}">`).join("")}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" autoplay muted playsinline preload="auto" controls></video>` : ""}
         </div>
         <div class="pdp-info">
