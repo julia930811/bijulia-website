@@ -15,7 +15,7 @@ export const products = [
     currency: "TWD",
     category: "necklace",
     collection: "lace-ribbons",
-    isNew: true,
+    isNew: false,
     isBestSeller: false,
     maxQty: 5,
     image: "/images/products/lace-butterfly-choker.jpg",
@@ -34,7 +34,7 @@ export const products = [
     currency: "TWD",
     category: "necklace",
     collection: "lace-ribbons",
-    isNew: true,
+    isNew: false,
     isBestSeller: false,
     maxQty: 5,
     image: "/images/products/button-lace-choker.jpg",
@@ -52,7 +52,7 @@ export const products = [
     currency: "TWD",
     category: "necklace",
     collection: "lace-ribbons",
-    isNew: true,
+    isNew: false,
     isBestSeller: false,
     maxQty: 5,
     image: "/images/products/ivory-lace-cross.jpg",
@@ -91,7 +91,7 @@ export const products = [
     currency: "TWD",
     category: "necklace",
     collection: "vintage-treasures",
-    isNew: true,
+    isNew: false,
     isBestSeller: true,
     soldOut: true,
     maxQty: 5,
@@ -113,7 +113,7 @@ export const products = [
     currency: "TWD",
     category: "necklace",
     collection: "vintage-treasures",
-    isNew: true,
+    isNew: false,
     isBestSeller: false,
     soldOut: true,
     maxQty: 5,
@@ -176,7 +176,7 @@ export const products = [
     unit: "一組三張",
     category: "sticker",
     collection: "shell-stickers",
-    isNew: true,
+    isNew: false,
     isBestSeller: false,
     maxQty: 12,
     image: "/images/stickers/shell-sticker.png",
@@ -235,51 +235,6 @@ export const collections = [
   },
 ];
 
-export const journal = [
-  {
-    slug: "notes-from-the-garden",
-    title: "Notes from the Garden",
-    date: "2026年4月12日",
-    excerpt: "設計項鍊，像沿著玫瑰小徑慢慢走，中間要有地方停下來。",
-    image: "/images/journal/garden.svg",
-    pull: "一條項鍊，該像一扇沒關緊的門。",
-    paragraphs: [
-      "最初的作品是從散步開始的。一扇白門，門閂上的油漆已經磨薄。玫瑰邊緣有一點灰，我信任這種顏色，勝過新鮮的紅。",
-      "我站著畫草稿，坐下來才開始做。鏈子是路，吊飾是你停下的地方。如果一件作品沒有地方讓眼睛休息，它就回到桌上。",
-      "Rose Gate 是教會我這件事的那條項鍊。它不是一束花。它是一朵花，以及花周圍的安靜。",
-      "花園太濕、不能走的時候，同一批圖就變成小小的紙貝殼。線條一樣，只是尺寸不同。",
-    ],
-  },
-  {
-    slug: "a-study-in-lace",
-    title: "A Study in Lace",
-    date: "2026年6月2日",
-    excerpt: "古董蕾絲教給做飾品的人：邊緣、柔軟，以及中間那些空。",
-    image: "/images/journal/lace.svg",
-    pull: "蕾絲是學會變成布的一幅畫。",
-    paragraphs: [
-      "我把一小塊象牙色蕾絲和零件放在同一個抽屜裡。它是破的，這正好有用。破邊看得出圖案怎麼被固定，又在哪裡願意鬆開。",
-      "Ivory Lace Collar 就是那一小塊，翻譯成金屬。扇形、空隙、再一個扇形。我盡量不把空隙填滿。空隙才讓它像蕾絲，而不是盔甲。",
-      "緞帶是另一位老師。蝴蝶結該像有人剛綁好、然後離開房間。如果看起來太刻意，我就拆掉重來。",
-      "有人問蝴蝶結是布還是金屬。它們是絲，縫在細鏈上。它們會變軟。這是被允許的。",
-    ],
-  },
-  {
-    slug: "pearls-for-quiet-days",
-    title: "Pearls for Quiet Days",
-    date: "2026年9月18日",
-    excerpt: "為什麼一顆淡水珍珠，可以像整個下午的光。",
-    image: "/images/journal/pearls.svg",
-    pull: "珍珠不需要理由。它需要一個長度。",
-    paragraphs: [
-      "淡水珍珠很少完美，所以我用它們。一點凹痕、比較暖的一面、形狀幾乎是水滴，又忽然改了主意。",
-      "Moonpearl 是我做過最正式的一件，我還是不肯把每一串配得太齊。三排一模一樣的珠子會像制服。我想要的是月光，而月光是不均勻的。",
-      "小珍珠是相反的一課：幾乎什麼都沒有，重複到它變成一條線。它們是給沒有場合的日子。",
-      "巴洛克垂飾是一顆珍珠和一條鏈。如果你訂它，包裹裡的珍珠不會是圖上的那一顆。想從桌上這幾顆裡挑，寫信給我。",
-    ],
-  },
-];
-
 export const instagramShots = [
   { src: "/images/products/lace-butterfly-choker-worn.jpg", alt: "穿上蕾絲蝴蝶頸圈", fit: "cover" },
   { src: "/images/products/ivory-lace-cross-worn.jpg", alt: "象牙色蕾絲十字架，配白洋裝", fit: "cover" },
@@ -296,10 +251,6 @@ export function productBySlug(slug) {
 
 export function collectionBySlug(slug) {
   return collections.find((item) => item.slug === slug) || null;
-}
-
-export function articleBySlug(slug) {
-  return journal.find((item) => item.slug === slug) || null;
 }
 
 export function productsIn(collectionSlug) {

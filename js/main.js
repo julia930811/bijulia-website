@@ -2,12 +2,10 @@ import {
   site,
   products,
   collections,
-  journal,
   productBySlug,
   collectionBySlug,
-  articleBySlug,
   productsIn,
-} from "./data.js?v=8";
+} from "./data.js?v=9";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -77,8 +75,7 @@ function shell() {
       (key === "new" && path.startsWith("/shop") && filter === "new") ||
       (key === "shop" && (path.startsWith("/shop") || path.startsWith("/product")) && filter !== "new") ||
       (key === "looks" && path === "/" && location.hash === "#looks") ||
-      (key === "about" && path.startsWith("/about")) ||
-      (key === "journal" && path.startsWith("/journal"));
+      (key === "about" && path.startsWith("/about"));
     return on ? ' aria-current="page"' : "";
   };
   const sub = (href, label) => `<a href="${href}">${label}</a>`;
@@ -103,7 +100,6 @@ function shell() {
           </div>
           <a href="/#looks"${mark("looks")}>Outfit</a>
           <a href="/about/"${mark("about")}>About</a>
-          <a href="/journal/"${mark("journal")}>Journal</a>
         </nav>
         <div class="tools">
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
@@ -132,7 +128,6 @@ function shell() {
         <div>
           <h2>About</h2>
           <a href="/about/">Our Story</a>
-          <a href="/journal/">Journal</a>
           <a href="/#looks">Outfit</a>
         </div>
         <div>
@@ -173,7 +168,6 @@ function shell() {
       <a class="sub" href="/shop/?filter=sticker">Stickers</a>
       <a href="/#looks">Outfit</a>
       <a href="/about/">About</a>
-      <a href="/journal/">Journal</a>
     </div>
   `;
 }
@@ -417,7 +411,7 @@ function shopHeading(filter) {
   if (collection) return [collection.name, collection.blurb];
   const map = {
     all: ["Shop", "少量製作的項鍊與貝殼貼紙。"],
-    new: ["New In", "最新的項鍊，以及貝殼貼紙。"],
+    new: ["New In", "最新的項鍊。"],
     best: ["Best Sellers", "最先離開桌面的那幾件。"],
     necklace: ["Necklaces", "給浪漫的人的手工飾品。"],
     sticker: ["Stickers", "貝殼圖，三張貼紙 NT$50。"],
@@ -674,61 +668,6 @@ function renderAbout() {
           <p>項鍊之外，BiJulia 把貝殼印成貼紙。一組三張是 NT$50。</p>
         </div>
       </div>
-      <div class="steps">
-        <div><h3>Gather</h3><p class="fine">珍珠、緞帶、有舊物感的零件，以及哪天想用紙的時候，那張貝殼圖。</p></div>
-        <div><h3>Compose</h3><p class="fine">每一條項鍊都用手排好，在日光下看過，才准它留下。</p></div>
-        <div><h3>Keep small</h3><p class="fine">每種只做幾件。沒了以後，下一件不會完全一樣。</p></div>
-      </div>
-    </div>
-  `;
-}
-
-function renderJournal() {
-  return `
-    <div class="page">
-      ${crumbs([{ href: "/", label: "Home" }, { label: "Journal" }])}
-      <h1 class="page-title">Journal</h1>
-      <p class="fine" style="margin-bottom:36px">從工作室慢慢寫下的筆記。</p>
-      <div class="journal-list">
-        ${journal.map((article) => `
-          <a class="journal-item" href="/journal/${article.slug}/">
-            <img src="${article.image}" alt="">
-            <div>
-              <p class="kicker">${esc(article.date)}</p>
-              <h2>${esc(article.title)}</h2>
-              <p>${esc(article.excerpt)}</p>
-            </div>
-          </a>
-        `).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function renderArticle() {
-  const article = articleBySlug(slug);
-  if (!article) return renderNotFound();
-  document.title = `${article.title} — BiJulia`;
-  const others = journal.filter((item) => item.slug !== article.slug);
-  return `
-    <div class="page">
-      ${crumbs([{ href: "/", label: "Home" }, { href: "/journal/", label: "Journal" }, { label: article.title }])}
-      <article class="article">
-        <img class="lead-img" src="${article.image}" alt="">
-        <p class="date">${esc(article.date)}</p>
-        <h1>${esc(article.title)}</h1>
-        <div class="prose">
-          <p>${esc(article.paragraphs[0])}</p>
-          <p class="pull">${esc(article.pull)}</p>
-          ${article.paragraphs.slice(1).map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}
-        </div>
-      </article>
-      <div class="related">
-        <h2>More notes</h2>
-        <div class="journal-list">
-          ${others.map((item) => `<a class="linkish" href="/journal/${item.slug}/">${esc(item.title)}</a>`).join(" · ")}
-        </div>
-      </div>
     </div>
   `;
 }
@@ -783,8 +722,6 @@ function renderMain() {
     cart: renderCart,
     checkout: renderCheckout,
     about: renderAbout,
-    journal: renderJournal,
-    "journal-article": renderArticle,
     care: renderCare,
     "not-found": renderNotFound,
   };
@@ -795,7 +732,6 @@ function renderMain() {
     cart: "Your Bag — BiJulia",
     checkout: "Request an Order — BiJulia",
     about: "About — BiJulia",
-    journal: "Journal — BiJulia",
     care: "Customer Care — BiJulia",
   };
   if (titles[page]) document.title = titles[page];
