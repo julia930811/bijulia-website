@@ -7,7 +7,7 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js";
+} from "./data.js?v=2";
 import * as store from "./store.js";
 
 const page = document.body.dataset.page || "home";
@@ -15,7 +15,7 @@ const slug = document.body.dataset.slug || "";
 const ui = { drawer: false, search: false, menu: false };
 
 const ABOUT_LEAD =
-  "BiJulia was born from a love of vintage details, romantic gardens, lace, and forgotten treasures. Each piece is handmade in small quantities.";
+  "BiJulia 始於對舊日細節、浪漫花園、蕾絲與被遺忘的小物的喜愛。每一件都少量手工製作。";
 
 function esc(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({
@@ -83,12 +83,12 @@ function shell() {
   };
   const sub = (href, label) => `<a href="${href}">${label}</a>`;
   return `
-    <a class="skip" href="#app">Skip to content</a>
-    <div class="announce">Handmade in small batches · Complimentary shipping over ${money(site.freeShipping)}</div>
+    <a class="skip" href="#app">跳至內文</a>
+    <div class="announce">少量手工製作 · 滿 ${money(site.freeShipping)} 免運</div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
-          <button class="menu-toggle" type="button" data-open-menu aria-label="Open menu">${iconMenu()}</button>
+          <button class="menu-toggle" type="button" data-open-menu aria-label="開啟選單">${iconMenu()}</button>
           <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt="BiJulia"></a>
         </div>
         <nav class="nav" aria-label="Primary">
@@ -106,8 +106,8 @@ function shell() {
           <a href="/journal/"${mark("journal")}>Journal</a>
         </nav>
         <div class="tools">
-          <button class="icon-btn" type="button" data-open-search aria-label="Search">${iconSearch()}</button>
-          <button class="icon-btn" type="button" data-open-drawer aria-label="Shopping bag">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
+          <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
+          <button class="icon-btn" type="button" data-open-drawer aria-label="購物袋">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
         </div>
       </div>
     </header>
@@ -127,7 +127,6 @@ function shell() {
           <a href="/customer-care/#shipping">Shipping</a>
           <a href="/customer-care/#returns">Returns</a>
           <a href="/customer-care/#care">Jewelry Care</a>
-          <a href="/customer-care/#stickers">Sticker Care</a>
           <a href="/customer-care/#contact">Contact</a>
         </div>
         <div>
@@ -143,30 +142,30 @@ function shell() {
       </div>
       <div class="footer-base">
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
-        <span>© ${new Date().getFullYear()} BiJulia. Handmade in small quantities.</span>
+        <span>© ${new Date().getFullYear()} BiJulia. 少量手工製作。</span>
       </div>
     </footer>
     <div class="scrim" data-close-overlay hidden></div>
-    <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Shopping bag">
+    <aside id="drawer" class="drawer" aria-hidden="true" aria-label="購物袋">
       <div class="drawer-head">
         <h2>Your bag</h2>
-        <button class="icon-btn" type="button" data-close-overlay aria-label="Close bag">${iconClose()}</button>
+        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉購物袋">${iconClose()}</button>
       </div>
       <div id="drawer-body"></div>
       <div class="drawer-foot" id="drawer-foot"></div>
     </aside>
     <div id="search" class="search-screen" aria-hidden="true">
       <form id="search-form" class="search-top" role="search">
-        <label class="sr-only" for="q">Search the atelier</label>
-        <input id="q" type="search" placeholder="Search the atelier" autocomplete="off">
-        <button class="icon-btn" type="button" data-close-overlay aria-label="Close search">${iconClose()}</button>
+        <label class="sr-only" for="q">搜尋作品</label>
+        <input id="q" type="search" placeholder="搜尋作品" autocomplete="off">
+        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉搜尋">${iconClose()}</button>
       </form>
       <div id="search-results" class="search-results"></div>
     </div>
     <div id="mobile-nav" class="mobile-nav" aria-hidden="true">
       <div class="mobile-head">
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
-        <button class="icon-btn" type="button" data-close-overlay aria-label="Close menu">${iconClose()}</button>
+        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
       </div>
       <a href="/shop/?filter=new">New In</a>
       <a href="/shop/">Shop</a>
@@ -193,7 +192,7 @@ function card(product) {
       <div class="card-info">
         <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
-        ${product.soldOut ? `<p class="fine">Sold out</p>` : ""}
+        ${product.soldOut ? `<p class="fine">已售完</p>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
@@ -203,7 +202,7 @@ function card(product) {
 
 function grid(list) {
   if (!list.length) {
-    return `<div class="empty"><h2>Nothing in this edit yet.</h2><p class="fine">The table is between pieces.</p></div>`;
+    return `<div class="empty"><h2>Nothing in this edit yet.</h2><p class="fine">桌上暫時空著。</p></div>`;
   }
   return `<div class="product-grid">${list.map(card).join("")}</div>`;
 }
@@ -232,16 +231,16 @@ function totals() {
 
 function summaryMoney(sums) {
   const rows = [];
-  if (sums.sub) rows.push(`<div class="summary-row"><span>Subtotal</span><span>${money(sums.sub)}</span></div>`);
+  if (sums.sub) rows.push(`<div class="summary-row"><span>小計</span><span>${money(sums.sub)}</span></div>`);
   if (sums.twd) rows.push(`<div class="summary-row"><span>NT$</span><span>NT$${sums.twd.toLocaleString("en-US")}</span></div>`);
   return rows.join("");
 }
 
 function shippingNote(sub) {
   if (sub === 0) return "";
-  if (sub >= site.freeShipping) return "Complimentary shipping";
+  if (sub >= site.freeShipping) return "免運";
   const rest = site.freeShipping - sub;
-  return `Add ${money(rest)} for complimentary shipping`;
+  return `再加 ${money(rest)} 即可免運`;
 }
 
 function colorById(product, id) {
@@ -252,7 +251,7 @@ function colorPicker(product) {
   if (!product.colors || !product.colors.length) return "";
   return `
     <div class="color-pick">
-      <p class="fine" id="color-label">Color</p>
+      <p class="fine" id="color-label">顏色</p>
       <div class="color-options" role="radiogroup" aria-labelledby="color-label">
         ${product.colors.map((color, index) => `
           <button type="button" class="color-option${index === 0 ? " is-on" : ""}" role="radio" aria-checked="${index === 0}" data-color="${esc(color.id)}" data-image="${color.image}">
@@ -271,7 +270,7 @@ function line(item, compact) {
   const tone = colorById(product, item.color);
   const image = tone ? tone.image : product.image;
   const colorAttr = item.color ? ` data-color="${esc(item.color)}"` : "";
-  const limit = item.qty >= product.maxQty ? '<p class="fine">Small-batch limit for this piece.</p>' : "";
+  const limit = item.qty >= product.maxQty ? '<p class="fine">這件已到少量上限。</p>' : "";
   return `
     <article class="line">
       <a href="/product/${product.slug}/"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
@@ -279,9 +278,9 @@ function line(item, compact) {
         <h3><a href="/product/${product.slug}/">${esc(product.name)}</a></h3>
         ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
         <div class="qty" data-max="${product.maxQty}">
-          <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="Decrease quantity">−</button>
+          <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="減少數量">−</button>
           <span aria-live="polite">${item.qty}</span>
-          <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="Increase quantity">+</button>
+          <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="增加數量">+</button>
         </div>
         ${compact ? "" : limit}
         <button class="remove" type="button" data-remove="${product.slug}"${colorAttr}>Remove</button>
@@ -305,19 +304,18 @@ function renderHome() {
   return `
     <section class="hero">
       <div class="hero-copy">
-        <h1>BiJulia</h1>
-        <p>${esc(site.tagline)}</p>
+        <h1><img class="wordmark" src="/images/bijulia-wordmark.png" alt="BiJulia"></h1>
       </div>
     </section>
-    <section class="scene-band" aria-label="Fairy and fountain">
-      <img src="/images/fairy-fountain.gif?v=3" alt="A fairy beside a flowered fountain">
-      <a class="btn scene-shop" href="/shop/">Shop now</a>
+    <section class="scene-band" aria-label="仙女與噴水池">
+      <img src="/images/fairy-fountain.gif?v=3" alt="仙女在花噴水池旁">
+      <a class="btn scene-shop" href="/shop/"><img src="/images/shop-now.png" alt="Shop now"></a>
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
         <div class="section-head"><h2>New In</h2></div>
         ${grid(newest)}
-        <p class="more-link"><a class="linkish" href="/shop/?filter=new">View all</a></p>
+        <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
       </div>
     </section>
     <section class="section looks-section" id="looks">
@@ -331,7 +329,7 @@ function renderHome() {
               ${looks.map(([slug, src, name]) => `
                 <article class="look">
                   <a class="look-frame" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>
-                    <img src="${src}" alt="${esc(name)}, worn" class="photo">
+                    <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
                   </a>
                   <a class="look-name" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>${esc(name)}</a>
                 </article>
@@ -344,28 +342,28 @@ function renderHome() {
     <section class="section sticker-feature" id="stickers">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">Also in the atelier</p>
+          <p class="kicker">工作室裡還有</p>
           <h2>Shell Stickers</h2>
-          <p class="lede">Black or mint. Three stickers for NT$50.</p>
+          <p class="lede">黑色或薄荷綠。三張貼紙 NT$50。</p>
         </div>
         <div class="sticker-stage">${stickers.map(card).join("")}</div>
-        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">View the shells</a></p>
+        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">看貝殼</a></p>
       </div>
     </section>
     <section class="section" id="best-sellers">
       <div class="wrap">
         <div class="section-head"><h2>Best Sellers</h2></div>
         ${grid(sellers)}
-        <p class="more-link"><a class="linkish" href="/shop/?filter=best">View all</a></p>
+        <p class="more-link"><a class="linkish" href="/shop/?filter=best">查看全部</a></p>
       </div>
     </section>
     <section class="about-band" id="about-bijulia">
-      <img src="/images/about.svg" alt="A studio table with lace, roses, and a necklace">
+      <img src="/images/about.svg" alt="工作室桌上有蕾絲、玫瑰與一條項鍊">
       <div class="about-copy">
-        <p class="kicker">The studio</p>
+        <p class="kicker">工作室</p>
         <h2>About BiJulia</h2>
         <p>${esc(ABOUT_LEAD)}</p>
-        <a class="linkish" href="/about/">Read the story</a>
+        <a class="linkish" href="/about/">閱讀故事</a>
       </div>
     </section>
     <section class="section" id="instagram">
@@ -377,11 +375,11 @@ function renderHome() {
       </div>
     </section>
     <section class="newsletter" id="newsletter">
-      <p class="kicker">Letters</p>
+      <p class="kicker">信件</p>
       <h2>From the garden</h2>
-      <p class="lede">Notes on new pieces, studio days, and quiet arrivals. Occasional, and never crowded.</p>
+      <p class="lede">新作品、工作室的日子，以及安靜抵達的消息。偶爾寫，不會太密。</p>
       <form id="letter-form">
-        <input type="email" name="email" required placeholder="Email address" aria-label="Email address">
+        <input type="email" name="email" required placeholder="電子郵件" aria-label="電子郵件">
         <button class="btn" type="submit">Subscribe</button>
       </form>
       <p class="form-note fine" id="letter-note"></p>
@@ -417,11 +415,11 @@ function shopHeading(filter) {
   const collection = collectionBySlug(filter);
   if (collection) return [collection.name, collection.blurb];
   const map = {
-    all: ["Shop", "Necklaces and shell stickers, made in small quantities."],
-    new: ["New In", "The latest necklaces, and the shell stickers."],
-    best: ["Best Sellers", "The pieces that leave the table first."],
-    necklace: ["Necklaces", "Handmade jewelry for romantic souls."],
-    sticker: ["Stickers", "The shell drawing, three stickers for NT$50."],
+    all: ["Shop", "少量製作的項鍊與貝殼貼紙。"],
+    new: ["New In", "最新的項鍊，以及貝殼貼紙。"],
+    best: ["Best Sellers", "最先離開桌面的那幾件。"],
+    necklace: ["Necklaces", "給浪漫的人的手工飾品。"],
+    sticker: ["Stickers", "貝殼圖，三張貼紙 NT$50。"],
   };
   return map[filter] || map.all;
 }
@@ -431,7 +429,7 @@ function renderShop() {
   const sort = params().get("sort") || "featured";
   const [title, lede] = shopHeading(filter);
   const list = applySort(applyFilter(products, filter), sort);
-  const word = list.length === 1 ? "piece" : "pieces";
+  const word = "件";
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Shop" }])}
@@ -440,12 +438,12 @@ function renderShop() {
           <h1 class="page-title">${esc(title)}</h1>
           <p class="fine">${esc(lede)}</p>
         </div>
-        <label class="sort">Sort
-          <select data-sort aria-label="Sort pieces">
-            <option value="featured"${sort === "featured" ? " selected" : ""}>Featured</option>
-            <option value="price-asc"${sort === "price-asc" ? " selected" : ""}>Price, low to high</option>
-            <option value="price-desc"${sort === "price-desc" ? " selected" : ""}>Price, high to low</option>
-            <option value="name"${sort === "name" ? " selected" : ""}>Name</option>
+        <label class="sort">排序
+          <select data-sort aria-label="排序作品">
+            <option value="featured"${sort === "featured" ? " selected" : ""}>精選</option>
+            <option value="price-asc"${sort === "price-asc" ? " selected" : ""}>價格由低到高</option>
+            <option value="price-desc"${sort === "price-desc" ? " selected" : ""}>價格由高到低</option>
+            <option value="name"${sort === "name" ? " selected" : ""}>名稱</option>
           </select>
         </label>
       </div>
@@ -466,7 +464,7 @@ function renderCollections() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "Collections" }])}
       <div class="section-head" style="text-align:left">
         <h1 class="page-title">Collections</h1>
-        <p class="lede" style="margin-left:0">Four jewelry edits, and the shell stickers printed from the same drawings.</p>
+        <p class="lede" style="margin-left:0">四組飾品，以及從同一批圖印成的貝殼貼紙。</p>
       </div>
       <div class="collection-grid">
         ${collections.map((item) => `
@@ -489,7 +487,7 @@ function renderCollection() {
       ${crumbs([{ href: "/", label: "Home" }, { href: "/collections/", label: "Collections" }, { label: collection.name }])}
       <header class="collection-hero">
         <div>
-          <p class="kicker">Collection</p>
+          <p class="kicker">系列</p>
           <h1>${esc(collection.name)}</h1>
           <p>${esc(collection.blurb)}</p>
         </div>
@@ -512,12 +510,15 @@ function renderProduct() {
   document.title = `${product.name} — BiJulia`;
   const collection = collectionBySlug(product.collection);
   const specs = product.category === "sticker"
-    ? [["Set", "3 stickers"], ["Price", "NT$50"], ["Made", "In small batches"]]
-    : [["Length", product.length], ["Materials", product.materials], ["Made", "By hand, in small batches"]];
+    ? [["組數", "三張貼紙"], ["價格", "NT$50"], ["製作", "少量製作"]]
+    : [["長度", product.length], ["材質", product.materials], ["製作", "手工，少量製作"]];
   const care = product.category === "sticker"
-    ? "Place on a clean, dry surface. These are paper stickers with a matte print — not for fabric, and not for the wash."
-    : "When you are not wearing it, put the necklace in its chain bag.";
-  const shipping = `Complimentary shipping begins at ${money(site.freeShipping)}. Below that, shipping is ${money(site.shippingFee)}. Necklaces leave the studio within 5–8 days. Stickers often leave within 3.`;
+    ? "貼在乾淨、乾燥的表面上。這是霧面印刷的紙貼紙，不能貼在布上，也不能水洗。"
+    : "沒有戴的時候，把項鍊放回鏈袋裡。";
+  const shipping = `滿 ${money(site.freeShipping)} 免運。未滿則運費 ${money(site.shippingFee)}。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
+  const pictures = product.images && product.images.length ? product.images : [product.image];
+  const wornShots = pictures.filter((src) => /worn/i.test(src));
+  const galleryShots = pictures.filter((src) => !/worn/i.test(src));
   return `
     <div class="page">
       ${crumbs([
@@ -529,39 +530,42 @@ function renderProduct() {
       <article class="pdp">
         <div class="pdp-gallery">
           ${product.colors && product.colors.length
-            ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}, ${esc(product.colors[0].name)}" class="${fitClass(product)}">`
-            : (product.images && product.images.length ? product.images : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? ", worn" : ""}" class="${fitClass(product)}">`).join("")}
-          ${product.illustration ? `<img class="pdp-illustration" src="${product.illustration}" alt="Illustration for ${esc(product.name)}">` : ""}
+            ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}，${esc(product.colors[0].name)}" class="${fitClass(product)}">`
+            : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${fitClass(product)}">`).join("")}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" controls playsinline preload="metadata"></video>` : ""}
         </div>
         <div class="pdp-info">
           <p class="kicker">${esc(collection ? collection.name : "")}</p>
           <h1>${esc(product.name)}</h1>
           <p class="price">${priceText(product)}</p>
-          ${product.soldOut ? `<p class="sold-note">Sold out</p>` : ""}
+          ${product.soldOut ? `<p class="sold-note">已售完</p>` : ""}
           ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
-          <p class="desc">${esc(product.description)}</p>
+          <div class="desc-wrap">
+            <p class="desc">${esc(product.description)}</p>
+            ${product.illustration ? `<img class="desc-gif" src="${product.illustration}" alt="">` : ""}
+          </div>
           ${colorPicker(product)}
           <dl class="specs">
             ${specs.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}
           </dl>
           ${product.soldOut ? "" : `
           <div class="qty" data-max="${product.maxQty}">
-            <button type="button" data-qty-step="-1" aria-label="Decrease quantity">−</button>
-            <input data-qty-input value="1" inputmode="numeric" aria-label="Quantity">
-            <button type="button" data-qty-step="1" aria-label="Increase quantity">+</button>
+            <button type="button" data-qty-step="-1" aria-label="減少數量">−</button>
+            <input data-qty-input value="1" inputmode="numeric" aria-label="數量">
+            <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
           </div>`}
           <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? "Sold out" : "Add to bag"}</button>
           <details open>
-            <summary>Details</summary>
+            <summary>細節</summary>
             <p>${esc(product.details)}</p>
+            ${wornShots.length ? `<div class="detail-photos">${wornShots.map((src) => `<img class="photo" src="${src}" alt="${esc(product.name)}，穿搭">`).join("")}</div>` : ""}
           </details>
           <details>
-            <summary>Shipping</summary>
+            <summary>運送</summary>
             <p>${esc(shipping)}</p>
           </details>
           <details>
-            <summary>Care</summary>
+            <summary>保養</summary>
             <p>${esc(care)}</p>
           </details>
         </div>
@@ -581,7 +585,7 @@ function renderCart() {
       <div class="page">
         <div class="empty">
           <h1>Your bag is empty</h1>
-          <p class="fine">When a piece feels right, it will wait for you here.</p>
+          <p class="fine">當一件覺得對了，它會在這裡等你。</p>
           <a class="btn" href="/shop/">Continue shopping</a>
         </div>
       </div>
@@ -597,11 +601,11 @@ function renderCart() {
         <aside class="summary">
           <h2>Summary</h2>
           ${summaryMoney(sums)}
-          ${sums.sub ? `<div class="summary-row"><span>Shipping</span><span>${sums.ship === 0 ? "Complimentary" : money(sums.ship)}</span></div>
-          <div class="summary-row"><strong>Total</strong><strong>${money(sums.total)}</strong></div>
+          ${sums.sub ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : money(sums.ship)}</span></div>
+          <div class="summary-row"><strong>合計</strong><strong>${money(sums.total)}</strong></div>
           <p class="fine">${esc(shippingNote(sums.sub))}</p>` : ""}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
-          <p class="fine" style="margin-top:12px">We confirm each order by email before payment. Nothing is charged on this preview.</p>
+          <p class="fine" style="margin-top:12px">每一筆訂單都會先以電子郵件確認，再付款。這個頁面不會扣款。</p>
         </aside>
       </div>
     </div>
@@ -615,7 +619,7 @@ function renderCheckout() {
       <div class="page">
         <div class="empty">
           <h1>Nothing to request</h1>
-          <p class="fine">Your bag is empty.</p>
+          <p class="fine">購物袋是空的。</p>
           <a class="btn" href="/shop/">Return to the shop</a>
         </div>
       </div>
@@ -626,13 +630,13 @@ function renderCheckout() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { href: "/cart/", label: "Your bag" }, { label: "Request" }])}
       <h1 class="page-title">Request an order</h1>
-      <p class="fine" style="max-width:52ch;margin-bottom:28px">Handmade pieces are confirmed personally. This opens an email with your list — it does not take payment.</p>
+      <p class="fine" style="max-width:52ch;margin-bottom:28px">手工的作品會由人親自確認。這會開啟一封帶著清單的信，不會在這裡付款。</p>
       <div class="checkout-layout">
         <form id="request-form">
-          <label class="field"><span>Name</span><input name="name" required autocomplete="name"></label>
-          <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="email"></label>
-          <label class="field"><span>Where shall we send it?</span><input name="place" autocomplete="shipping address-level2"></label>
-          <label class="field"><span>A note</span><textarea name="note" placeholder="A length, a pearl preference, a date."></textarea></label>
+          <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
+          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
+          <label class="field"><span>要寄到哪裡？</span><input name="place" autocomplete="shipping address-level2"></label>
+          <label class="field"><span>備註</span><textarea name="note" placeholder="長度、想要的珍珠，或一個日期。"></textarea></label>
           <button class="btn btn-fill" type="submit">Email this request</button>
           <p class="form-note fine" id="request-note"></p>
         </form>
@@ -644,8 +648,8 @@ function renderCheckout() {
             return `<div class="summary-row"><span>${esc(product.name)} × ${item.qty}</span><span>${priceText(product, item.qty)}</span></div>`;
           }).join("")}
           ${summaryMoney(sums)}
-          ${sums.sub ? `<div class="summary-row"><span>Shipping</span><span>${sums.ship === 0 ? "Complimentary" : money(sums.ship)}</span></div>
-          <div class="summary-row"><strong>Total</strong><strong>${money(sums.total)}</strong></div>` : ""}
+          ${sums.sub ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : money(sums.ship)}</span></div>
+          <div class="summary-row"><strong>合計</strong><strong>${money(sums.total)}</strong></div>` : ""}
         </aside>
       </div>
     </div>
@@ -657,21 +661,21 @@ function renderAbout() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "About" }])}
       <div class="story">
-        <p class="kicker">Our story</p>
+        <p class="kicker">我們的故事</p>
         <h1 class="page-title">About BiJulia</h1>
         <p>${esc(ABOUT_LEAD)}</p>
       </div>
       <div class="split">
-        <img src="/images/about.svg" alt="Studio table with roses, lace, and pearls">
+        <img src="/images/about.svg" alt="工作室桌上有玫瑰、蕾絲與珍珠">
         <div class="prose">
-          <p>The work starts with things that already have a life: a length of lace, a pearl with a dent, a gate seen on a morning walk. Nothing is made in a rush, and nothing is made in hundreds.</p>
-          <p>Beside the necklaces, BiJulia prints the shell as a sticker. A set of three is NT$50.</p>
+          <p>工作從已經有過生活的東西開始：一段蕾絲、一顆有凹痕的珍珠、早晨散步時看見的一扇門。沒有趕工，也沒有一次做上百件。</p>
+          <p>項鍊之外，BiJulia 把貝殼印成貼紙。一組三張是 NT$50。</p>
         </div>
       </div>
       <div class="steps">
-        <div><h3>Gather</h3><p class="fine">Pearls, ribbon, vintage-feeling findings, and the shell drawing when the day asks for paper.</p></div>
-        <div><h3>Compose</h3><p class="fine">Each necklace is arranged by hand, then looked at in daylight before it is allowed to stay.</p></div>
-        <div><h3>Keep small</h3><p class="fine">A few of each. When they are gone, the next ones will not be identical.</p></div>
+        <div><h3>Gather</h3><p class="fine">珍珠、緞帶、有舊物感的零件，以及哪天想用紙的時候，那張貝殼圖。</p></div>
+        <div><h3>Compose</h3><p class="fine">每一條項鍊都用手排好，在日光下看過，才准它留下。</p></div>
+        <div><h3>Keep small</h3><p class="fine">每種只做幾件。沒了以後，下一件不會完全一樣。</p></div>
       </div>
     </div>
   `;
@@ -682,7 +686,7 @@ function renderJournal() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Journal" }])}
       <h1 class="page-title">Journal</h1>
-      <p class="fine" style="margin-bottom:36px">Notes from the studio, written slowly.</p>
+      <p class="fine" style="margin-bottom:36px">從工作室慢慢寫下的筆記。</p>
       <div class="journal-list">
         ${journal.map((article) => `
           <a class="journal-item" href="/journal/${article.slug}/">
@@ -732,26 +736,22 @@ function renderCare() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Customer Care" }])}
       <h1 class="page-title">Customer Care</h1>
-      <p class="fine" style="max-width:48ch;margin:8px 0 12px">A small studio. Write if you need a human answer.</p>
+      <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，寫信來。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
-        <p>Complimentary shipping begins at ${money(site.freeShipping)}. Below that, shipping is ${money(site.shippingFee)}. Necklaces are packed in a linen pouch and leave within 5–8 days. Stickers are slipped into a sleeve and often leave within 3 days.</p>
+        <p>滿 ${money(site.freeShipping)} 免運。未滿則運費 ${money(site.shippingFee)}。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
         <h2>Returns</h2>
-        <p>Unworn necklaces may come back within 14 days, in their pouch. Stickers can be returned only if they are still unused and in their sleeve. Write to us before you post anything back.</p>
+        <p>未穿過的項鍊可在 14 天內退回，請放回原來的袋子。貼紙只有完全未使用、仍在封套裡才能退。寄回之前請先寫信告訴我們。</p>
       </section>
       <section class="care-block" id="care">
         <h2>Jewelry Care</h2>
-        <p>When you are not wearing a necklace, put it in its chain bag.</p>
-      </section>
-      <section class="care-block" id="stickers">
-        <h2>Sticker Care</h2>
-        <p>The shells are matte printed stickers, cut to the drawing. Press them onto a clean, dry surface — paper, a mirror, a laptop. They are not for fabric and they are not meant to be washed.</p>
+        <p>沒有戴的時候，把項鍊放回鏈袋裡。</p>
       </section>
       <section class="care-block" id="contact">
         <h2>Contact</h2>
-        <p>Email <a class="linkish" href="mailto:${site.email}">${esc(site.email)}</a> for an order, a repair, or a question about a pearl.</p>
+        <p>訂單、修理，或關於一顆珍珠的問題，請寫信到 <a class="linkish" href="mailto:${site.email}">${esc(site.email)}</a>。</p>
       </section>
     </div>
   `;
@@ -763,7 +763,7 @@ function renderNotFound() {
     <div class="page">
       <div class="empty">
         <h1>This page has wandered off</h1>
-        <p class="fine">The piece you wanted may have a new name, or the path was mistyped.</p>
+        <p class="fine">你要的那一件也許換了名字，或是路徑打錯了。</p>
         <a class="btn" href="/shop/">Back to the shop</a>
       </div>
     </div>
@@ -787,7 +787,7 @@ function renderMain() {
     "not-found": renderNotFound,
   };
   const titles = {
-    home: "BiJulia — Handmade jewelry for romantic souls",
+    home: "BiJulia",
     shop: "Shop — BiJulia",
     collections: "Collections — BiJulia",
     cart: "Your Bag — BiJulia",
@@ -805,7 +805,7 @@ function drawerHtml() {
   const body = document.getElementById("drawer-body");
   const foot = document.getElementById("drawer-foot");
   if (!items.length) {
-    body.innerHTML = `<div class="empty"><h2>Your bag is empty</h2><p class="fine">A necklace or a shell can wait here.</p></div>`;
+    body.innerHTML = `<div class="empty"><h2>Your bag is empty</h2><p class="fine">一條項鍊或一枚貝殼，可以先放在這裡。</p></div>`;
     foot.innerHTML = `<a class="btn btn-fill" href="/shop/">Shop the atelier</a>`;
     return;
   }
@@ -825,7 +825,7 @@ function refreshChrome() {
     node.hidden = cartN === 0;
   });
   const bagBtn = document.querySelector("[data-open-drawer]");
-  if (bagBtn) bagBtn.setAttribute("aria-label", cartN ? `Shopping bag, ${cartN} items` : "Shopping bag");
+  if (bagBtn) bagBtn.setAttribute("aria-label", cartN ? `購物袋，${cartN} 件` : "購物袋");
   drawerHtml();
 }
 
@@ -865,7 +865,7 @@ function closeOverlays() {
 
 function searchPool(query) {
   const text = query.trim().toLowerCase();
-  if (!text) return { label: "New in the atelier", list: products.filter((item) => item.isNew).slice(0, 4) };
+  if (!text) return { label: "工作室的新品", list: products.filter((item) => item.isNew).slice(0, 4) };
   const list = products.filter((item) => {
     const collection = collectionBySlug(item.collection);
     const hay = [item.name, item.description, item.details, item.materials, item.category, collection ? collection.name : ""]
@@ -873,7 +873,7 @@ function searchPool(query) {
       .toLowerCase();
     return hay.includes(text);
   });
-  return { label: list.length ? "Pieces" : "No pieces by that name", list };
+  return { label: list.length ? "作品" : "沒有這個名字的作品", list };
 }
 
 function renderSearch(query) {
@@ -886,7 +886,7 @@ function renderSearch(query) {
       <span>${priceText(item)}</span>
     </a>
   `).join("");
-  const empty = query.trim() && !list.length ? `<p class="fine">Try rose, pearl, lace, or shell.</p>` : "";
+  const empty = query.trim() && !list.length ? `<p class="fine">試試玫瑰、珍珠、蕾絲或貝殼。</p>` : "";
   box.innerHTML = `<p class="search-label">${esc(label)}</p>${rows}${empty}`;
 }
 
@@ -899,21 +899,21 @@ function buildMailto(data) {
   }).filter(Boolean);
   const sums = totals();
   const body = [
-    `Name: ${data.name}`,
-    `Email: ${data.email}`,
-    `Send to: ${data.place || "—"}`,
+    `姓名：${data.name}`,
+    `電子郵件：${data.email}`,
+    `寄到：${data.place || "—"}`,
     "",
-    "Pieces:",
+    "作品：",
     ...items,
     "",
     sums.twd ? `NT$: NT$${sums.twd}` : "",
-    sums.sub ? `Jewelry: ${money(sums.sub)}` : "",
-    sums.sub ? `Shipping: ${sums.ship === 0 ? "Complimentary" : money(sums.ship)}` : "",
-    sums.sub ? `Jewelry total: ${money(sums.total)}` : "",
+    sums.sub ? `飾品：${money(sums.sub)}` : "",
+    sums.sub ? `運費：${sums.ship === 0 ? "免運" : money(sums.ship)}` : "",
+    sums.sub ? `飾品合計：${money(sums.total)}` : "",
     "",
-    `Note: ${data.note || "—"}`,
+    `備註：${data.note || "—"}`,
   ].join("\n");
-  return `mailto:${site.email}?subject=${encodeURIComponent(`BiJulia order request from ${data.name}`)}&body=${encodeURIComponent(body)}`;
+  return `mailto:${site.email}?subject=${encodeURIComponent(`BiJulia 訂單請求，來自 ${data.name}`)}&body=${encodeURIComponent(body)}`;
 }
 
 function onClick(event) {
@@ -999,11 +999,11 @@ function onSubmit(event) {
     const note = document.getElementById("letter-note");
     const email = input.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      note.textContent = "Please leave a valid email.";
+      note.textContent = "請留下有效的電子郵件。";
       return;
     }
     try { localStorage.setItem("bijulia-letter", email); } catch { /* ignore */ }
-    note.textContent = "Thank you. Your address stays in this browser until the letter list is connected.";
+    note.textContent = "謝謝。在訂閱名單接上之前，這個地址只留在這台瀏覽器裡。";
     input.value = "";
     return;
   }
@@ -1011,7 +1011,7 @@ function onSubmit(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target).entries());
     const note = document.getElementById("request-note");
-    note.innerHTML = `Your email app should open with this request. If it does not, write to <a href="mailto:${site.email}">${esc(site.email)}</a>.`;
+    note.innerHTML = `郵件程式應該會打開這封請求。如果沒有，請寫信到 <a href="mailto:${site.email}">${esc(site.email)}</a>。`;
     window.location.href = buildMailto(data);
   }
 }
