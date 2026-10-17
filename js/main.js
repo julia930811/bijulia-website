@@ -7,7 +7,7 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js?v=7";
+} from "./data.js?v=8";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
