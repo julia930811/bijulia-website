@@ -210,12 +210,15 @@ function card(product) {
         <button class="wish ${saved ? "is-on" : ""}" type="button" data-wish="${product.slug}" aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}: ${esc(product.name)}">${iconHeart()}</button>
         ${product.soldOut
           ? `<span class="quick-add is-sold">Sold out</span>`
-          : `<button class="quick-add" type="button" data-add="${product.slug}">Add to bag</button>`}
+          : product.colors
+            ? `<a class="quick-add" href="/product/${product.slug}/">Choose color</a>`
+            : `<button class="quick-add" type="button" data-add="${product.slug}">Add to bag</button>`}
       </div>
       <div class="card-info">
         <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
         ${product.soldOut ? `<p class="fine">Sold out</p>` : ""}
+        ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
     </article>
@@ -265,22 +268,47 @@ function shippingNote(sub) {
   return `Add ${money(rest)} for complimentary shipping`;
 }
 
+function colorById(product, id) {
+  return (product && product.colors ? product.colors : []).find((color) => color.id === id) || null;
+}
+
+function colorPicker(product) {
+  if (!product.colors || !product.colors.length) return "";
+  return `
+    <div class="color-pick">
+      <p class="fine" id="color-label">Color</p>
+      <div class="color-options" role="radiogroup" aria-labelledby="color-label">
+        ${product.colors.map((color, index) => `
+          <button type="button" class="color-option${index === 0 ? " is-on" : ""}" role="radio" aria-checked="${index === 0}" data-color="${esc(color.id)}" data-image="${color.image}">
+            <img src="${color.image}" alt="">
+            <span>${esc(color.name)}</span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function line(item, compact) {
   const product = productBySlug(item.slug);
   if (!product) return "";
+  const tone = colorById(product, item.color);
+  const image = tone ? tone.image : product.image;
+  const colorAttr = item.color ? ` data-color="${esc(item.color)}"` : "";
   const limit = item.qty >= product.maxQty ? '<p class="fine">Small-batch limit for this piece.</p>' : "";
   return `
     <article class="line">
-      <a href="/product/${product.slug}/"><img src="${product.image}" alt="" class="${fitClass(product)}"></a>
+      <a href="/product/${product.slug}/"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
       <div>
         <h3><a href="/product/${product.slug}/">${esc(product.name)}</a></h3>
+        ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
         <div class="qty" data-max="${product.maxQty}">
-          <button type="button" data-line-step="-1" data-slug="${product.slug}" aria-label="Decrease quantity">−</button>
+          <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="Decrease quantity">−</button>
           <span aria-live="polite">${item.qty}</span>
-          <button type="button" data-line-step="1" data-slug="${product.slug}" aria-label="Increase quantity">+</button>
+          <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="Increase quantity">+</button>
         </div>
         ${compact ? "" : limit}
-        <button class="remove" type="button" data-remove="${product.slug}">Remove</button>
+        <button class="remove" type="button" data-remove="${product.slug}"${colorAttr}>Remove</button>
       </div>
       <p class="line-price">${priceText(product, item.qty)}</p>
     </article>
@@ -328,7 +356,7 @@ function renderHome() {
         <div class="section-head">
           <p class="kicker">Also in the atelier</p>
           <h2>Shell Stickers</h2>
-          <p class="lede">Three stickers for NT$50.</p>
+          <p class="lede">Black or mint. Three stickers for NT$50.</p>
         </div>
         <div class="sticker-stage">${stickers.map(card).join("")}</div>
         <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">View the shells</a></p>
@@ -522,7 +550,9 @@ function renderProduct() {
       ].filter(Boolean))}
       <article class="pdp">
         <div class="pdp-gallery">
-          ${(product.images && product.images.length ? product.images : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? ", worn" : ""}" class="${fitClass(product)}">`).join("")}
+          ${product.colors && product.colors.length
+            ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}, ${esc(product.colors[0].name)}" class="${fitClass(product)}">`
+            : (product.images && product.images.length ? product.images : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? ", worn" : ""}" class="${fitClass(product)}">`).join("")}
           ${product.illustration ? `<img class="pdp-illustration" src="${product.illustration}" alt="Illustration for ${esc(product.name)}">` : ""}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" controls playsinline preload="metadata"></video>` : ""}
         </div>
@@ -533,6 +563,7 @@ function renderProduct() {
           ${product.soldOut ? `<p class="sold-note">Sold out</p>` : ""}
           ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
           <p class="desc">${esc(product.description)}</p>
+          ${colorPicker(product)}
           <dl class="specs">
             ${specs.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}
           </dl>
@@ -921,7 +952,9 @@ function renderSearch(query) {
 function buildMailto(data) {
   const items = store.getCart().map((item) => {
     const product = productBySlug(item.slug);
-    return product ? `${product.name} × ${item.qty} — ${priceText(product, item.qty)}` : "";
+    const tone = product && colorById(product, item.color);
+    const label = product ? (tone ? `${product.name} (${tone.name})` : product.name) : "";
+    return product ? `${label} × ${item.qty} — ${priceText(product, item.qty)}` : "";
   }).filter(Boolean);
   const sums = totals();
   const body = [
@@ -949,6 +982,23 @@ function onClick(event) {
     store.toggleWish(wish.dataset.wish);
     return;
   }
+  const colorBtn = event.target.closest(".color-option");
+  if (colorBtn) {
+    const group = colorBtn.closest(".color-options");
+    group.querySelectorAll(".color-option").forEach((btn) => {
+      const on = btn === colorBtn;
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    const preview = document.querySelector("[data-color-preview]");
+    if (preview && colorBtn.dataset.image) {
+      preview.src = colorBtn.dataset.image;
+      const name = colorBtn.querySelector("span")?.textContent || "";
+      const title = document.querySelector(".pdp h1")?.textContent || "";
+      preview.alt = `${title}, ${name}`;
+    }
+    return;
+  }
   const add = event.target.closest("[data-add]");
   if (add) {
     event.preventDefault();
@@ -957,17 +1007,19 @@ function onClick(event) {
     const scope = add.closest(".pdp");
     const input = scope ? scope.querySelector("[data-qty-input]") : null;
     const qty = input ? Number(input.value) : 1;
-    store.addToCart(product.slug, qty, product.maxQty);
+    const selected = scope ? scope.querySelector(".color-option.is-on") : null;
+    store.addToCart(product.slug, qty, product.maxQty, selected ? selected.dataset.color : "");
     openOverlay("drawer");
     return;
   }
   const lineStep = event.target.closest("[data-line-step]");
   if (lineStep) {
     const product = productBySlug(lineStep.dataset.slug);
-    const current = store.getCart().find((item) => item.slug === lineStep.dataset.slug);
+    const color = lineStep.dataset.color || "";
+    const current = store.getCart().find((item) => item.slug === lineStep.dataset.slug && (item.color || "") === color);
     const step = Number(lineStep.dataset.lineStep);
     if (product && product.soldOut && step > 0) return;
-    store.setQty(lineStep.dataset.slug, (current ? current.qty : 1) + step, product ? product.maxQty : 5);
+    store.setQty(lineStep.dataset.slug, (current ? current.qty : 1) + step, product ? product.maxQty : 5, color);
     return;
   }
   const qtyStep = event.target.closest("[data-qty-step]");
@@ -981,7 +1033,7 @@ function onClick(event) {
   }
   const remove = event.target.closest("[data-remove]");
   if (remove) {
-    store.removeFromCart(remove.dataset.remove);
+    store.removeFromCart(remove.dataset.remove, remove.dataset.color || "");
     return;
   }
   const filter = event.target.closest("[data-filter]");

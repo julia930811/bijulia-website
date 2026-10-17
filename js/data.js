@@ -134,10 +134,14 @@ export const products = [
     maxQty: 12,
     image: "/images/stickers/shell-sticker.png",
     imageFit: "full",
+    colors: [
+      { id: "black", name: "Black", image: "/images/stickers/shell-sticker.png" },
+      { id: "mint", name: "Mint", image: "/images/stickers/mint-shell-sticker.png" },
+    ],
     length: "",
     materials: "Printed sticker",
-    description: "The BiJulia shell, printed as a sticker. Three sheets for NT$50.",
-    details: "Each set includes three stickers of the shell drawing. For a journal, a mirror, or the back of a letter.",
+    description: "The BiJulia shell, printed as a sticker. Choose black or mint. Three sheets for NT$50.",
+    details: "Each set is three stickers of the color you choose. For a journal, a mirror, or the back of a letter.",
   },
 ];
 
@@ -177,7 +181,7 @@ export const collections = [
   {
     slug: "shell-stickers",
     name: "Shell Stickers",
-    blurb: "The shell drawing, three stickers for NT$50.",
+    blurb: "The shell drawing in black or mint, three stickers for NT$50.",
     image: "/images/stickers/shell-sticker.png",
     imageFit: "full",
     home: false,
@@ -232,7 +236,8 @@ export const journal = [
 export const instagramShots = [
   { src: "/images/products/lace-butterfly-choker-worn.jpg", alt: "Lace butterfly choker, worn", fit: "cover" },
   { src: "/images/products/ivory-lace-cross-worn.jpg", alt: "Ivory lace cross, worn with a white dress", fit: "cover" },
-  { src: "/images/stickers/shell-sticker.png", alt: "Shell sticker", fit: "full" },
+  { src: "/images/stickers/shell-sticker.png", alt: "Black shell sticker", fit: "full" },
+  { src: "/images/stickers/mint-shell-sticker.png", alt: "Mint shell sticker", fit: "full" },
   { src: "/images/products/lock-and-key-chain-worn.jpg", alt: "Lock and key chain, worn", fit: "cover" },
   { src: "/images/products/shell-disc-choker.jpg", alt: "Shell disc choker", fit: "cover" },
   { src: "/images/products/button-drop-necklace-worn.jpg", alt: "Button drop necklace, worn", fit: "cover" },

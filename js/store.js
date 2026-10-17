@@ -65,27 +65,30 @@ function cleanQty(qty) {
   return Number.isFinite(value) ? value : 0;
 }
 
-export function addToCart(slug, qty = 1, max = 5) {
+export function addToCart(slug, qty = 1, max = 5, color = "") {
   const amount = Math.max(1, cleanQty(qty) || 1);
-  const item = state.cart.find((entry) => entry.slug === slug);
+  const tone = color || "";
+  const item = state.cart.find((entry) => entry.slug === slug && (entry.color || "") === tone);
   if (item) item.qty = Math.min(max, item.qty + amount);
-  else state.cart.push({ slug, qty: Math.min(max, amount) });
+  else state.cart.push(tone ? { slug, qty: Math.min(max, amount), color: tone } : { slug, qty: Math.min(max, amount) });
   emit();
 }
 
-export function setQty(slug, qty, max = 5) {
+export function setQty(slug, qty, max = 5, color = "") {
   const amount = cleanQty(qty);
+  const tone = color || "";
   if (amount <= 0) {
-    state.cart = state.cart.filter((item) => item.slug !== slug);
+    state.cart = state.cart.filter((item) => !(item.slug === slug && (item.color || "") === tone));
   } else {
-    const item = state.cart.find((entry) => entry.slug === slug);
+    const item = state.cart.find((entry) => entry.slug === slug && (entry.color || "") === tone);
     if (item) item.qty = Math.min(max, amount);
   }
   emit();
 }
 
-export function removeFromCart(slug) {
-  state.cart = state.cart.filter((item) => item.slug !== slug);
+export function removeFromCart(slug, color = "") {
+  const tone = color || "";
+  state.cart = state.cart.filter((item) => !(item.slug === slug && (item.color || "") === tone));
   emit();
 }
 
