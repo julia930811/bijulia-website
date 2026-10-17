@@ -7,7 +7,7 @@ import {
   collectionBySlug,
   articleBySlug,
   productsIn,
-} from "./data.js?v=2";
+} from "./data.js?v=3";
 import * as store from "./store.js";
 
 const page = document.body.dataset.page || "home";
@@ -92,7 +92,7 @@ function shell() {
           <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt="BiJulia"></a>
         </div>
         <nav class="nav" aria-label="Primary">
-          <a href="/shop/?filter=new"${mark("new")}>New In</a>
+          <a href="/shop/?filter=new"${mark("new")}><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
           <div class="has-sub">
             <a href="/shop/"${mark("shop")}>Shop</a>
             <div class="submenu">
@@ -116,7 +116,7 @@ function shell() {
       <div class="footer-grid">
         <div>
           <h2>Shop</h2>
-          <a href="/shop/?filter=new">New In</a>
+          <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
           <a href="/shop/">All pieces</a>
           <a href="/shop/?filter=necklace">Necklaces</a>
           <a href="/shop/?filter=sticker">Stickers</a>
@@ -167,7 +167,7 @@ function shell() {
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
         <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
       </div>
-      <a href="/shop/?filter=new">New In</a>
+      <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
       <a href="/shop/">Shop</a>
       <a class="sub" href="/shop/?filter=necklace">Necklaces</a>
       <a class="sub" href="/shop/?filter=sticker">Stickers</a>
@@ -294,6 +294,7 @@ const looks = [
   ["lace-butterfly-choker", "/images/products/lace-butterfly-choker-worn.jpg", "Lace Butterfly Choker"],
   ["ivory-lace-cross", "/images/products/ivory-lace-cross-worn.jpg", "Ivory Lace Cross"],
   ["lock-and-key-chain", "/images/products/lock-and-key-chain-worn.jpg", "Lock and Key Chain"],
+  ["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn.jpg", "Comb and Chair Chain"],
   ["button-drop-necklace", "/images/products/button-drop-necklace-worn.jpg", "Button Drop Necklace"],
 ];
 
@@ -308,12 +309,12 @@ function renderHome() {
       </div>
     </section>
     <section class="scene-band" aria-label="仙女與噴水池">
-      <img src="/images/fairy-fountain.gif?v=3" alt="仙女在花噴水池旁">
-      <a class="btn scene-shop" href="/shop/"><img src="/images/shop-now.png" alt="Shop now"></a>
+      <img src="/images/fairy-fountain.gif?v=4" alt="仙女在花噴水池旁">
+      <a class="btn scene-shop" href="/shop/"><img class="shop-rest" src="/images/shop-now.png" alt="Shop now"><img class="shop-hover" src="/images/shop-now-hover.png" alt=""></a>
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
-        <div class="section-head"><h2>New In</h2></div>
+        <div class="section-head"><h2><img class="title-mark" src="/images/new-in.png" alt="New In"></h2></div>
         ${grid(newest)}
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
       </div>
@@ -389,7 +390,7 @@ function renderHome() {
 
 const filterOptions = [
   ["all", "All"],
-  ["new", "New In"],
+  ["new", `<img class="new-in-mark" src="/images/new-in.png" alt="New In">`],
   ["best", "Best Sellers"],
   ["necklace", "Necklaces"],
   ["sticker", "Stickers"],
@@ -435,7 +436,7 @@ function renderShop() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "Shop" }])}
       <div class="shop-top">
         <div>
-          <h1 class="page-title">${esc(title)}</h1>
+          <h1 class="page-title">${title === "New In" ? `<img class="title-mark" src="/images/new-in.png" alt="New In">` : esc(title)}</h1>
           <p class="fine">${esc(lede)}</p>
         </div>
         <label class="sort">排序
@@ -532,7 +533,7 @@ function renderProduct() {
           ${product.colors && product.colors.length
             ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}，${esc(product.colors[0].name)}" class="${fitClass(product)}">`
             : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${fitClass(product)}">`).join("")}
-          ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" controls playsinline preload="metadata"></video>` : ""}
+          ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" autoplay muted playsinline preload="auto" controls></video>` : ""}
         </div>
         <div class="pdp-info">
           <p class="kicker">${esc(collection ? collection.name : "")}</p>
@@ -798,6 +799,11 @@ function renderMain() {
   };
   if (titles[page]) document.title = titles[page];
   root.innerHTML = (views[page] || renderNotFound)();
+  const video = root.querySelector("video");
+  if (video) {
+    video.muted = true;
+    video.play().catch(() => {});
+  }
 }
 
 function drawerHtml() {
