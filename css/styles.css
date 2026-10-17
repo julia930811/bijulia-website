@@ -211,11 +211,14 @@ h1, h2, h3, p { margin: 0; }
 .scene-band {
   position: relative;
   width: 100%;
+  overflow: hidden;
 }
 .scene-band > img {
   width: 100%;
   height: auto;
   filter: none;
+  transform: scale(1.5);
+  transform-origin: center 78%;
 }
 .scene-shop {
   position: absolute;
@@ -315,6 +318,9 @@ h1, h2, h3, p { margin: 0; }
   filter: none;
 }
 .section-head .title-mark { margin: 0 auto; }
+#new-in .title-mark { width: min(200px, 46vw); }
+#new-in.section { padding-top: 48px; padding-bottom: 56px; }
+#new-in .section-head { margin-bottom: 28px; }
 .new-in-mark {
   display: inline-block;
   width: auto;
