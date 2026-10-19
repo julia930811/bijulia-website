@@ -1035,7 +1035,8 @@ img.photo { filter: none; }
   padding: 18px 20px;
   border-bottom: 1px solid var(--line);
 }
-.mobile-head .logo img { height: 52px; }
+.mobile-head .logo { transform: translateX(-4vw); }
+.mobile-head .logo img { height: 54.6px; }
 .drawer-head h2, .mobile-head p {
   font-family: var(--serif);
   font-style: italic;
