@@ -87,7 +87,7 @@ function shell() {
     const on =
       (key === "new" && path.startsWith("/shop") && filter === "new") ||
       (key === "shop" && (path.startsWith("/shop") || path.startsWith("/product")) && filter !== "new") ||
-      (key === "looks" && path === "/" && location.hash === "#looks") ||
+      (key === "looks" && path.startsWith("/outfit")) ||
       (key === "about" && path.startsWith("/about"));
     return on ? ' aria-current="page"' : "";
   };
@@ -111,7 +111,7 @@ function shell() {
               ${sub("/shop/?filter=sticker", wordImg("sticker"))}
             </div>
           </div>
-          <a href="/#looks"${mark("looks")}>${wordImg("outfit")}</a>
+          <a href="/outfit/"${mark("looks")}>${wordImg("outfit")}</a>
           <a href="/about/"${mark("about")}>${wordImg("about")}</a>
         </nav>
         <div class="tools">
@@ -129,7 +129,7 @@ function shell() {
           <a href="/shop/">All pieces</a>
           <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
           <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-          <a href="/#looks">${wordImg("outfit")}</a>
+          <a href="/outfit/">${wordImg("outfit")}</a>
         </div>
         <div>
           <h2>Customer Care</h2>
@@ -140,7 +140,7 @@ function shell() {
         </div>
         <div>
           <h2>${wordImg("about")}</h2>
-          <a href="/#looks">${wordImg("outfit")}</a>
+          <a href="/outfit/">${wordImg("outfit")}</a>
           <h2>Instagram</h2>
           <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
         </div>
@@ -176,7 +176,7 @@ function shell() {
       <a href="/shop/">${wordImg("shop")}</a>
       <a class="sub" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
       <a class="sub" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-      <a href="/#looks">${wordImg("outfit")}</a>
+      <a href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
     </div>
   `;
@@ -318,14 +318,14 @@ function renderHome() {
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
-        <div class="section-head"><h2><img class="title-mark" src="/images/new-in.png" alt="New In"></h2></div>
+        <div class="section-head"><h2><a href="/shop/?filter=new"><img class="title-mark" src="/images/new-in.png" alt="New In"></a></h2></div>
         ${grid(newest)}
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
       </div>
     </section>
     <section class="section looks-section" id="looks">
       <div class="wrap">
-        <div class="section-head"><h2>${wordImg("outfit", "is-title")}</h2></div>
+        <div class="section-head"><h2><a href="/outfit/">${wordImg("outfit", "is-title")}</a></h2></div>
       </div>
       <div class="look-marquee">
         <button class="look-nav look-prev" type="button" aria-label="上一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>
@@ -364,7 +364,7 @@ function renderHome() {
       </div>
     </section>
     <section class="about-band" id="about-bijulia">
-      <img src="/images/about.svg" alt="工作室桌上有蕾絲、玫瑰與一條項鍊">
+      <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
       <div class="about-copy">
         <p class="kicker">工作室</p>
         <h2>${wordImg("about", "is-title")}</h2>
@@ -669,6 +669,32 @@ function renderCheckout() {
   `;
 }
 
+function renderOutfit() {
+  const shots = [];
+  looks.forEach((look) => {
+    shots.push(look);
+    if (look[0] === "comb-and-chair-chain") {
+      shots.push(["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn-2.jpg", "Comb and Chair Chain"]);
+    }
+  });
+  return `
+    <div class="page">
+      ${crumbs([{ href: "/", label: "Home" }, { label: "Outfits" }])}
+      <h1 class="page-title">${wordImg("outfit", "is-title")}</h1>
+      <div class="outfit-grid">
+        ${shots.map(([slug, src, name]) => `
+          <article class="outfit-shot">
+            <a class="outfit-frame" href="/product/${slug}/">
+              <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
+            </a>
+            <a class="outfit-name" href="/product/${slug}/">${esc(name)}</a>
+          </article>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderAbout() {
   return `
     <div class="page">
@@ -677,7 +703,7 @@ function renderAbout() {
         <h1 class="page-title">${wordImg("about", "is-title")}</h1>
       </div>
       <div class="split">
-        <img src="/images/about.svg" alt="工作室桌上有玫瑰、蕾絲與珍珠">
+        <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
       </div>
     </div>
   `;
@@ -732,6 +758,7 @@ function renderMain() {
     product: renderProduct,
     cart: renderCart,
     checkout: renderCheckout,
+    outfit: renderOutfit,
     about: renderAbout,
     care: renderCare,
     "not-found": renderNotFound,
@@ -742,6 +769,7 @@ function renderMain() {
     collections: "Collections — BiJulia",
     cart: "Your Bag — BiJulia",
     checkout: "Request an Order — BiJulia",
+    outfit: "Outfits — BiJulia",
     about: "About — BiJulia",
     care: "Customer Care — BiJulia",
   };
