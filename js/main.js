@@ -12,9 +12,6 @@ const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
 const ui = { drawer: false, search: false, menu: false };
 
-const ABOUT_LEAD =
-  "BiJulia 始於對舊日細節、浪漫花園、蕾絲與被遺忘的小物的喜愛。每一件都少量手工製作。";
-
 function esc(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({
     "&": "&amp;",
@@ -236,10 +233,10 @@ function totals() {
   return { sub, ship, total: sub + (twd > 0 ? 0 : ship), twd, basis };
 }
 
-function summaryMoney(sums) {
+function summaryMoney(sums, twdLabel = "NT$") {
   const rows = [];
   if (sums.sub) rows.push(`<div class="summary-row"><span>小計</span><span>${money(sums.sub)}</span></div>`);
-  if (sums.twd) rows.push(`<div class="summary-row"><span>NT$</span><span>NT$${sums.twd.toLocaleString("en-US")}</span></div>`);
+  if (sums.twd) rows.push(`<div class="summary-row"><span>${esc(twdLabel)}</span><span>NT$${sums.twd.toLocaleString("en-US")}</span></div>`);
   return rows.join("");
 }
 
@@ -371,7 +368,6 @@ function renderHome() {
       <div class="about-copy">
         <p class="kicker">工作室</p>
         <h2>${wordImg("about", "is-title")}</h2>
-        <p>${esc(ABOUT_LEAD)}</p>
         <a class="linkish" href="/about/">閱讀故事</a>
       </div>
     </section>
@@ -424,7 +420,7 @@ function shopHeading(filter) {
   const collection = collectionBySlug(filter);
   if (collection) return [collection.name, collection.blurb];
   const map = {
-    all: ["Shop", "少量製作的項鍊與貝殼貼紙。"],
+    all: ["Shop", ""],
     new: ["New In", "最新的項鍊。"],
     best: ["Best Sellers", "最先離開桌面的那幾件。"],
     necklace: ["Necklaces", "給浪漫的人的手工飾品。"],
@@ -453,7 +449,7 @@ function renderShop() {
       <div class="shop-top">
         <div>
           <h1 class="page-title">${shopTitle(title)}</h1>
-          <p class="fine">${esc(lede)}</p>
+          ${lede ? `<p class="fine">${esc(lede)}</p>` : ""}
         </div>
         <label class="sort">排序
           <select data-sort aria-label="排序作品">
@@ -678,16 +674,10 @@ function renderAbout() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "About" }])}
       <div class="story">
-        <p class="kicker">我們的故事</p>
         <h1 class="page-title">${wordImg("about", "is-title")}</h1>
-        <p>${esc(ABOUT_LEAD)}</p>
       </div>
       <div class="split">
         <img src="/images/about.svg" alt="工作室桌上有玫瑰、蕾絲與珍珠">
-        <div class="prose">
-          <p>工作從已經有過生活的東西開始：一段蕾絲、一顆有凹痕的珍珠、早晨散步時看見的一扇門。沒有趕工，也沒有一次做上百件。</p>
-          <p>項鍊之外，BiJulia 把貝殼印成貼紙。一組三張是 NT$50。</p>
-        </div>
       </div>
     </div>
   `;
@@ -776,7 +766,7 @@ function drawerHtml() {
   const sums = totals();
   body.innerHTML = items.map((item) => line(item, true)).join("");
   foot.innerHTML = `
-    ${summaryMoney(sums)}
+    ${summaryMoney(sums, "Total")}
     ${sums.basis ? `<p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
     <a class="btn btn-fill is-mark" href="/cart/"><img class="view-bag-mark" src="/images/view-bag.png" alt="View bag"></a>
   `;
