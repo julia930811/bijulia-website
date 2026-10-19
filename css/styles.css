@@ -360,6 +360,10 @@ h1, h2, h3, p { margin: 0; }
   font-size: clamp(48px, 6vw, 72px);
   line-height: 1.15;
 }
+#instagram .word-mark {
+  height: clamp(48px, 6vw, 72px);
+  width: auto;
+}
 .section-head h2::after {
   content: "";
   display: block;
@@ -773,7 +777,7 @@ h1, h2, h3, p { margin: 0; }
   max-width: 1360px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 32px;
 }
 .footer-grid h2 {
@@ -1071,7 +1075,7 @@ img.photo { filter: none; }
 }
 .empty .btn { margin-top: 22px; }
 
-.field { margin-bottom: 20px; }
+.field { display: block; margin-bottom: 20px; }
 .field span {
   display: block;
   font-size: 11px;
@@ -1080,6 +1084,7 @@ img.photo { filter: none; }
   margin-bottom: 6px;
 }
 .field input, .field textarea {
+  display: block;
   width: 100%;
   border: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.28);
@@ -1224,6 +1229,7 @@ img.photo { filter: none; }
   .about-copy { padding: 40px 24px 64px; }
   .pdp-info, .summary { position: static; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-grid > div:last-child { grid-column: 2; }
 }
 @media (max-width: 760px) {
   .section { padding: 64px 20px; }
@@ -1244,6 +1250,7 @@ img.photo { filter: none; }
 }
 @media (max-width: 520px) {
   .footer-grid { grid-template-columns: 1fr; }
+  .footer-grid > div:last-child { grid-column: auto; }
   .collection-grid { gap: 10px; }
 }
 

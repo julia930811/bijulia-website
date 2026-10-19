@@ -79,6 +79,7 @@ function wordImg(kind, extra = "") {
     pieces: ["/images/all-pieces-word.png", "All pieces"],
     best: ["/images/best-sellers-word.png", "Best Sellers"],
     about: ["/images/about-word.png", "About"],
+    instagram: ["/images/instagram-word.png", "Instagram"],
   };
   const [src, alt] = map[kind];
   return `<img class="word-mark is-${kind}${extra ? ` ${extra}` : ""}" src="${src}" alt="${alt}">`;
@@ -128,6 +129,13 @@ function shell() {
     <footer class="site-footer">
       <div class="footer-grid">
         <div>
+          <h2>${wordImg("shop")}</h2>
+          <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+          <a href="/shop/">${wordImg("pieces")}</a>
+          <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
+          <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
+        </div>
+        <div>
           <h2>${wordImg("care")}</h2>
           <a href="/customer-care/#shipping">Shipping</a>
           <a href="/customer-care/#returns">Returns</a>
@@ -137,13 +145,13 @@ function shell() {
         <div>
           <h2>${wordImg("about")}</h2>
           <a href="/outfit/">${wordImg("outfit")}</a>
-          <h2>Instagram</h2>
+          <h2>${wordImg("instagram")}</h2>
           <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
         </div>
       </div>
       <div class="footer-base">
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
-        <span>© ${new Date().getFullYear()} BiJulia. 少量手工製作。</span>
+        <span>© ${new Date().getFullYear()} BiJulia.</span>
       </div>
     </footer>
     <div class="scrim" data-close-overlay hidden></div>
@@ -382,7 +390,7 @@ function renderHome() {
     <section class="section" id="instagram">
       <div class="wrap">
         <div class="section-head">
-          <h2>Instagram</h2>
+          <h2>${wordImg("instagram")}</h2>
           <p class="lede"><a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a></p>
         </div>
       </div>
@@ -390,7 +398,7 @@ function renderHome() {
     <section class="newsletter" id="newsletter">
       <p class="kicker">信件</p>
       <h2>From the garden</h2>
-      <p class="lede">新作品、工作室的日子，以及安靜抵達的消息。偶爾寫，不會太密。</p>
+      <p class="lede">新的項鍊上架、消息，或新活動。</p>
       <form id="letter-form">
         <input type="email" name="email" required placeholder="電子郵件" aria-label="電子郵件">
         <button class="btn" type="submit">Subscribe</button>
