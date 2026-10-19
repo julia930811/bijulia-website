@@ -186,10 +186,19 @@ function shell() {
 }
 
 function card(product) {
+  const media = product.colors && product.colors.length > 1
+    ? `<div class="color-swipe">
+        ${product.colors.map((color) => `
+          <a href="/product/${product.slug}/?color=${esc(color.id)}">
+            <img src="${color.image}" alt="${esc(product.name)}，${esc(color.name)}" class="${fitClass({ ...product, image: color.image })}">
+          </a>
+        `).join("")}
+      </div>`
+    : `<a href="/product/${product.slug}/"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>`;
   return `
     <article class="card">
       <div class="card-media">
-        <a href="/product/${product.slug}/"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>
+        ${media}
         ${product.soldOut
           ? `<span class="quick-add is-sold"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></span>`
           : product.colors
@@ -257,12 +266,13 @@ function colorById(product, id) {
 
 function colorPicker(product) {
   if (!product.colors || !product.colors.length) return "";
+  const picked = Math.max(0, product.colors.findIndex((color) => color.id === params().get("color")));
   return `
     <div class="color-pick">
       <p class="fine" id="color-label">顏色</p>
       <div class="color-options" role="radiogroup" aria-labelledby="color-label">
         ${product.colors.map((color, index) => `
-          <button type="button" class="color-option${index === 0 ? " is-on" : ""}" role="radio" aria-checked="${index === 0}" data-color="${esc(color.id)}" data-image="${color.image}">
+          <button type="button" class="color-option${index === picked ? " is-on" : ""}" role="radio" aria-checked="${index === picked}" data-color="${esc(color.id)}" data-image="${color.image}">
             <img src="${color.image}" alt="">
             <span>${esc(color.name)}</span>
           </button>
@@ -547,7 +557,7 @@ function renderProduct() {
       <article class="pdp">
         <div class="pdp-gallery">
           ${product.colors && product.colors.length
-            ? `<img data-color-preview src="${product.colors[0].image}" alt="${esc(product.name)}，${esc(product.colors[0].name)}" class="${fitClass(product)}">`
+            ? `<img data-color-preview src="${(colorById(product, params().get("color")) || product.colors[0]).image}" alt="${esc(product.name)}，${esc((colorById(product, params().get("color")) || product.colors[0]).name)}" class="${fitClass(product)}">`
             : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${src === product.image ? fitClass(product) : "photo"}">`).join("")}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" autoplay muted playsinline preload="auto" controls></video>` : ""}
         </div>
@@ -1124,10 +1134,51 @@ function bindLooks() {
   marquee.querySelector(".look-prev").addEventListener("click", () => nudge(-1));
 }
 
+function bindColorSwipes() {
+  document.querySelectorAll(".color-swipe").forEach((scroller) => {
+    if (scroller.dataset.bound) return;
+    scroller.dataset.bound = "1";
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    scroller.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startX = event.clientX;
+      scrollLeft = scroller.scrollLeft;
+      scroller.setPointerCapture(event.pointerId);
+    });
+    scroller.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      const dx = event.clientX - startX;
+      if (Math.abs(dx) > 6) moved = true;
+      scroller.scrollLeft = scrollLeft - dx;
+    });
+    function release() {
+      if (!dragging) return;
+      dragging = false;
+      const width = scroller.clientWidth || 1;
+      const index = Math.round(scroller.scrollLeft / width);
+      scroller.scrollTo({ left: index * width, behavior: "smooth" });
+    }
+    scroller.addEventListener("pointerup", release);
+    scroller.addEventListener("pointercancel", release);
+    scroller.addEventListener("click", (event) => {
+      if (!moved) return;
+      event.preventDefault();
+      event.stopPropagation();
+      moved = false;
+    }, true);
+  });
+}
+
 function boot() {
   document.body.insertAdjacentHTML("afterbegin", shell());
   renderMain();
   bindLooks();
+  bindColorSwipes();
   refreshChrome();
   applyOverlay();
   if (location.hash) {
@@ -1141,6 +1192,7 @@ function boot() {
   document.addEventListener("keydown", onKey);
   window.addEventListener("popstate", () => {
     renderMain();
+    bindColorSwipes();
     refreshChrome();
   });
   store.subscribe(() => {
