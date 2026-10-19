@@ -142,11 +142,15 @@ function shell() {
           <a href="/customer-care/#care">Jewelry Care</a>
           <a href="/customer-care/#contact">Contact</a>
         </div>
-        <div>
-          <h2>${wordImg("about")}</h2>
-          <a href="/outfit/">${wordImg("outfit")}</a>
-          <h2>${wordImg("instagram")}</h2>
-          <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
+        <div class="footer-bottom">
+          <div>
+            <h2>${wordImg("about")}</h2>
+            <a href="/outfit/">${wordImg("outfit")}</a>
+          </div>
+          <div>
+            <h2>${wordImg("instagram")}</h2>
+            <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
+          </div>
         </div>
       </div>
       <div class="footer-base">
@@ -681,10 +685,11 @@ function renderCheckout() {
       <p class="fine" style="max-width:52ch;margin-bottom:28px">留下姓名、電話、Gmail 和 7-11 店名。這會打開 Gmail，寄給工作室，也寄到你的 Gmail，通知下單成功。請在 Gmail 按寄出。不會在這裡付款。</p>
       <form id="request-form" style="max-width:440px">
           <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
-          <label class="field"><span>電話</span><input name="phone" type="tel" required autocomplete="tel"></label>
+          <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
           <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
           <label class="field"><span>7-11 店名</span><input name="store" required></label>
           <button class="btn btn-fill" type="submit">Send</button>
+          <p class="form-note fine" id="request-note"></p>
       </form>
     </div>
   `;
@@ -1057,6 +1062,13 @@ function onSubmit(event) {
   if (event.target.id === "request-form") {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target).entries());
+    const note = event.target.querySelector(".form-note");
+    const phone = String(data.phone || "").replace(/\D/g, "");
+    if (!/^09\d{8}$/.test(phone)) {
+      note.textContent = "電話要是 09 開頭的十個數字。";
+      return;
+    }
+    data.phone = phone;
     const url = buildGmailUrl(data);
     store.clearCart();
     try { sessionStorage.setItem("bijulia-order-mail", url); } catch { /* ignore */ }
