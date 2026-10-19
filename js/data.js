@@ -3,7 +3,7 @@ export const site = {
   email: "jiayiwu009@gmail.com",
   instagram: "https://www.instagram.com/2sbijulia/",
   instagramHandle: "@2sbijulia",
-  freeShipping: 180,
+  freeShipping: 2000,
   shippingFee: 12,
 };
 
@@ -146,7 +146,7 @@ export const products = [
     poster: "/images/products/button-chain-choker.jpg",
     imageFit: "cover",
     length: "頸圈",
-    materials: "銀色圓環、貝殼鈕扣、黑色鈕扣",
+    materials: "銀色圓環、貝殼鈕扣",
     description: "貝殼鈕扣與黑色鈕扣以銀色圓環相連，貼著脖子戴。",
     details: "每顆鈕扣夾在兩個圓環之間。奶油色貝殼、雕花黑鈕，以及一枚小扣環，沿著鏈子排開。",
   },

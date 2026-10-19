@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=9";
+} from "./data.js?v=11";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -27,6 +27,10 @@ function esc(value) {
 
 function money(amount) {
   return `$${Number(amount).toLocaleString("en-US")}`;
+}
+
+function ntd(amount) {
+  return `NT$${Number(amount).toLocaleString("en-US")}`;
 }
 
 function priceText(product, qty = 1) {
@@ -67,6 +71,18 @@ function params() {
   return new URLSearchParams(location.search);
 }
 
+function wordImg(kind, extra = "") {
+  const map = {
+    shop: ["/images/shop-word.png", "Shop"],
+    sticker: ["/images/sticker-word.png", "Sticker"],
+    necklace: ["/images/necklace-word.png", "Necklace"],
+    outfit: ["/images/outfits-word.png", "Outfits"],
+    about: ["/images/about-word.png", "About"],
+  };
+  const [src, alt] = map[kind];
+  return `<img class="word-mark is-${kind}${extra ? ` ${extra}` : ""}" src="${src}" alt="${alt}">`;
+}
+
 function shell() {
   const path = currentPath();
   const filter = params().get("filter");
@@ -81,7 +97,7 @@ function shell() {
   const sub = (href, label) => `<a href="${href}">${label}</a>`;
   return `
     <a class="skip" href="#app">跳至內文</a>
-    <div class="announce">少量手工製作 · 滿 ${money(site.freeShipping)} 免運</div>
+    <div class="announce">少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
@@ -91,15 +107,15 @@ function shell() {
         <nav class="nav" aria-label="Primary">
           <a href="/shop/?filter=new"${mark("new")}><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
           <div class="has-sub">
-            <a href="/shop/"${mark("shop")}>Shop</a>
+            <a href="/shop/"${mark("shop")}>${wordImg("shop")}</a>
             <div class="submenu">
               ${sub("/shop/", "All pieces")}
-              ${sub("/shop/?filter=necklace", "Necklaces")}
-              ${sub("/shop/?filter=sticker", "Stickers")}
+              ${sub("/shop/?filter=necklace", wordImg("necklace"))}
+              ${sub("/shop/?filter=sticker", wordImg("sticker"))}
             </div>
           </div>
-          <a href="/#looks"${mark("looks")}>Outfit</a>
-          <a href="/about/"${mark("about")}>About</a>
+          <a href="/#looks"${mark("looks")}>${wordImg("outfit")}</a>
+          <a href="/about/"${mark("about")}>${wordImg("about")}</a>
         </nav>
         <div class="tools">
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
@@ -111,12 +127,12 @@ function shell() {
     <footer class="site-footer">
       <div class="footer-grid">
         <div>
-          <h2>Shop</h2>
+          <h2>${wordImg("shop")}</h2>
           <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
           <a href="/shop/">All pieces</a>
-          <a href="/shop/?filter=necklace">Necklaces</a>
-          <a href="/shop/?filter=sticker">Stickers</a>
-          <a href="/#looks">Outfit</a>
+          <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
+          <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
+          <a href="/#looks">${wordImg("outfit")}</a>
         </div>
         <div>
           <h2>Customer Care</h2>
@@ -126,8 +142,8 @@ function shell() {
           <a href="/customer-care/#contact">Contact</a>
         </div>
         <div>
-          <h2>About</h2>
-          <a href="/#looks">Outfit</a>
+          <h2>${wordImg("about")}</h2>
+          <a href="/#looks">${wordImg("outfit")}</a>
           <h2>Instagram</h2>
           <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
         </div>
@@ -140,7 +156,7 @@ function shell() {
     <div class="scrim" data-close-overlay hidden></div>
     <aside id="drawer" class="drawer" aria-hidden="true" aria-label="購物袋">
       <div class="drawer-head">
-        <h2>Your bag</h2>
+        <h2><img class="your-bag-mark" src="/images/your-bag.png" alt="Your bag"></h2>
         <button class="icon-btn" type="button" data-close-overlay aria-label="關閉購物袋">${iconClose()}</button>
       </div>
       <div id="drawer-body"></div>
@@ -160,11 +176,11 @@ function shell() {
         <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
       </div>
       <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-      <a href="/shop/">Shop</a>
-      <a class="sub" href="/shop/?filter=necklace">Necklaces</a>
-      <a class="sub" href="/shop/?filter=sticker">Stickers</a>
-      <a href="/#looks">Outfit</a>
-      <a href="/about/">About</a>
+      <a href="/shop/">${wordImg("shop")}</a>
+      <a class="sub" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
+      <a class="sub" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
+      <a href="/#looks">${wordImg("outfit")}</a>
+      <a href="/about/">${wordImg("about")}</a>
     </div>
   `;
 }
@@ -215,8 +231,9 @@ function totals() {
     if (product.currency === "TWD") twd += amount;
     else sub += amount;
   }
-  const ship = sub === 0 ? 0 : sub >= site.freeShipping ? 0 : site.shippingFee;
-  return { sub, ship, total: sub + ship, twd };
+  const basis = twd > 0 ? twd : sub;
+  const ship = basis === 0 ? 0 : basis >= site.freeShipping ? 0 : site.shippingFee;
+  return { sub, ship, total: sub + (twd > 0 ? 0 : ship), twd, basis };
 }
 
 function summaryMoney(sums) {
@@ -226,11 +243,11 @@ function summaryMoney(sums) {
   return rows.join("");
 }
 
-function shippingNote(sub) {
-  if (sub === 0) return "";
-  if (sub >= site.freeShipping) return "免運";
-  const rest = site.freeShipping - sub;
-  return `再加 ${money(rest)} 即可免運`;
+function shippingNote(amount) {
+  if (!amount) return "";
+  if (amount >= site.freeShipping) return "免運";
+  const rest = site.freeShipping - amount;
+  return `再加 ${ntd(rest)} 即可免運`;
 }
 
 function colorById(product, id) {
@@ -311,7 +328,7 @@ function renderHome() {
     </section>
     <section class="section looks-section" id="looks">
       <div class="wrap">
-        <div class="section-head"><h2>Outfit</h2></div>
+        <div class="section-head"><h2>${wordImg("outfit", "is-title")}</h2></div>
       </div>
       <div class="look-marquee">
         <button class="look-nav look-prev" type="button" aria-label="上一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>
@@ -353,7 +370,7 @@ function renderHome() {
       <img src="/images/about.svg" alt="工作室桌上有蕾絲、玫瑰與一條項鍊">
       <div class="about-copy">
         <p class="kicker">工作室</p>
-        <h2>About BiJulia</h2>
+        <h2>${wordImg("about", "is-title")}</h2>
         <p>${esc(ABOUT_LEAD)}</p>
         <a class="linkish" href="/about/">閱讀故事</a>
       </div>
@@ -383,8 +400,8 @@ const filterOptions = [
   ["all", "All"],
   ["new", `<img class="new-in-mark" src="/images/new-in.png" alt="New In">`],
   ["best", "Best Sellers"],
-  ["necklace", "Necklaces"],
-  ["sticker", "Stickers"],
+  ["necklace", wordImg("necklace")],
+  ["sticker", wordImg("sticker")],
 ];
 
 function applyFilter(list, filter) {
@@ -416,6 +433,14 @@ function shopHeading(filter) {
   return map[filter] || map.all;
 }
 
+function shopTitle(title) {
+  if (title === "New In") return `<img class="title-mark" src="/images/new-in.png" alt="New In">`;
+  if (title === "Shop") return wordImg("shop", "is-title");
+  if (title === "Necklaces") return wordImg("necklace", "is-title");
+  if (title === "Stickers") return wordImg("sticker", "is-title");
+  return esc(title);
+}
+
 function renderShop() {
   const filter = params().get("filter") || "all";
   const sort = params().get("sort") || "featured";
@@ -427,7 +452,7 @@ function renderShop() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "Shop" }])}
       <div class="shop-top">
         <div>
-          <h1 class="page-title">${title === "New In" ? `<img class="title-mark" src="/images/new-in.png" alt="New In">` : esc(title)}</h1>
+          <h1 class="page-title">${shopTitle(title)}</h1>
           <p class="fine">${esc(lede)}</p>
         </div>
         <label class="sort">排序
@@ -507,7 +532,7 @@ function renderProduct() {
   const care = product.category === "sticker"
     ? "貼在乾淨、乾燥的表面上。這是霧面印刷的紙貼紙，不能貼在布上，也不能水洗。"
     : "沒有戴的時候，把項鍊放回鏈袋裡。";
-  const shipping = `滿 ${money(site.freeShipping)} 免運。未滿則運費 ${money(site.shippingFee)}。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
+  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
   const galleryShots = pictures.filter((src) => !/worn/i.test(src));
@@ -575,8 +600,7 @@ function renderCart() {
     return `
       <div class="page">
         <div class="empty">
-          <h1>Your bag is empty</h1>
-          <p class="fine">當一件覺得對了，它會在這裡等你。</p>
+          <h1><img class="empty-bag-mark" src="/images/your-bag-empty.png" alt="Your bag is empty"></h1>
           <a class="btn" href="/shop/">Continue shopping</a>
         </div>
       </div>
@@ -586,15 +610,15 @@ function renderCart() {
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Your bag" }])}
-      <h1 class="page-title">Your bag</h1>
+      <h1 class="page-title"><img class="your-bag-mark" src="/images/your-bag.png" alt="Your bag"></h1>
       <div class="bag-layout">
         <div>${items.map((item) => line(item, false)).join("")}</div>
         <aside class="summary">
           <h2>Summary</h2>
           ${summaryMoney(sums)}
-          ${sums.sub ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : money(sums.ship)}</span></div>
-          <div class="summary-row"><strong>合計</strong><strong>${money(sums.total)}</strong></div>
-          <p class="fine">${esc(shippingNote(sums.sub))}</p>` : ""}
+          ${sums.basis ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : ntd(sums.ship)}</span></div>
+          <div class="summary-row"><strong>合計</strong><strong>${sums.twd ? ntd(sums.twd + sums.ship) : money(sums.sub + sums.ship)}</strong></div>
+          <p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
           <p class="fine" style="margin-top:12px">下單後請到 Instagram 私訊，討論更多細節。這個頁面不會扣款。</p>
         </aside>
@@ -655,7 +679,7 @@ function renderAbout() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "About" }])}
       <div class="story">
         <p class="kicker">我們的故事</p>
-        <h1 class="page-title">About BiJulia</h1>
+        <h1 class="page-title">${wordImg("about", "is-title")}</h1>
         <p>${esc(ABOUT_LEAD)}</p>
       </div>
       <div class="split">
@@ -677,7 +701,7 @@ function renderCare() {
       <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
-        <p>滿 ${money(site.freeShipping)} 免運。未滿則運費 ${money(site.shippingFee)}。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
+        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
         <h2>Returns</h2>
@@ -745,7 +769,7 @@ function drawerHtml() {
   const body = document.getElementById("drawer-body");
   const foot = document.getElementById("drawer-foot");
   if (!items.length) {
-    body.innerHTML = `<div class="empty"><h2>Your bag is empty</h2><p class="fine">一條項鍊或一枚貝殼，可以先放在這裡。</p></div>`;
+    body.innerHTML = `<div class="empty"><h2><img class="empty-bag-mark" src="/images/your-bag-empty.png" alt="Your bag is empty"></h2><p class="fine">一條項鍊或一枚貝殼，可以先放在這裡。</p></div>`;
     foot.innerHTML = `<a class="btn btn-fill" href="/shop/">Shop the atelier</a>`;
     return;
   }
@@ -753,8 +777,8 @@ function drawerHtml() {
   body.innerHTML = items.map((item) => line(item, true)).join("");
   foot.innerHTML = `
     ${summaryMoney(sums)}
-    ${sums.sub ? `<p class="fine">${esc(shippingNote(sums.sub))}</p>` : ""}
-    <a class="btn btn-fill" href="/cart/">View bag</a>
+    ${sums.basis ? `<p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
+    <a class="btn btn-fill is-mark" href="/cart/"><img class="view-bag-mark" src="/images/view-bag.png" alt="View bag"></a>
   `;
 }
 
@@ -851,10 +875,11 @@ function buildGmailUrl(data) {
     "作品：",
     ...items,
     "",
-    sums.twd ? `NT$: NT$${sums.twd}` : "",
+    sums.twd ? `NT$：${ntd(sums.twd)}` : "",
     sums.sub ? `飾品：${money(sums.sub)}` : "",
-    sums.sub ? `運費：${sums.ship === 0 ? "免運" : money(sums.ship)}` : "",
-    sums.sub ? `飾品合計：${money(sums.total)}` : "",
+    (sums.twd || sums.sub) ? `運費：${sums.ship === 0 ? "免運" : ntd(sums.ship)}` : "",
+    sums.twd ? `合計：${ntd(sums.twd + sums.ship)}` : "",
+    sums.sub && !sums.twd ? `飾品合計：${money(sums.sub + sums.ship)}` : "",
   ].filter((line) => line !== undefined).join("\n");
   const query = new URLSearchParams({
     view: "cm",
