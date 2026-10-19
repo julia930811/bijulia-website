@@ -119,12 +119,19 @@ h1, h2, h3, p { margin: 0; }
   width: auto;
   max-width: none;
 }
-.nav { display: flex; align-items: center; gap: 26px; }
+.nav { display: flex; align-items: center; gap: 22px; }
 .nav > a, .has-sub > a {
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 400;
+}
+.nav > a.nav-text {
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
 }
 .nav a[aria-current="page"] { color: var(--rose-deep); }
 .has-sub { position: relative; }
@@ -387,8 +394,10 @@ h1, h2, h3, p { margin: 0; }
 .submenu .word-mark.is-sticker,
 .footer-grid .word-mark.is-necklace,
 .footer-grid .word-mark.is-sticker { height: 30px; }
-.mobile-nav a.sub .word-mark.is-necklace,
-.mobile-nav a.sub .word-mark.is-sticker { height: 38px; }
+.mobile-nav .word-mark.is-necklace,
+.mobile-nav .word-mark.is-sticker { height: 54px; }
+.nav .word-mark.is-necklace,
+.nav .word-mark.is-sticker { height: 30px; }
 .filter-btn .word-mark.is-necklace,
 .filter-btn .word-mark.is-sticker { height: 32px; }
 .lede { max-width: 46ch; margin: 16px auto 0; color: var(--ink-soft); }
@@ -916,6 +925,15 @@ img.photo { filter: none; }
   background: transparent;
 }
 .pdp .btn-fill { margin-bottom: 14px; }
+.restock { margin: 4px 0 8px; }
+.restock .fine { margin-bottom: 12px; }
+.restock .btn { margin-top: 4px; }
+.card-restock {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 14px;
+  border-bottom: 1px solid currentColor;
+}
 .pdp details { border-top: 1px solid var(--line); padding: 14px 0; }
 .pdp details:last-of-type { border-bottom: 1px solid var(--line); }
 .pdp summary {
@@ -957,9 +975,11 @@ img.photo { filter: none; }
 .line img.fit-full { width: 104px; height: 104px; }
 .line h3 { font-family: var(--serif); font-size: 24px; font-weight: 500; }
 .remove {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ink-soft);
   margin-top: 8px;
 }
@@ -1200,11 +1220,9 @@ h1, h2, h3,
   line-height: 1.25;
 }
 .color-option,
-.remove,
 .pdp summary {
   font-family: var(--script);
   letter-spacing: 0;
   text-transform: none;
 }
-.remove { font-size: 22px; }
 .pdp summary { font-size: 24px; }

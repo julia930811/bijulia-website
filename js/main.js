@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=11";
+} from "./data.js?v=12";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -85,13 +85,16 @@ function shell() {
   const filter = params().get("filter");
   const mark = (key) => {
     const on =
+      (key === "shop" && ((path.startsWith("/shop") && !filter) || path.startsWith("/product"))) ||
       (key === "new" && path.startsWith("/shop") && filter === "new") ||
-      (key === "shop" && (path.startsWith("/shop") || path.startsWith("/product")) && filter !== "new") ||
+      (key === "pieces" && path.startsWith("/shop") && !filter) ||
+      (key === "necklace" && path.startsWith("/shop") && filter === "necklace") ||
+      (key === "sticker" && path.startsWith("/shop") && filter === "sticker") ||
       (key === "looks" && path.startsWith("/outfit")) ||
-      (key === "about" && path.startsWith("/about"));
+      (key === "about" && path.startsWith("/about")) ||
+      (key === "care" && path.startsWith("/customer-care"));
     return on ? ' aria-current="page"' : "";
   };
-  const sub = (href, label) => `<a href="${href}">${label}</a>`;
   return `
     <a class="skip" href="#app">跳至內文</a>
     <div class="announce">少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</div>
@@ -102,17 +105,14 @@ function shell() {
           <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt="BiJulia"></a>
         </div>
         <nav class="nav" aria-label="Primary">
+          <a href="/shop/"${mark("shop")}>${wordImg("shop")}</a>
           <a href="/shop/?filter=new"${mark("new")}><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-          <div class="has-sub">
-            <a href="/shop/"${mark("shop")}>${wordImg("shop")}</a>
-            <div class="submenu">
-              ${sub("/shop/", "All pieces")}
-              ${sub("/shop/?filter=necklace", wordImg("necklace"))}
-              ${sub("/shop/?filter=sticker", wordImg("sticker"))}
-            </div>
-          </div>
+          <a class="nav-text" href="/shop/"${mark("pieces")}>All pieces</a>
+          <a href="/shop/?filter=necklace"${mark("necklace")}>${wordImg("necklace")}</a>
+          <a href="/shop/?filter=sticker"${mark("sticker")}>${wordImg("sticker")}</a>
           <a href="/outfit/"${mark("looks")}>${wordImg("outfit")}</a>
           <a href="/about/"${mark("about")}>${wordImg("about")}</a>
+          <a class="nav-text" href="/customer-care/"${mark("care")}>Customer Care</a>
         </nav>
         <div class="tools">
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
@@ -172,12 +172,14 @@ function shell() {
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
         <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
       </div>
-      <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
       <a href="/shop/">${wordImg("shop")}</a>
-      <a class="sub" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
-      <a class="sub" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
+      <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+      <a href="/shop/">All pieces</a>
+      <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
+      <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
       <a href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
+      <a href="/customer-care/">Customer Care</a>
     </div>
   `;
 }
@@ -196,6 +198,7 @@ function card(product) {
       <div class="card-info">
         <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
+        ${product.soldOut ? `<a class="card-restock" href="/product/${product.slug}/#restock">補貨後通知</a>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
@@ -567,6 +570,13 @@ function renderProduct() {
             <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
           </div>`}
           <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>
+          ${product.soldOut ? `
+          <form id="restock" class="restock">
+            <p class="fine">這件目前沒有存貨。留下 Gmail，補貨後會寄信通知。</p>
+            <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
+            <button class="btn btn-fill" type="submit">補貨後通知</button>
+            <p class="form-note fine"></p>
+          </form>` : ""}
           <details open>
             <summary>細節</summary>
             <p>${esc(product.details)}</p>
@@ -909,6 +919,24 @@ function buildGmailUrl(data) {
   return `https://mail.google.com/mail/?${query.toString()}`;
 }
 
+function buildRestockUrl(product, gmail) {
+  const body = [
+    `請在 ${product.name} 補貨時通知我。`,
+    "補貨後請寄到這個 Gmail。",
+    "",
+    `作品：${product.name}`,
+    `Gmail：${gmail}`,
+  ].join("\n");
+  const query = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: `${site.email},${gmail}`,
+    su: "BiJulia 補貨通知",
+    body,
+  });
+  return `https://mail.google.com/mail/?${query.toString()}`;
+}
+
 function onClick(event) {
   const colorBtn = event.target.closest(".color-option");
   if (colorBtn) {
@@ -998,6 +1026,20 @@ function onSubmit(event) {
     try { localStorage.setItem("bijulia-letter", email); } catch { /* ignore */ }
     note.textContent = "謝謝。在訂閱名單接上之前，這個地址只留在這台瀏覽器裡。";
     input.value = "";
+    return;
+  }
+  if (event.target.id === "restock") {
+    event.preventDefault();
+    const gmail = String(new FormData(event.target).get("gmail") || "").trim();
+    const note = event.target.querySelector(".form-note");
+    if (!/@gmail\.com$/i.test(gmail)) {
+      note.textContent = "請留下 Gmail。";
+      return;
+    }
+    const product = productBySlug(slug);
+    if (!product) return;
+    window.open(buildRestockUrl(product, gmail), "_blank", "noopener");
+    note.textContent = "Gmail 已打開。請按寄出，補貨後才會寄到這個地址。";
     return;
   }
   if (event.target.id === "request-form") {
