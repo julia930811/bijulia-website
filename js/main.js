@@ -128,14 +128,6 @@ function shell() {
     <footer class="site-footer">
       <div class="footer-grid">
         <div>
-          <h2>${wordImg("shop")}</h2>
-          <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-          <a href="/shop/">${wordImg("pieces")}</a>
-          <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
-          <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-          <a href="/outfit/">${wordImg("outfit")}</a>
-        </div>
-        <div>
           <h2>${wordImg("care")}</h2>
           <a href="/customer-care/#shipping">Shipping</a>
           <a href="/customer-care/#returns">Returns</a>
@@ -437,10 +429,10 @@ function shopHeading(filter) {
   if (collection) return [collection.name, collection.blurb];
   const map = {
     all: ["Shop", ""],
-    new: ["New In", "最新的項鍊。"],
+    new: ["New In", ""],
     best: ["Best Sellers", ""],
-    necklace: ["Necklaces", "給浪漫的人的手工飾品。"],
-    sticker: ["Stickers", "貝殼圖，三張貼紙 NT$50。"],
+    necklace: ["Necklaces", ""],
+    sticker: ["Stickers", ""],
   };
   return map[filter] || map.all;
 }

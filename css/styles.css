@@ -370,7 +370,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .title-mark {
   display: block;
-  width: min(340px, 72vw);
+  width: min(276px, 54vw);
   height: auto;
   filter: none;
 }
@@ -405,13 +405,18 @@ h1, h2, h3, p { margin: 0; }
 .mobile-nav a.sub .word-mark { height: 40px; }
 .filter-btn .word-mark { height: 34px; }
 .word-mark.is-title { display: block; height: auto; }
-.word-mark.is-shop.is-title { width: min(240px, 58vw); }
-.word-mark.is-sticker.is-title { width: min(323px, 74vw); }
-.word-mark.is-necklace.is-title { width: min(437px, 87vw); }
+.word-mark.is-shop.is-title,
+.word-mark.is-sticker.is-title,
+.word-mark.is-necklace.is-title,
 .word-mark.is-outfit.is-title,
-.word-mark.is-about.is-title { width: min(340px, 78vw); }
-.word-mark.is-care.is-title { width: min(620px, 94vw); }
-.word-mark.is-best.is-title { width: min(460px, 90vw); }
+.word-mark.is-about.is-title,
+.word-mark.is-care.is-title,
+.word-mark.is-best.is-title { width: min(276px, 54vw); }
+.page-title .word-mark.is-title,
+.page-title .title-mark {
+  width: auto;
+  height: min(69.71px, 13.64vw);
+}
 #looks .word-mark.is-outfit.is-title { width: min(140px, 32vw); }
 #best-sellers .word-mark.is-best.is-title { width: min(196px, 46vw); }
 .section-head .word-mark.is-title { margin: 0 auto; }
@@ -768,7 +773,7 @@ h1, h2, h3, p { margin: 0; }
   max-width: 1360px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 32px;
 }
 .footer-grid h2 {
