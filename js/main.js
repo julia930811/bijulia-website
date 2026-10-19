@@ -74,7 +74,8 @@ function wordImg(kind, extra = "") {
     sticker: ["/images/sticker-word.png", "Sticker"],
     necklace: ["/images/necklace-word.png", "Necklace"],
     outfit: ["/images/outfits-word.png", "Outfits"],
-    all: ["/images/all-word.png", "All"],
+    all: ["/images/all-word.png?v=2", "All"],
+    care: ["/images/customer-care-word.png", "Customer Care"],
     pieces: ["/images/all-pieces-word.png", "All pieces"],
     best: ["/images/best-sellers-word.png", "Best Sellers"],
     about: ["/images/about-word.png", "About"],
@@ -115,7 +116,7 @@ function shell() {
           <a class="menu-small" href="/shop/?filter=sticker"${mark("sticker")}>${wordImg("sticker")}</a>
           <a class="menu-small" href="/outfit/"${mark("looks")}>${wordImg("outfit")}</a>
           <a href="/about/"${mark("about")}>${wordImg("about")}</a>
-          <a class="nav-text" href="/customer-care/"${mark("care")}>Customer Care</a>
+          <a href="/customer-care/"${mark("care")}>${wordImg("care")}</a>
         </nav>
         <div class="tools">
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
@@ -135,7 +136,7 @@ function shell() {
           <a href="/outfit/">${wordImg("outfit")}</a>
         </div>
         <div>
-          <h2>Customer Care</h2>
+          <h2>${wordImg("care")}</h2>
           <a href="/customer-care/#shipping">Shipping</a>
           <a href="/customer-care/#returns">Returns</a>
           <a href="/customer-care/#care">Jewelry Care</a>
@@ -182,7 +183,7 @@ function shell() {
       <a class="menu-small" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
       <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
-      <a href="/customer-care/">Customer Care</a>
+      <a href="/customer-care/">${wordImg("care")}</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
     </div>
   `;
@@ -209,7 +210,7 @@ function card(product) {
             : `<button class="quick-add" type="button" data-add="${product.slug}">Add to bag</button>`}
       </div>
       <div class="card-info">
-        <a class="card-name" href="/product/${product.slug}/">${esc(product.name)}</a>
+        <a class="card-name${product.category === "necklace" ? " is-taipei" : ""}" href="/product/${product.slug}/">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
         ${product.soldOut ? `<a class="card-restock" href="/product/${product.slug}/#restock">補貨後通知</a>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
@@ -296,7 +297,7 @@ function line(item, compact) {
     <article class="line">
       <a href="/product/${product.slug}/"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
       <div>
-        <h3><a href="/product/${product.slug}/">${esc(product.name)}</a></h3>
+        <h3 class="${product.category === "necklace" ? "is-taipei" : ""}"><a href="/product/${product.slug}/">${esc(product.name)}</a></h3>
         ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
         <div class="qty" data-max="${product.maxQty}">
           <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="減少數量">−</button>
@@ -562,7 +563,7 @@ function renderProduct() {
         </div>
         <div class="pdp-info">
           <p class="kicker">${esc(collection ? collection.name : "")}</p>
-          <h1>${esc(product.name)}</h1>
+          <h1 class="${product.category === "necklace" ? "is-taipei" : ""}">${esc(product.name)}</h1>
           <p class="price">${priceText(product)}</p>
           ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
           <div class="desc-wrap">
@@ -707,7 +708,7 @@ function renderOutfit() {
             <a class="outfit-frame" href="/product/${slug}/">
               <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
             </a>
-            <a class="outfit-name" href="/product/${slug}/">${esc(name)}</a>
+            <a class="outfit-name is-taipei" href="/product/${slug}/">${esc(name)}</a>
           </article>
         `).join("")}
       </div>
@@ -733,7 +734,7 @@ function renderCare() {
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Customer Care" }])}
-      <h1 class="page-title">Customer Care</h1>
+      <h1 class="page-title">${wordImg("care", "is-title")}</h1>
       <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
@@ -885,7 +886,7 @@ function renderSearch(query) {
   const rows = list.map((item) => `
     <a class="search-hit" href="/product/${item.slug}/">
       <img src="${item.image}" alt="" class="${fitClass(item)}">
-      <strong>${esc(item.name)}</strong>
+      <strong class="${item.category === "necklace" ? "is-taipei" : ""}">${esc(item.name)}</strong>
       <span>${priceText(item)}</span>
     </a>
   `).join("");
