@@ -384,7 +384,6 @@ function renderHome() {
       <div class="about-copy">
         <p class="kicker">工作室</p>
         <h2>${wordImg("about", "is-title")}</h2>
-        <a class="linkish" href="/about/">閱讀故事</a>
       </div>
     </section>
     <section class="section" id="instagram">
