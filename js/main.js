@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=12";
+} from "./data.js?v=13";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -802,9 +802,10 @@ function drawerHtml() {
     return;
   }
   const sums = totals();
+  const totalText = sums.twd ? ntd(sums.twd + sums.ship) : money(sums.sub + sums.ship);
   body.innerHTML = items.map((item) => line(item, true)).join("");
   foot.innerHTML = `
-    ${summaryMoney(sums, "Total")}
+    <div class="summary-row"><span>Total</span><span>${totalText}</span></div>
     ${sums.basis ? `<p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
     <a class="btn btn-fill is-mark" href="/cart/"><img class="view-bag-mark" src="/images/view-bag.png" alt="View bag"></a>
   `;

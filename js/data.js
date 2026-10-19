@@ -4,7 +4,7 @@ export const site = {
   instagram: "https://www.instagram.com/2sbijulia/",
   instagramHandle: "@2sbijulia",
   freeShipping: 2000,
-  shippingFee: 12,
+  shippingFee: 60,
 };
 
 export const products = [
