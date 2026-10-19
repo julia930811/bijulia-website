@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=13";
+} from "./data.js?v=17";
 import * as store from "./store.js?v=2";
 
 const page = document.body.dataset.page || "home";
@@ -74,7 +74,9 @@ function wordImg(kind, extra = "") {
     sticker: ["/images/sticker-word.png", "Sticker"],
     necklace: ["/images/necklace-word.png", "Necklace"],
     outfit: ["/images/outfits-word.png", "Outfits"],
+    all: ["/images/all-word.png", "All"],
     pieces: ["/images/all-pieces-word.png", "All pieces"],
+    best: ["/images/best-sellers-word.png", "Best Sellers"],
     about: ["/images/about-word.png", "About"],
   };
   const [src, alt] = map[kind];
@@ -181,6 +183,7 @@ function shell() {
       <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">Customer Care</a>
+      <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
     </div>
   `;
 }
@@ -337,6 +340,16 @@ function renderHome() {
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
       </div>
     </section>
+    <section class="section sticker-feature" id="stickers">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Shell Stickers</h2>
+          <p class="lede">黑色、薄荷綠或藍色。三張貼紙 NT$50。</p>
+        </div>
+        <div class="sticker-stage">${stickers.map(card).join("")}</div>
+        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">看貝殼</a></p>
+      </div>
+    </section>
     <section class="section looks-section" id="looks">
       <div class="wrap">
         <div class="section-head"><h2><a href="/outfit/">${wordImg("outfit", "is-title")}</a></h2></div>
@@ -359,20 +372,9 @@ function renderHome() {
         <button class="look-nav look-next" type="button" aria-label="下一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
       </div>
     </section>
-    <section class="section sticker-feature" id="stickers">
-      <div class="wrap">
-        <div class="section-head">
-          <p class="kicker">工作室裡還有</p>
-          <h2>Shell Stickers</h2>
-          <p class="lede">黑色或薄荷綠。三張貼紙 NT$50。</p>
-        </div>
-        <div class="sticker-stage">${stickers.map(card).join("")}</div>
-        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">看貝殼</a></p>
-      </div>
-    </section>
     <section class="section" id="best-sellers">
       <div class="wrap">
-        <div class="section-head"><h2>Best Sellers</h2></div>
+        <div class="section-head"><h2>${wordImg("best", "is-title")}</h2></div>
         ${grid(sellers)}
         <p class="more-link"><a class="linkish" href="/shop/?filter=best">查看全部</a></p>
       </div>
@@ -407,9 +409,9 @@ function renderHome() {
 }
 
 const filterOptions = [
-  ["all", "All"],
+  ["all", wordImg("all")],
   ["new", `<img class="new-in-mark" src="/images/new-in.png" alt="New In">`],
-  ["best", "Best Sellers"],
+  ["best", wordImg("best")],
   ["necklace", wordImg("necklace")],
   ["sticker", wordImg("sticker")],
 ];
@@ -436,7 +438,7 @@ function shopHeading(filter) {
   const map = {
     all: ["Shop", ""],
     new: ["New In", "最新的項鍊。"],
-    best: ["Best Sellers", "最先離開桌面的那幾件。"],
+    best: ["Best Sellers", ""],
     necklace: ["Necklaces", "給浪漫的人的手工飾品。"],
     sticker: ["Stickers", "貝殼圖，三張貼紙 NT$50。"],
   };
@@ -448,6 +450,7 @@ function shopTitle(title) {
   if (title === "Shop") return wordImg("shop", "is-title");
   if (title === "Necklaces") return wordImg("necklace", "is-title");
   if (title === "Stickers") return wordImg("sticker", "is-title");
+  if (title === "Best Sellers") return wordImg("best", "is-title");
   return esc(title);
 }
 
@@ -539,9 +542,7 @@ function renderProduct() {
   const specs = product.category === "sticker"
     ? [["組數", "三張貼紙"], ["價格", "NT$50"], ["製作", "少量製作"]]
     : [["長度", product.length], ["材質", product.materials], ["製作", "手工，少量製作"]];
-  const care = product.category === "sticker"
-    ? "貼在乾淨、乾燥的表面上。這是霧面印刷的紙貼紙，不能貼在布上，也不能水洗。"
-    : "沒有戴的時候，把項鍊放回鏈袋裡。";
+  const care = product.category === "sticker" ? "" : "沒有戴的時候，把項鍊放回鏈袋裡。";
   const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
@@ -551,9 +552,8 @@ function renderProduct() {
       ${crumbs([
         { href: "/", label: "Home" },
         { href: "/shop/", label: "Shop" },
-        collection ? { href: `/collections/${collection.slug}/`, label: collection.name } : null,
         { label: product.name },
-      ].filter(Boolean))}
+      ])}
       <article class="pdp">
         <div class="pdp-gallery">
           ${product.colors && product.colors.length
@@ -597,10 +597,10 @@ function renderProduct() {
             <summary>運送</summary>
             <p>${esc(shipping)}</p>
           </details>
-          <details>
+          ${care ? `<details>
             <summary>保養</summary>
             <p>${esc(care)}</p>
-          </details>
+          </details>` : ""}
         </div>
       </article>
       <section class="related">
