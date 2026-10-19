@@ -379,6 +379,7 @@ h1, h2, h3, p { margin: 0; }
 .word-mark.is-necklace.is-title { width: min(437px, 87vw); }
 .word-mark.is-outfit.is-title,
 .word-mark.is-about.is-title { width: min(340px, 78vw); }
+#looks .word-mark.is-outfit.is-title { width: min(140px, 32vw); }
 .section-head .word-mark.is-title { margin: 0 auto; }
 .word-mark.is-necklace:not(.is-title),
 .word-mark.is-sticker:not(.is-title) { height: 34px; }
@@ -1036,7 +1037,7 @@ img.photo { filter: none; }
   border-bottom: 1px solid var(--line);
 }
 .mobile-head .logo { transform: translateX(-4vw); }
-.mobile-head .logo img { height: 54.6px; }
+.mobile-head .logo img { height: 57.33px; }
 .drawer-head h2, .mobile-head p {
   font-family: var(--serif);
   font-style: italic;
