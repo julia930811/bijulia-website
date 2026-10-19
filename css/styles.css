@@ -398,6 +398,10 @@ h1, h2, h3, p { margin: 0; }
 .mobile-nav .word-mark.is-sticker { height: 54px; }
 .nav .word-mark.is-necklace,
 .nav .word-mark.is-sticker { height: 30px; }
+.nav a.menu-small .word-mark { height: 24px; }
+.nav a.menu-small.nav-text { font-size: 13.2px; }
+.mobile-nav a.menu-small { font-size: 20.4px; line-height: 1; padding-top: 2px; padding-bottom: 2px; }
+.mobile-nav a.menu-small .word-mark { height: 32.4px; }
 .filter-btn .word-mark.is-necklace,
 .filter-btn .word-mark.is-sticker { height: 32px; }
 .lede { max-width: 46ch; margin: 16px auto 0; color: var(--ink-soft); }

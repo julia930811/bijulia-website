@@ -74,6 +74,7 @@ function wordImg(kind, extra = "") {
     sticker: ["/images/sticker-word.png", "Sticker"],
     necklace: ["/images/necklace-word.png", "Necklace"],
     outfit: ["/images/outfits-word.png", "Outfits"],
+    pieces: ["/images/all-pieces-word.png", "All pieces"],
     about: ["/images/about-word.png", "About"],
   };
   const [src, alt] = map[kind];
@@ -107,10 +108,10 @@ function shell() {
         <nav class="nav" aria-label="Primary">
           <a href="/shop/"${mark("shop")}>${wordImg("shop")}</a>
           <a href="/shop/?filter=new"${mark("new")}><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-          <a class="nav-text" href="/shop/"${mark("pieces")}>All pieces</a>
-          <a href="/shop/?filter=necklace"${mark("necklace")}>${wordImg("necklace")}</a>
-          <a href="/shop/?filter=sticker"${mark("sticker")}>${wordImg("sticker")}</a>
-          <a href="/outfit/"${mark("looks")}>${wordImg("outfit")}</a>
+          <a class="menu-small" href="/shop/"${mark("pieces")}>${wordImg("pieces")}</a>
+          <a class="menu-small" href="/shop/?filter=necklace"${mark("necklace")}>${wordImg("necklace")}</a>
+          <a class="menu-small" href="/shop/?filter=sticker"${mark("sticker")}>${wordImg("sticker")}</a>
+          <a class="menu-small" href="/outfit/"${mark("looks")}>${wordImg("outfit")}</a>
           <a href="/about/"${mark("about")}>${wordImg("about")}</a>
           <a class="nav-text" href="/customer-care/"${mark("care")}>Customer Care</a>
         </nav>
@@ -126,7 +127,7 @@ function shell() {
         <div>
           <h2>${wordImg("shop")}</h2>
           <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-          <a href="/shop/">All pieces</a>
+          <a href="/shop/">${wordImg("pieces")}</a>
           <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
           <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
           <a href="/outfit/">${wordImg("outfit")}</a>
@@ -174,10 +175,10 @@ function shell() {
       </div>
       <a href="/shop/">${wordImg("shop")}</a>
       <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-      <a href="/shop/">All pieces</a>
-      <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
-      <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-      <a href="/outfit/">${wordImg("outfit")}</a>
+      <a class="menu-small" href="/shop/">${wordImg("pieces")}</a>
+      <a class="menu-small" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
+      <a class="menu-small" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
+      <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">Customer Care</a>
     </div>
