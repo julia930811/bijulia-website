@@ -851,17 +851,17 @@ h1, h2, h3, p { margin: 0; }
   display: flex;
   background: transparent;
   border-style: solid;
-  border-width: 28.8px 25.6px;
+  border-width: 21px 32px;
   border-color: transparent;
-  border-image: url("/images/view-bag-frame.png") 100 / 28.8px 25.6px / 0 stretch;
+  border-image: url("/images/view-bag-frame.png") 100 / 21px 32px / 0 stretch;
   width: fit-content;
   min-height: 0;
   margin: 12px auto 0;
-  padding: 0 3px;
+  padding: 0 4px;
 }
 .view-bag-mark {
   display: block;
-  width: min(134.4px, 41.6vw);
+  width: min(168px, 52vw);
   height: auto;
   filter: none;
 }
