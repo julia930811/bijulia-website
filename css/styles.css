@@ -420,7 +420,7 @@ h1, h2, h3, p { margin: 0; }
 .page-title .title-mark {
   width: auto;
   height: auto;
-  max-height: min(162.77px, 33.33vw);
+  max-height: min(97.66px, 20vw);
   max-width: 100%;
 }
 .page-title .word-mark.is-best.is-title {
@@ -828,7 +828,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .your-bag-mark {
   display: block;
-  width: min(336px, 68.8vw);
+  width: min(201.6px, 41.28vw);
   height: auto;
   filter: none;
 }
@@ -850,15 +850,18 @@ h1, h2, h3, p { margin: 0; }
 .btn-fill.is-mark:hover {
   display: flex;
   background: transparent;
-  border: 1px solid var(--ink);
+  border-style: solid;
+  border-width: 28.8px 25.6px;
+  border-color: transparent;
+  border-image: url("/images/view-bag-frame.png") 100 / 28.8px 25.6px / 0 stretch;
   width: fit-content;
   min-height: 0;
   margin: 12px auto 0;
-  padding: 6px 16px 8px;
+  padding: 0 3px;
 }
 .view-bag-mark {
   display: block;
-  width: min(168px, 52vw);
+  width: min(134.4px, 41.6vw);
   height: auto;
   filter: none;
 }
