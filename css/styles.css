@@ -419,7 +419,13 @@ h1, h2, h3, p { margin: 0; }
 .page-title .word-mark.is-title,
 .page-title .title-mark {
   width: auto;
+  height: auto;
+  max-height: min(162.77px, 33.33vw);
+  max-width: 100%;
+}
+.page-title .word-mark.is-best.is-title {
   height: min(69.71px, 13.64vw);
+  max-height: none;
 }
 #looks .word-mark.is-outfit.is-title { width: min(140px, 32vw); }
 #best-sellers .word-mark.is-best.is-title { width: min(196px, 46vw); }
@@ -822,13 +828,13 @@ h1, h2, h3, p { margin: 0; }
 }
 .your-bag-mark {
   display: block;
-  width: min(420px, 86vw);
+  width: min(336px, 68.8vw);
   height: auto;
   filter: none;
 }
 .drawer-head h2 { flex: 1; min-width: 0; margin: 0; }
 .drawer-head .your-bag-mark {
-  width: min(200px, 100%);
+  width: min(160px, 80%);
   height: auto;
 }
 .empty .your-bag-mark { margin: 0 auto 8px; }
@@ -844,11 +850,11 @@ h1, h2, h3, p { margin: 0; }
 .btn-fill.is-mark:hover {
   display: flex;
   background: transparent;
-  border: 0;
+  border: 1px solid var(--ink);
   width: fit-content;
   min-height: 0;
   margin: 12px auto 0;
-  padding: 0;
+  padding: 6px 16px 8px;
 }
 .view-bag-mark {
   display: block;
