@@ -5,8 +5,9 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=17";
+} from "./data.js?v=19";
 import * as store from "./store.js?v=2";
+import * as auth from "./auth.js?v=1";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
@@ -102,7 +103,7 @@ function shell() {
   };
   return `
     <a class="skip" href="#app">跳至內文</a>
-    <div class="announce">少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</div>
+    <div class="announce"><span>少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</span><span class="announce-account" data-account-links><a href="/account/">登入</a><a href="/account/?view=register">註冊</a></span></div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
@@ -120,6 +121,10 @@ function shell() {
           <a href="/customer-care/"${mark("care")}>${wordImg("care")}</a>
         </nav>
         <div class="tools">
+          <div class="account-links" data-account-links>
+            <a href="/account/">登入</a>
+            <a href="/account/?view=register">註冊</a>
+          </div>
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
           <button class="icon-btn" type="button" data-open-drawer aria-label="購物袋">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
         </div>
@@ -188,6 +193,8 @@ function shell() {
       <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
+      <a class="account-entry" href="/account/" data-mobile-login>登入</a>
+      <a class="account-entry" href="/account/?view=register" data-mobile-register>註冊</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
     </div>
   `;
@@ -345,11 +352,18 @@ function renderHome() {
         <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
       </div>
     </section>
+    <section class="section" id="best-sellers">
+      <div class="wrap">
+        <div class="section-head"><h2>${wordImg("best", "is-title")}</h2></div>
+        ${grid(sellers)}
+        <p class="more-link"><a class="linkish" href="/shop/?filter=best">查看全部</a></p>
+      </div>
+    </section>
     <section class="section sticker-feature" id="stickers">
       <div class="wrap">
         <div class="section-head">
           <h2>Shell Stickers</h2>
-          <p class="lede">黑色、薄荷綠或藍色。三張貼紙 NT$50。</p>
+          <p class="lede">三張一組 不可單賣</p>
         </div>
         <div class="sticker-stage">${stickers.map(card).join("")}</div>
         <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">看貝殼</a></p>
@@ -375,13 +389,6 @@ function renderHome() {
           `).join("")}
         </div>
         <button class="look-nav look-next" type="button" aria-label="下一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
-      </div>
-    </section>
-    <section class="section" id="best-sellers">
-      <div class="wrap">
-        <div class="section-head"><h2>${wordImg("best", "is-title")}</h2></div>
-        ${grid(sellers)}
-        <p class="more-link"><a class="linkish" href="/shop/?filter=best">查看全部</a></p>
       </div>
     </section>
     <section class="about-band" id="about-bijulia">
@@ -761,6 +768,272 @@ function renderCare() {
   `;
 }
 
+function configBanner() {
+  if (auth.isConfigured()) return "";
+  return `<div class="account-banner" role="status">尚未接上 BiJulia 的 Supabase。需要環境變數 SUPABASE_URL 與 SUPABASE_ANON_KEY。這個畫面沒有讀取或寫入任何帳號。</div>`;
+}
+
+function accountView() {
+  const value = params().get("view");
+  if (value === "register" || value === "pending" || value === "admin") return value;
+  return "login";
+}
+
+function accountSwitch(view) {
+  const link = (key, href, label) => `<a href="${href}"${view === key ? ' class="is-on" aria-current="page"' : ""}>${label}</a>`;
+  return `<nav class="account-switch" aria-label="帳戶">
+    ${link("login", "/account/", "登入")}
+    ${link("register", "/account/?view=register", "註冊")}
+    ${link("pending", "/account/?view=pending", "待核准")}
+    ${link("admin", "/account/?view=admin", "核准")}
+  </nav>`;
+}
+
+function roleLabel(role) {
+  if (role === "pending") return "待核准";
+  if (role === "customer") return "顧客";
+  if (role === "super_admin") return "管理者";
+  return esc(role || "—");
+}
+
+function formatWhen(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return esc(value);
+  return esc(date.toLocaleString("zh-Hant", { hour12: false }));
+}
+
+function purchaseHtml(history) {
+  if (!Array.isArray(history) || !history.length) return "尚無";
+  return history.map((order) => {
+    const when = order && order.at ? formatWhen(order.at) : "";
+    const items = Array.isArray(order && order.items)
+      ? order.items.map((item) => `${esc(item.name || "")} × ${esc(item.qty || "")}`).join("、")
+      : "";
+    return `${when} ${items}`.trim();
+  }).join("<br>");
+}
+
+function profileDl(profile, previewRole) {
+  const row = (label, value) => `<dt>${label}</dt><dd>${value}</dd>`;
+  if (!profile) {
+    return `<dl class="profile-dl">
+      ${row("顧客編號", "—")}
+      ${row("姓名 / 電話", "—")}
+      ${row("電子郵件 / 地址", "—")}
+      ${row("會員等級", "—")}
+      ${row("角色", previewRole)}
+      ${row("購買紀錄", "尚無")}
+      ${row("建立時間", "—")}
+    </dl>`;
+  }
+  return `<dl class="profile-dl">
+    ${row("顧客編號", esc(profile.id))}
+    ${row("姓名 / 電話", `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
+    ${row("電子郵件 / 地址", `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
+    ${row("會員等級", esc(profile.tier || "—"))}
+    ${row("角色", roleLabel(profile.role))}
+    ${row("購買紀錄", purchaseHtml(profile.purchase_history))}
+    ${row("建立時間", formatWhen(profile.created_at))}
+  </dl>`;
+}
+
+function logoutButton() {
+  return `<div class="account-actions"><button class="btn" type="button" data-logout>登出</button></div>`;
+}
+
+function renderLogin() {
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "登入" }])}
+    <h1 class="page-title">登入</h1>
+    ${accountSwitch("login")}
+    ${configBanner()}
+    <p class="account-copy">顧客與管理者都從這裡登入。新註冊的帳號要先完成信箱驗證，角色是待核准。待核准可以看自己的帳戶，不能核准別人。管理者核准後，角色才會改成顧客。</p>
+    <form id="login-form" class="account-form">
+      <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
+      <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
+      <button class="btn btn-fill" type="submit">登入</button>
+      <p class="form-note fine" id="login-note" role="status"></p>
+    </form>
+  </div>`;
+}
+
+function renderRegister() {
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "註冊" }])}
+    <h1 class="page-title">註冊</h1>
+    ${accountSwitch("register")}
+    ${configBanner()}
+    <p class="account-copy">留下姓名、電話、電子郵件、地址和密碼。送出後要到信箱完成驗證。驗證完成才會建立個人資料，角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
+    <form id="register-form" class="account-form">
+      <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
+      <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
+      <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
+      <label class="field"><span>地址</span><textarea name="address" required autocomplete="street-address"></textarea></label>
+      <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
+      <label class="field"><span>再輸入一次密碼</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
+      <button class="btn btn-fill" type="submit">註冊</button>
+      <p class="form-note fine" id="register-note" role="status"></p>
+    </form>
+  </div>`;
+}
+
+function renderPending(profile) {
+  const intro = profile
+    ? "信箱驗證已完成。角色仍是待核准，不能使用管理功能。請等管理者核准。這頁只顯示你自己的資料。"
+    : "註冊並完成信箱驗證後，角色會是待核准。核准前不能使用管理功能。現在沒有登入中的帳號，所以下面沒有個人資料。";
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "待核准" }])}
+    <h1 class="page-title">待核准</h1>
+    ${profile ? "" : accountSwitch("pending")}
+    ${configBanner()}
+    <p class="account-copy">${intro}</p>
+    ${profileDl(profile, "待核准")}
+    ${profile ? logoutButton() : ""}
+  </div>`;
+}
+
+function peopleTable(rows, approve, emptyLabel = "沒有資料") {
+  const head = `<tr>
+    <th>顧客編號</th><th>姓名 / 電話</th><th>電子郵件 / 地址</th><th>會員等級</th><th>角色</th><th>購買紀錄</th><th>建立時間</th>${approve ? "<th>核准</th>" : ""}
+  </tr>`;
+  const body = rows.length
+    ? rows.map((row) => `<tr>
+        <td>${esc(row.id || "")}</td>
+        <td>${esc(row.name || "—")} / ${esc(row.phone || "—")}</td>
+        <td>${esc(row.email || "—")} / ${esc(row.address || "—")}</td>
+        <td>${esc(row.tier || "—")}</td>
+        <td>${roleLabel(row.role)}</td>
+        <td>${purchaseHtml(row.purchase_history)}</td>
+        <td>${formatWhen(row.created_at)}</td>
+        ${approve ? `<td><button class="btn" type="button" data-approve="${esc(row.id || "")}">核准</button></td>` : ""}
+      </tr>`).join("")
+    : `<tr><td colspan="${approve ? 8 : 7}">${esc(emptyLabel)}</td></tr>`;
+  return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function renderAdmin(profile) {
+  if (!profile) {
+    return `<div class="page">
+      ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
+      <h1 class="page-title">核准帳號</h1>
+      ${accountSwitch("admin")}
+      ${configBanner()}
+      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。店主要先自己註冊並完成信箱驗證，再在 Supabase 的 SQL editor 把那一筆 role 改成 super_admin。這個網站不會把註冊的人自動變成管理者。</p>
+      <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號。</p>
+      <section class="account-section"><h2>待核准</h2>${peopleTable([], false, "沒有名單")}</section>
+    </div>`;
+  }
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
+    <h1 class="page-title">核准帳號</h1>
+    ${configBanner()}
+    <p class="account-copy">待核准的帳號列在下面。按下核准後，角色會從待核准改成顧客。顧客只能看見自己的帳戶。</p>
+    <p class="fine">登入身分：${esc(profile.email || "")}，管理者。</p>
+    <p class="form-note fine" id="admin-note" role="status"></p>
+    <div id="admin-lists"><p class="fine">讀取中。</p></div>
+    ${logoutButton()}
+  </div>`;
+}
+
+function renderCustomer(profile) {
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
+    <h1 class="page-title">帳戶</h1>
+    ${configBanner()}
+    <p class="account-copy">這是你自己的帳戶。角色是顧客。這裡不會列出其他人。</p>
+    ${profileDl(profile, "顧客")}
+    ${logoutButton()}
+  </div>`;
+}
+
+function renderSignedInWithoutProfile() {
+  return `<div class="page">
+    ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
+    <h1 class="page-title">帳戶</h1>
+    ${configBanner()}
+    <p class="account-copy">已登入，但 public.profiles 還沒有這一筆。請先完成信箱驗證。驗證完成後資料庫才會寫入，角色是待核准。</p>
+    ${logoutButton()}
+  </div>`;
+}
+
+function renderAccount() {
+  const profile = auth.getProfile();
+  const session = auth.getSession();
+  if (profile?.role === "super_admin") {
+    document.title = "核准帳號 — BiJulia";
+    return renderAdmin(profile);
+  }
+  if (profile?.role === "pending") {
+    document.title = "待核准 — BiJulia";
+    return renderPending(profile);
+  }
+  if (profile) {
+    document.title = "帳戶 — BiJulia";
+    return renderCustomer(profile);
+  }
+  if (session) {
+    document.title = "帳戶 — BiJulia";
+    return renderSignedInWithoutProfile();
+  }
+  const view = accountView();
+  if (view === "pending") {
+    document.title = "待核准 — BiJulia";
+    return renderPending(null);
+  }
+  if (view === "admin") {
+    document.title = "核准帳號 — BiJulia";
+    return renderAdmin(null);
+  }
+  if (view === "register") {
+    document.title = "註冊 — BiJulia";
+    return renderRegister();
+  }
+  document.title = "登入 — BiJulia";
+  return renderLogin();
+}
+
+let adminLoad = 0;
+async function loadAdminLists() {
+  const box = document.getElementById("admin-lists");
+  if (!box) return;
+  const token = ++adminLoad;
+  const result = await auth.listProfiles();
+  if (token !== adminLoad) return;
+  const current = document.getElementById("admin-lists");
+  if (!current) return;
+  if (!result.ok) {
+    const message = result.code === "unconfigured"
+      ? "沒有接上 Supabase，沒有讀取名單。"
+      : (result.message || "讀不到名單。");
+    current.innerHTML = `<p class="fine">${esc(message)}</p>`;
+    return;
+  }
+  const pending = result.rows.filter((row) => row.role === "pending");
+  const customers = result.rows.filter((row) => row.role === "customer");
+  current.innerHTML = `
+    <section class="account-section"><h2>待核准</h2>${pending.length ? "" : `<p class="fine">目前沒有待核准的帳號。</p>`}${peopleTable(pending, true)}</section>
+    <section class="account-section"><h2>顧客</h2>${peopleTable(customers, false)}</section>
+  `;
+}
+
+async function approveProfile(button) {
+  const note = document.getElementById("admin-note");
+  button.disabled = true;
+  const result = await auth.approveCustomer(button.dataset.approve);
+  if (!result.ok) {
+    if (note) {
+      note.textContent = result.code === "unconfigured"
+        ? "沒有接上 Supabase，沒有變更角色。"
+        : (result.message || "沒有核准。");
+    }
+    button.disabled = false;
+    return;
+  }
+  if (note) note.textContent = "已核准，角色改成顧客。";
+  await loadAdminLists();
+}
+
 function renderNotFound() {
   document.title = "Page not found — BiJulia";
   return `
@@ -787,6 +1060,7 @@ function renderMain() {
     outfit: renderOutfit,
     about: renderAbout,
     care: renderCare,
+    account: renderAccount,
     "not-found": renderNotFound,
   };
   const titles = {
@@ -798,6 +1072,7 @@ function renderMain() {
     outfit: "Outfits — BiJulia",
     about: "About — BiJulia",
     care: "Customer Care — BiJulia",
+    account: "帳戶 — BiJulia",
   };
   if (titles[page]) document.title = titles[page];
   root.innerHTML = (views[page] || renderNotFound)();
@@ -806,6 +1081,7 @@ function renderMain() {
     video.muted = true;
     video.play().catch(() => {});
   }
+  if (page === "account" && auth.getProfile()?.role === "super_admin") loadAdminLists();
 }
 
 function drawerHtml() {
@@ -827,6 +1103,41 @@ function drawerHtml() {
   `;
 }
 
+function accountLinksHtml() {
+  const profile = auth.getProfile();
+  const here = currentPath().startsWith("/account");
+  if (profile || auth.getSession()) {
+    const label = profile?.role === "super_admin" ? "管理者" : "帳戶";
+    return `<a href="/account/"${here ? ' aria-current="page"' : ""}>${label}</a>`;
+  }
+  const view = accountView();
+  const loginOn = here && view === "login" ? ' aria-current="page"' : "";
+  const registerOn = here && view === "register" ? ' aria-current="page"' : "";
+  return `<a href="/account/"${loginOn}>登入</a><a href="/account/?view=register"${registerOn}>註冊</a>`;
+}
+
+function refreshAccountChrome() {
+  const html = accountLinksHtml();
+  document.querySelectorAll("[data-account-links]").forEach((slot) => {
+    slot.innerHTML = html;
+  });
+  const login = document.querySelector("[data-mobile-login]");
+  const register = document.querySelector("[data-mobile-register]");
+  if (!login || !register) return;
+  const profile = auth.getProfile();
+  if (profile || auth.getSession()) {
+    login.textContent = profile?.role === "super_admin" ? "管理者" : "帳戶";
+    login.href = "/account/";
+    register.hidden = true;
+    return;
+  }
+  login.textContent = "登入";
+  login.href = "/account/";
+  register.hidden = false;
+  register.textContent = "註冊";
+  register.href = "/account/?view=register";
+}
+
 function refreshChrome() {
   const cartN = store.cartCount();
   document.querySelectorAll("[data-cart-count]").forEach((node) => {
@@ -836,6 +1147,7 @@ function refreshChrome() {
   const bagBtn = document.querySelector("[data-open-drawer]");
   if (bagBtn) bagBtn.setAttribute("aria-label", cartN ? `購物袋，${cartN} 件` : "購物袋");
   drawerHtml();
+  refreshAccountChrome();
 }
 
 function applyOverlay() {
@@ -899,6 +1211,32 @@ function renderSearch(query) {
   box.innerHTML = `<p class="search-label">${esc(label)}</p>${rows}${empty}`;
 }
 
+function orderSnapshot(data) {
+  const items = store.getCart().map((item) => {
+    const product = productBySlug(item.slug);
+    if (!product) return null;
+    const tone = colorById(product, item.color);
+    return {
+      slug: product.slug,
+      name: tone ? `${product.name} (${tone.name})` : product.name,
+      qty: item.qty,
+      price: product.price * item.qty,
+      currency: product.currency,
+    };
+  }).filter(Boolean);
+  const sums = totals();
+  return {
+    at: new Date().toISOString(),
+    name: data.name,
+    phone: data.phone,
+    gmail: data.gmail,
+    store: data.store,
+    items,
+    shipping: sums.ship,
+    total: sums.twd ? sums.twd + sums.ship : sums.sub + sums.ship,
+  };
+}
+
 function buildGmailUrl(data) {
   const items = store.getCart().map((item) => {
     const product = productBySlug(item.slug);
@@ -955,6 +1293,19 @@ function buildRestockUrl(product, gmail) {
 }
 
 function onClick(event) {
+  const approve = event.target.closest("[data-approve]");
+  if (approve) {
+    event.preventDefault();
+    approveProfile(approve);
+    return;
+  }
+  if (event.target.closest("[data-logout]")) {
+    event.preventDefault();
+    auth.logoutAccount().then(() => {
+      location.href = "/account/";
+    });
+    return;
+  }
   const colorBtn = event.target.closest(".color-option");
   if (colorBtn) {
     const group = colorBtn.closest(".color-options");
@@ -1026,7 +1377,7 @@ function onClick(event) {
   if (event.target.closest("[data-close-overlay]")) closeOverlays();
 }
 
-function onSubmit(event) {
+async function onSubmit(event) {
   if (event.target.id === "search-form") {
     event.preventDefault();
     return;
@@ -1070,10 +1421,92 @@ function onSubmit(event) {
     }
     data.phone = phone;
     const url = buildGmailUrl(data);
-    store.clearCart();
-    try { sessionStorage.setItem("bijulia-order-mail", url); } catch { /* ignore */ }
+    const order = orderSnapshot(data);
+    const button = event.target.querySelector("button[type=submit]");
+    if (button) button.disabled = true;
     window.open(url, "_blank", "noopener");
+    try { sessionStorage.setItem("bijulia-order-mail", url); } catch { /* ignore */ }
+    await Promise.race([
+      auth.appendPurchase(order).catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 2500)),
+    ]);
+    store.clearCart();
     location.href = "/checkout/?sent=1";
+    return;
+  }
+  if (event.target.id === "login-form") {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.target).entries());
+    const note = document.getElementById("login-note");
+    const button = event.target.querySelector("button[type=submit]");
+    if (button) button.disabled = true;
+    const result = await auth.loginAccount(data.email, data.password);
+    if (!result.ok) {
+      note.textContent = result.code === "unconfigured"
+        ? "沒有接上 Supabase，無法登入。"
+        : (result.message || "沒有登入。");
+      if (button) button.disabled = false;
+      return;
+    }
+    if (!auth.getProfile()) {
+      note.textContent = "已通過登入，但還沒有個人資料。請確認已完成信箱驗證。";
+    }
+    return;
+  }
+  if (event.target.id === "register-form") {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.target).entries());
+    const note = document.getElementById("register-note");
+    const phone = String(data.phone || "").replace(/\D/g, "");
+    if (!String(data.name || "").trim()) {
+      note.textContent = "請留下姓名。";
+      return;
+    }
+    if (!/^09\d{8}$/.test(phone)) {
+      note.textContent = "電話要是 09 開頭的十個數字。";
+      return;
+    }
+    const email = String(data.email || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      note.textContent = "請留下有效的電子郵件。";
+      return;
+    }
+    if (!String(data.address || "").trim()) {
+      note.textContent = "請留下地址。";
+      return;
+    }
+    if (String(data.password || "").length < 6) {
+      note.textContent = "密碼至少要六個字。";
+      return;
+    }
+    if (data.password !== data.confirm) {
+      note.textContent = "兩次密碼不一樣。";
+      return;
+    }
+    const button = event.target.querySelector("button[type=submit]");
+    if (button) button.disabled = true;
+    note.textContent = "送出中。";
+    const result = await auth.registerAccount({
+      name: String(data.name).trim(),
+      phone,
+      email,
+      address: String(data.address).trim(),
+      password: String(data.password),
+    });
+    if (!result.ok) {
+      note.textContent = result.code === "unconfigured"
+        ? "沒有接上 Supabase，驗證信沒有寄出，帳號也沒有建立。"
+        : (result.message || "沒有完成註冊。");
+      if (button) button.disabled = false;
+      return;
+    }
+    if (result.needsVerification) {
+      event.target.reset();
+      note.textContent = "驗證信已寄出。請到信箱完成驗證。完成後角色是待核准，管理者核准前不能使用管理功能。";
+      if (button) button.disabled = false;
+      return;
+    }
+    note.textContent = "已登入。角色若仍是待核准，要等管理者核准後才是顧客。";
   }
 }
 
@@ -1211,6 +1644,11 @@ function boot() {
     if (page === "cart" || page === "checkout") renderMain();
     refreshChrome();
   });
+  auth.onChange(() => {
+    refreshAccountChrome();
+    if (page === "account") renderMain();
+  });
+  auth.init();
 }
 
 boot();

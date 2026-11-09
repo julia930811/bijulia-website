@@ -179,7 +179,7 @@ export const products = [
     name: "Shell Sticker",
     price: 50,
     currency: "TWD",
-    unit: "一組三張",
+    unit: "一組三張，不可單賣",
     category: "sticker",
     collection: "shell-stickers",
     isNew: false,
@@ -235,7 +235,7 @@ export const collections = [
   {
     slug: "shell-stickers",
     name: "Shell Stickers",
-    blurb: "黑色、薄荷綠或藍色的貝殼圖，三張貼紙 NT$50。",
+    blurb: "三張一組、不可單賣。",
     image: "/images/stickers/shell-sticker-clear.png",
     imageFit: "full",
     home: false,
