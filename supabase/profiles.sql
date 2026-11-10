@@ -14,8 +14,8 @@
 --
 -- 註冊並完成信箱驗證後，才會新增 public.profiles，角色固定是 pending。
 -- 網站不能把任何人改成 super_admin。
--- 店主驗證完成後，在 SQL editor 把自己改成管理者（換成店主的電子郵件）：
---   update public.profiles set role = 'super_admin' where email = '店主的電子郵件';
+-- 店主信箱是 jiayiwu009@gmail.com。驗證完成後，在 SQL editor 把自己改成管理者：
+--   update public.profiles set role = 'super_admin' where email = 'jiayiwu009@gmail.com';
 -- 之後店主登入 /account/，對待核准的列按「核准」，角色會改成 customer。
 
 create table if not exists public.profiles (

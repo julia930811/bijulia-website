@@ -937,7 +937,7 @@ function renderAdmin(profile) {
       <h1 class="page-title">核准帳號</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。店主要先自己註冊並完成信箱驗證，再在 Supabase 的 SQL editor 把那一筆 role 改成 super_admin。這個網站不會把註冊的人自動變成管理者。</p>
+      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。店主請用 ${esc(site.email)} 註冊並完成信箱驗證，再在 Supabase 的 SQL editor 把那一筆 role 改成 super_admin。這個網站不會把註冊的人自動變成管理者。</p>
       <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號。</p>
       <section class="account-section"><h2>待核准</h2>${peopleTable([], false, "沒有名單")}</section>
     </div>`;
