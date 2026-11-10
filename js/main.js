@@ -192,9 +192,8 @@ function shell() {
       <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
-      <a class="account-entry" href="/account/" data-mobile-login>Login</a>
-      <a class="account-entry" href="/account/?view=register" data-mobile-register data-open-register>註冊</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
+      <button class="menu-logout" type="button" data-logout>登出</button>
     </div>
     <div id="login-dialog" class="login-dialog" hidden>
       <div class="login-scrim" data-close-login></div>
@@ -291,7 +290,8 @@ function totals() {
 
 function isPremiumMember() {
   const profile = auth.getProfile();
-  return profile?.role === "customer" && profile.tier === "高級";
+  const member = profile?.role === "customer" || profile?.role === "pending";
+  return member && profile.tier === "高級";
 }
 
 function hasPriorPurchase() {
@@ -857,7 +857,7 @@ function configBanner() {
 
 function accountView() {
   const value = params().get("view");
-  if (value === "register" || value === "pending" || value === "admin") return value;
+  if (value === "register" || value === "admin") return value;
   return "login";
 }
 
@@ -866,16 +866,8 @@ function accountSwitch(view) {
   return `<nav class="account-switch" aria-label="帳戶">
     ${link("login", "/account/", "Login")}
     ${link("register", "/account/?view=register", "註冊").replace("<a ", "<a data-open-register ")}
-    ${link("pending", "/account/?view=pending", "待核准")}
-    ${link("admin", "/account/?view=admin", "核准")}
+    ${link("admin", "/account/?view=admin", "核准訂單")}
   </nav>`;
-}
-
-function roleLabel(role) {
-  if (role === "pending") return "待核准";
-  if (role === "customer") return "顧客";
-  if (role === "super_admin") return "管理者";
-  return esc(role || "—");
 }
 
 function formatWhen(value) {
@@ -914,7 +906,7 @@ function profileDl(profile, previewRole) {
     ${row("姓名 / 電話", `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
     ${row("電子郵件 / 地址", `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
     ${row("會員等級", esc(profile.tier === "高級" ? "高級" : "一般"))}
-    ${row("角色", roleLabel(profile.role))}
+    ${row("角色", profile.role === "super_admin" ? "管理者" : "顧客")}
     ${row("購買紀錄", purchaseHtml(profile.purchase_history))}
     ${row("建立時間", formatWhen(profile.created_at))}
   </dl>`;
@@ -932,45 +924,30 @@ function renderRegister() {
   return `<div class="page login-quiet"></div>`;
 }
 
-function renderPending(profile) {
-  const intro = profile
-    ? "角色是待核准，不能使用管理功能。請等管理者核准。這頁只顯示你自己的資料。"
-    : "註冊後角色是待核准。核准前不能使用管理功能。現在沒有登入中的帳號，所以下面沒有個人資料。";
-  return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "待核准" }])}
-    <h1 class="page-title">待核准</h1>
-    ${profile ? "" : accountSwitch("pending")}
-    ${configBanner()}
-    <p class="account-copy">${intro}</p>
-    ${profileDl(profile, "待核准")}
-    ${profile ? logoutButton() : ""}
-  </div>`;
-}
-
-function tierSelect(row) {
+function tierChoices(row) {
   const tier = row.tier === "高級" ? "高級" : "一般";
-  return `<select class="tier-select" data-tier="${esc(row.id || "")}" data-role="${esc(row.role || "")}" data-current="${tier}" aria-label="會員等級">
-    <option value="一般"${tier === "一般" ? " selected" : ""}>一般</option>
-    <option value="高級"${tier === "高級" ? " selected" : ""}>高級</option>
-  </select>`;
+  const choice = (value) => {
+    const on = tier === value;
+    return `<button class="tier-choice${on ? " is-on" : ""}" type="button" data-set-tier="${esc(row.id || "")}" data-tier-value="${value}"${on ? " disabled" : ""}>${value}</button>`;
+  };
+  return `<span class="tier-choices">${choice("一般")}${choice("高級")}</span>`;
 }
 
-function peopleTable(rows, approve, emptyLabel = "沒有資料") {
+function peopleTable(rows, emptyLabel = "沒有資料") {
   const head = `<tr>
-    <th>顧客編號</th><th>姓名 / 電話</th><th>電子郵件 / 地址</th><th>會員等級</th><th>角色</th><th>購買紀錄</th><th>建立時間</th>${approve ? "<th>核准</th>" : ""}
+    <th>顧客編號</th><th>姓名 / 電話</th><th>電子郵件 / 地址</th><th>會員等級</th><th>角色</th><th>購買紀錄</th><th>建立時間</th>
   </tr>`;
   const body = rows.length
     ? rows.map((row) => `<tr>
         <td>${esc(row.id || "")}</td>
         <td>${esc(row.name || "—")} / ${esc(row.phone || "—")}</td>
         <td>${esc(row.email || "—")} / ${esc(row.address || "—")}</td>
-        <td>${tierSelect(row)}</td>
-        <td>${roleLabel(row.role)}</td>
+        <td>${tierChoices(row)}</td>
+        <td>顧客</td>
         <td>${purchaseHtml(row.purchase_history)}</td>
         <td>${formatWhen(row.created_at)}</td>
-        ${approve ? `<td><button class="btn" type="button" data-approve="${esc(row.id || "")}">核准</button></td>` : ""}
       </tr>`).join("")
-    : `<tr><td colspan="${approve ? 8 : 7}">${esc(emptyLabel)}</td></tr>`;
+    : `<tr><td colspan="7">${esc(emptyLabel)}</td></tr>`;
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -978,19 +955,18 @@ function renderAdmin(profile) {
   if (!profile) {
     return `<div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
-      <h1 class="page-title">核准帳號</h1>
+      <h1 class="page-title">核准訂單</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">只有管理者登入後可以核准帳號和訂單，也可以調整會員等級。按下核准，帳號會從待核准改成顧客，訂單才成立。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
-      <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號或訂單。</p>
-      <section class="account-section"><h2>待核准</h2>${peopleTable([], false, "沒有名單")}</section>
+      <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單，也可以調整會員等級。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
+      <p class="fine">現在沒有管理者登入，所以沒有訂單。</p>
     </div>`;
   }
   return `<div class="page">
     ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
-    <h1 class="page-title">核准帳號</h1>
+    <h1 class="page-title">核准訂單</h1>
     ${configBanner()}
-    <p class="account-copy">待核准的帳號和訂單列在下面。核准帳號後，角色改成顧客。核准訂單後，這筆訂單才成立，並打開 Gmail 把訂單完成通知寄給顧客。會員等級可以在名單裡調整。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。不會寄信給賣家。</p>
+    <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單。待核准的訂單列在下面，核准後才成立，並打開 Gmail 把訂單完成通知寄給顧客。顧客名單裡可以直接改會員等級，改完就生效。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。不會寄信給賣家。</p>
     <p class="fine">登入身分：${esc(profile.email || "")}，管理者。</p>
     <p class="form-note fine" id="admin-note" role="status"></p>
     <div id="admin-lists"><p class="fine">讀取中。</p></div>
@@ -1014,7 +990,7 @@ function renderSignedInWithoutProfile() {
     ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
     <h1 class="page-title">帳戶</h1>
     ${configBanner()}
-    <p class="account-copy">已登入，但 public.profiles 還沒有這一筆。資料表設定完成後重新登入，角色會是待核准。</p>
+    <p class="account-copy">已登入。註冊後就是顧客，不用驗證信箱，也不用等管理者核准。</p>
     ${logoutButton()}
   </div>`;
 }
@@ -1023,12 +999,12 @@ function renderAccount() {
   const profile = auth.getProfile();
   const session = auth.getSession();
   if (profile?.role === "super_admin") {
-    document.title = "核准帳號 — BiJulia";
+    document.title = "核准訂單 — BiJulia";
     return renderAdmin(profile);
   }
   if (profile?.role === "pending") {
-    document.title = "待核准 — BiJulia";
-    return renderPending(profile);
+    document.title = "帳戶 — BiJulia";
+    return renderCustomer(profile);
   }
   if (profile) {
     document.title = "帳戶 — BiJulia";
@@ -1039,12 +1015,8 @@ function renderAccount() {
     return renderSignedInWithoutProfile();
   }
   const view = accountView();
-  if (view === "pending") {
-    document.title = "待核准 — BiJulia";
-    return renderPending(null);
-  }
   if (view === "admin") {
-    document.title = "核准帳號 — BiJulia";
+    document.title = "核准訂單 — BiJulia";
     return renderAdmin(null);
   }
   if (view === "register") {
@@ -1073,8 +1045,7 @@ async function loadAdminLists() {
   }
   const orders = await auth.listOrders();
   if (token !== adminLoad) return;
-  const pending = result.rows.filter((row) => row.role === "pending");
-  const customers = result.rows.filter((row) => row.role === "customer");
+  const customers = result.rows.filter((row) => row.role !== "super_admin");
   const orderRows = orders.ok ? orders.rows : [];
   const waiting = orderRows.filter((row) => row.status === "pending");
   const approved = orderRows.filter((row) => row.status === "approved");
@@ -1084,8 +1055,7 @@ async function loadAdminLists() {
   current.innerHTML = `
     <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
     <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
-    <section class="account-section"><h2>待核准</h2>${pending.length ? "" : `<p class="fine">目前沒有待核准的帳號。</p>`}${peopleTable(pending, true)}</section>
-    <section class="account-section"><h2>顧客</h2>${peopleTable(customers, false)}</section>
+    <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般是買過一次下次免運。高級是作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
   `;
 }
 
@@ -1168,41 +1138,26 @@ async function approveOrderRow(button) {
   await loadAdminLists();
 }
 
-async function approveProfile(button) {
+async function saveMemberTier(button) {
   const note = document.getElementById("admin-note");
-  button.disabled = true;
-  const result = await auth.approveCustomer(button.dataset.approve);
+  const next = button.getAttribute("data-tier-value") === "高級" ? "高級" : "一般";
+  const row = button.closest("tr");
+  const choices = row ? [...row.querySelectorAll("[data-set-tier]")] : [button];
+  choices.forEach((el) => { el.disabled = true; });
+  const result = await auth.setMemberTier(button.getAttribute("data-set-tier"), next);
   if (!result.ok) {
-    if (note) {
-      note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，沒有變更角色。"
-        : (result.message || "沒有核准。");
-    }
-    button.disabled = false;
-    return;
-  }
-  if (note) note.textContent = "已核准，角色改成顧客。";
-  await loadAdminLists();
-}
-
-async function saveMemberTier(select) {
-  const note = document.getElementById("admin-note");
-  const next = select.value === "高級" ? "高級" : "一般";
-  const previous = select.getAttribute("data-current") === "高級" ? "高級" : "一般";
-  if (next === previous) return;
-  select.disabled = true;
-  const result = await auth.setMemberTier(select.getAttribute("data-tier"), next);
-  select.disabled = false;
-  if (!result.ok) {
-    select.value = previous;
+    choices.forEach((el) => { el.disabled = el.classList.contains("is-on"); });
     if (note) note.textContent = result.message || "會員等級沒有改成。";
     return;
   }
-  select.setAttribute("data-current", next);
+  choices.forEach((el) => {
+    const on = el.getAttribute("data-tier-value") === next;
+    el.classList.toggle("is-on", on);
+    el.disabled = on;
+  });
   if (note) {
-    const alreadyCustomer = select.getAttribute("data-role") === "customer";
     note.textContent = next === "高級"
-      ? (alreadyCustomer ? "已改成高級會員。作品 9 折，而且免運。" : "已改成高級會員。核准成顧客後，作品 9 折，而且免運。")
+      ? "已改成高級會員。作品 9 折，而且免運。"
       : "已改成一般會員。買過一次，下次免運。";
   }
 }
@@ -1309,25 +1264,6 @@ function refreshAccountChrome() {
     if (here) headerLogin.setAttribute("aria-current", "page");
     else headerLogin.removeAttribute("aria-current");
   }
-  const login = document.querySelector("[data-mobile-login]");
-  const register = document.querySelector("[data-mobile-register]");
-  if (!login || !register) {
-    syncLoginTriggers();
-    return;
-  }
-  const profile = auth.getProfile();
-  if (profile || auth.getSession()) {
-    login.textContent = profile?.role === "super_admin" ? "管理者" : "帳戶";
-    login.href = "/account/";
-    register.hidden = true;
-    syncLoginTriggers();
-    return;
-  }
-  login.textContent = "Login";
-  login.href = "/account/";
-  register.hidden = false;
-  register.textContent = "註冊";
-  register.href = "/account/?view=register";
   syncLoginTriggers();
 }
 
@@ -1379,7 +1315,7 @@ function closeOverlays() {
 
 function syncLoginTriggers() {
   const signedIn = !!(auth.getProfile() || auth.getSession());
-  document.querySelectorAll("[data-header-login], [data-mobile-login]").forEach((el) => {
+  document.querySelectorAll("[data-header-login]").forEach((el) => {
     if (signedIn) {
       el.removeAttribute("aria-haspopup");
       el.removeAttribute("aria-controls");
@@ -1564,16 +1500,16 @@ function buildRestockUrl(product, gmail) {
 }
 
 function onClick(event) {
+  const tierButton = event.target.closest("[data-set-tier]");
+  if (tierButton) {
+    event.preventDefault();
+    saveMemberTier(tierButton);
+    return;
+  }
   const approveOrder = event.target.closest("[data-approve-order]");
   if (approveOrder) {
     event.preventDefault();
     approveOrderRow(approveOrder);
-    return;
-  }
-  const approve = event.target.closest("[data-approve]");
-  if (approve) {
-    event.preventDefault();
-    approveProfile(approve);
     return;
   }
   if (event.target.closest("[data-logout]")) {
@@ -1660,7 +1596,7 @@ function onClick(event) {
     openLoginDialog(loginUi.open ? loginUi.opener : showLogin, "login");
     return;
   }
-  const loginTrigger = event.target.closest("[data-header-login], [data-mobile-login]");
+  const loginTrigger = event.target.closest("[data-header-login]");
   if (loginTrigger && !auth.getProfile() && !auth.getSession()) {
     event.preventDefault();
     openLoginDialog(loginTrigger, "login");
@@ -1814,16 +1750,11 @@ async function onSubmit(event) {
       if (button) button.disabled = false;
       return;
     }
-    note.textContent = "已登入。角色若仍是待核准，要等管理者核准後才是顧客。";
+    note.textContent = "已註冊並登入。不用驗證信箱，也不用等管理者核准。";
   }
 }
 
 function onChange(event) {
-  const tierSelectEl = event.target.closest("[data-tier]");
-  if (tierSelectEl) {
-    saveMemberTier(tierSelectEl);
-    return;
-  }
   if (!event.target.matches("[data-sort]")) return;
   const url = new URL(location.href);
   const value = event.target.value;

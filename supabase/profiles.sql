@@ -12,16 +12,16 @@
 --   http://127.0.0.1:4173/account/
 --   以及正式網址的 /account/
 --
--- 註冊當下就新增 public.profiles，不用等信箱驗證。
--- 一般帳號的角色是 pending。只有 jiayiwu009@gmail.com 是 super_admin。
+-- 註冊當下就新增 public.profiles，不用等信箱驗證，也不用管理者核准。
+-- 一般帳號的角色是 customer。只有 jiayiwu009@gmail.com 是 super_admin。
 -- 同一個電子郵件只能有一筆帳號、一組密碼。其他信箱不會自動變成管理者。
--- 店主登入 /account/ 後，對待核准的列按「核准」，角色會改成 customer。
+-- 訂單仍要店主在 /account/ 核准後才成立。帳號不用核准。
 -- 會員等級只有管理者改得了。一般：買過一次，下次免運。高級：作品 9 折，而且免運。
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text not null,
-  role text not null default 'pending',
+  role text not null default 'customer',
   name text not null default '',
   phone text not null default '',
   address text not null default '', -- 7-11 店名
@@ -32,7 +32,8 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists email text;
-alter table public.profiles add column if not exists role text not null default 'pending';
+alter table public.profiles add column if not exists role text not null default 'customer';
+alter table public.profiles alter column role set default 'customer';
 alter table public.profiles add column if not exists name text not null default '';
 alter table public.profiles add column if not exists phone text not null default '';
 alter table public.profiles add column if not exists address text not null default '';
@@ -71,7 +72,7 @@ begin
     coalesce(new.email, ''),
     case
       when lower(coalesce(new.email, '')) = 'jiayiwu009@gmail.com' then 'super_admin'
-      else 'pending'
+      else 'customer'
     end,
     coalesce(new.raw_user_meta_data->>'name', ''),
     coalesce(new.raw_user_meta_data->>'phone', ''),
@@ -197,6 +198,10 @@ update public.profiles
 set role = 'super_admin'
 where lower(email) = 'jiayiwu009@gmail.com'
   and role is distinct from 'super_admin';
+
+update public.profiles
+set role = 'customer'
+where role = 'pending';
 
 update public.profiles
 set tier = '一般'
