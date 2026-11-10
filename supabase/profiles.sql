@@ -24,7 +24,7 @@ create table if not exists public.profiles (
   role text not null default 'pending',
   name text not null default '',
   phone text not null default '',
-  address text not null default '',
+  address text not null default '', -- 7-11 店名
   tier text not null default '一般',
   purchase_history jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
