@@ -898,12 +898,11 @@ function renderRegister() {
     <h1 class="page-title">註冊</h1>
     ${accountSwitch("register")}
     ${configBanner()}
-    <p class="account-copy">留下姓名、電話、電子郵件、地址和密碼。註冊後就建立個人資料，不用驗證信箱。一個電子郵件只能有一組密碼。角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
+    <p class="account-copy">留下姓名、電話、電子郵件和密碼。註冊後就建立個人資料，不用驗證信箱。一個電子郵件只能有一組密碼。角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
     <form id="register-form" class="account-form">
       <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
       <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
       <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-      <label class="field"><span>地址</span><textarea name="address" required autocomplete="street-address"></textarea></label>
       <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
       <label class="field"><span>再輸入一次密碼</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
       <button class="btn btn-fill" type="submit">註冊</button>
@@ -1641,10 +1640,6 @@ async function onSubmit(event) {
       note.textContent = "請留下有效的電子郵件。";
       return;
     }
-    if (!String(data.address || "").trim()) {
-      note.textContent = "請留下地址。";
-      return;
-    }
     if (String(data.password || "").length < 6) {
       note.textContent = "密碼至少要六個字。";
       return;
@@ -1660,7 +1655,7 @@ async function onSubmit(event) {
       name: String(data.name).trim(),
       phone,
       email,
-      address: String(data.address).trim(),
+      address: "",
       password: String(data.password),
     });
     if (!result.ok) {
