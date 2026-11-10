@@ -35,11 +35,6 @@ export function getProfile() {
   };
 }
 
-export function previewProfile(next) {
-  profile = next;
-  emit();
-}
-
 export function onChange(fn) {
   listeners.add(fn);
   return () => listeners.delete(fn);
@@ -72,7 +67,7 @@ function chineseAuthError(error) {
     return "請先到信箱完成驗證，再登入。";
   }
   if (/already registered|already been registered|user already exists/i.test(message) || code === "user_already_exists") {
-    return "這個電子郵件已經註冊。";
+    return "這個電子郵件已經有密碼。請用原來的密碼登入。";
   }
   if (/password/i.test(message) && /short|at least|least|weak|6/i.test(message)) {
     return "密碼至少要六個字。";
@@ -162,7 +157,7 @@ export async function registerAccount({ name, phone, email, address, password })
     if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
     const identities = data.user?.identities;
     if (data.user && Array.isArray(identities) && identities.length === 0) {
-      return { ok: false, code: "exists", message: "這個電子郵件已經註冊。" };
+      return { ok: false, code: "exists", message: "這個電子郵件已經有密碼。請用原來的密碼登入。" };
     }
     session = data.session || null;
     profile = null;

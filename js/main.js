@@ -5,13 +5,15 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=20";
+} from "./data.js?v=21";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=3";
+import * as auth from "./auth.js?v=5";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
 const ui = { drawer: false, search: false, menu: false };
+const loginUi = { open: false, opener: null, returnMenu: false, dismissedOnAccount: false };
+let authReady = false;
 
 function esc(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({
@@ -193,6 +195,22 @@ function shell() {
       <a class="account-entry" href="/account/" data-mobile-login>Login</a>
       <a class="account-entry" href="/account/?view=register" data-mobile-register>註冊</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
+    </div>
+    <div id="login-dialog" class="login-dialog" hidden>
+      <div class="login-scrim" data-close-login></div>
+      <div class="login-panel" role="dialog" aria-modal="true" aria-labelledby="login-dialog-title">
+        <div class="login-head">
+          <h2 id="login-dialog-title">Login</h2>
+          <button class="icon-btn" type="button" data-close-login aria-label="關閉登入">${iconClose()}</button>
+        </div>
+        <form id="login-form" class="account-form">
+          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
+          <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
+          <button class="btn btn-fill" type="submit">Login</button>
+          <a class="btn" href="/account/?view=register">註冊</a>
+          <p class="form-note fine" id="login-note" role="status"></p>
+        </form>
+      </div>
     </div>
   `;
 }
@@ -871,20 +889,7 @@ function logoutButton() {
 }
 
 function renderLogin() {
-  return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "Login" }])}
-    <h1 class="page-title">Login</h1>
-    ${accountSwitch("login")}
-    ${configBanner()}
-    <p class="account-copy">顧客與管理者都從這裡登入。新註冊的帳號要先完成信箱驗證，角色是待核准。待核准可以看自己的帳戶，不能核准別人。管理者核准後，角色才會改成顧客。</p>
-    <form id="login-form" class="account-form">
-      <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-      <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
-      <button class="btn btn-fill" type="submit">Login</button>
-      <a class="btn" href="/account/?view=register">註冊</a>
-      <p class="form-note fine" id="login-note" role="status"></p>
-    </form>
-  </div>`;
+  return `<div class="page login-quiet"></div>`;
 }
 
 function renderRegister() {
@@ -893,7 +898,7 @@ function renderRegister() {
     <h1 class="page-title">註冊</h1>
     ${accountSwitch("register")}
     ${configBanner()}
-    <p class="account-copy">留下姓名、電話、電子郵件、地址和密碼。送出後要到信箱完成驗證。驗證完成才會建立個人資料，角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
+    <p class="account-copy">留下姓名、電話、電子郵件、地址和密碼。註冊後就建立個人資料，不用驗證信箱。一個電子郵件只能有一組密碼。角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
     <form id="register-form" class="account-form">
       <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
       <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
@@ -909,8 +914,8 @@ function renderRegister() {
 
 function renderPending(profile) {
   const intro = profile
-    ? "信箱驗證已完成。角色仍是待核准，不能使用管理功能。請等管理者核准。這頁只顯示你自己的資料。"
-    : "註冊並完成信箱驗證後，角色會是待核准。核准前不能使用管理功能。現在沒有登入中的帳號，所以下面沒有個人資料。";
+    ? "角色是待核准，不能使用管理功能。請等管理者核准。這頁只顯示你自己的資料。"
+    : "註冊後角色是待核准。核准前不能使用管理功能。現在沒有登入中的帳號，所以下面沒有個人資料。";
   return `<div class="page">
     ${crumbs([{ href: "/", label: "Home" }, { label: "待核准" }])}
     <h1 class="page-title">待核准</h1>
@@ -948,7 +953,7 @@ function renderAdmin(profile) {
       <h1 class="page-title">核准帳號</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。店主請用 ${esc(site.email)} 註冊並完成信箱驗證，再在 Supabase 的 SQL editor 把那一筆 role 改成 super_admin。這個網站不會把註冊的人自動變成管理者。</p>
+      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。${esc(site.email)} 註冊後就是管理者。其他註冊的人不會自動變成管理者。</p>
       <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號。</p>
       <section class="account-section"><h2>待核准</h2>${peopleTable([], false, "沒有名單")}</section>
     </div>`;
@@ -981,7 +986,7 @@ function renderSignedInWithoutProfile() {
     ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
     <h1 class="page-title">帳戶</h1>
     ${configBanner()}
-    <p class="account-copy">已登入，但 public.profiles 還沒有這一筆。請先完成信箱驗證。驗證完成後資料庫才會寫入，角色是待核准。</p>
+    <p class="account-copy">已登入，但 public.profiles 還沒有這一筆。資料表設定完成後重新登入，角色會是待核准。</p>
     ${logoutButton()}
   </div>`;
 }
@@ -1111,6 +1116,7 @@ function renderMain() {
     video.play().catch(() => {});
   }
   if (page === "account" && auth.getProfile()?.role === "super_admin") loadAdminLists();
+  syncAccountLogin();
 }
 
 function drawerHtml() {
@@ -1166,12 +1172,16 @@ function refreshAccountChrome() {
   }
   const login = document.querySelector("[data-mobile-login]");
   const register = document.querySelector("[data-mobile-register]");
-  if (!login || !register) return;
+  if (!login || !register) {
+    syncLoginTriggers();
+    return;
+  }
   const profile = auth.getProfile();
   if (profile || auth.getSession()) {
     login.textContent = profile?.role === "super_admin" ? "管理者" : "帳戶";
     login.href = "/account/";
     register.hidden = true;
+    syncLoginTriggers();
     return;
   }
   login.textContent = "Login";
@@ -1179,6 +1189,7 @@ function refreshAccountChrome() {
   register.hidden = false;
   register.textContent = "註冊";
   register.href = "/account/?view=register";
+  syncLoginTriggers();
 }
 
 function refreshChrome() {
@@ -1194,7 +1205,7 @@ function refreshChrome() {
 }
 
 function applyOverlay() {
-  document.body.classList.toggle("lock", ui.drawer || ui.search || ui.menu);
+  document.body.classList.toggle("lock", ui.drawer || ui.search || ui.menu || loginUi.open);
   document.querySelector(".scrim").classList.toggle("is-on", ui.drawer);
   document.querySelector(".scrim").hidden = false;
   const drawer = document.getElementById("drawer");
@@ -1225,6 +1236,101 @@ function closeOverlays() {
   ui.search = false;
   ui.menu = false;
   applyOverlay();
+}
+
+function syncLoginTriggers() {
+  const signedIn = !!(auth.getProfile() || auth.getSession());
+  document.querySelectorAll("[data-header-login], [data-mobile-login]").forEach((el) => {
+    if (signedIn) {
+      el.removeAttribute("aria-haspopup");
+      el.removeAttribute("aria-controls");
+      el.removeAttribute("aria-expanded");
+      return;
+    }
+    el.setAttribute("aria-haspopup", "dialog");
+    el.setAttribute("aria-controls", "login-dialog");
+    el.setAttribute("aria-expanded", String(loginUi.open && loginUi.opener === el));
+  });
+}
+
+function loginFocusables() {
+  const panel = document.querySelector("#login-dialog .login-panel");
+  if (!panel) return [];
+  return [...panel.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.disabled);
+}
+
+function openLoginDialog(opener) {
+  const root = document.getElementById("login-dialog");
+  if (!root) return;
+  const trigger = opener || document.querySelector("[data-header-login]");
+  if (!loginUi.open) {
+    loginUi.returnMenu = !!(trigger && trigger.closest("#mobile-nav") && ui.menu);
+    if (ui.drawer || ui.search || ui.menu) closeOverlays();
+  }
+  loginUi.open = true;
+  loginUi.opener = trigger || null;
+  root.hidden = false;
+  const button = root.querySelector("#login-form button[type=submit]");
+  if (button) button.disabled = false;
+  applyOverlay();
+  syncLoginTriggers();
+  const email = root.querySelector('input[name="email"]');
+  if (email) email.focus();
+}
+
+function closeLoginDialog(options = {}) {
+  if (!loginUi.open) return;
+  const restore = options.restore !== false;
+  const opener = loginUi.opener;
+  const returnMenu = loginUi.returnMenu && restore;
+  loginUi.open = false;
+  loginUi.opener = null;
+  loginUi.returnMenu = false;
+  const root = document.getElementById("login-dialog");
+  if (root) root.hidden = true;
+  if (page === "account" && accountView() === "login" && !auth.getProfile() && !auth.getSession()) {
+    loginUi.dismissedOnAccount = true;
+  }
+  applyOverlay();
+  syncLoginTriggers();
+  if (returnMenu) openOverlay("menu");
+  if (restore && opener && opener.focus) {
+    opener.focus();
+    return;
+  }
+  if (root && root.contains(document.activeElement)) {
+    const fallback = document.querySelector("[data-header-login]");
+    if (fallback) fallback.focus();
+  }
+}
+
+function syncAccountLogin() {
+  if (!authReady || loginUi.open || loginUi.dismissedOnAccount) return;
+  if (page !== "account" || accountView() !== "login") return;
+  if (auth.getProfile() || auth.getSession()) return;
+  openLoginDialog(document.querySelector("[data-header-login]"));
+}
+
+function trapLoginTab(event) {
+  const panel = document.querySelector("#login-dialog .login-panel");
+  if (!panel) return;
+  const items = loginFocusables();
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  const active = document.activeElement;
+  if (!panel.contains(active)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+    return;
+  }
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function searchPool(query) {
@@ -1424,6 +1530,17 @@ function onClick(event) {
     refreshChrome();
     return;
   }
+  const loginTrigger = event.target.closest("[data-header-login], [data-mobile-login]");
+  if (loginTrigger && !auth.getProfile() && !auth.getSession()) {
+    event.preventDefault();
+    openLoginDialog(loginTrigger);
+    return;
+  }
+  if (event.target.closest("[data-close-login]")) {
+    event.preventDefault();
+    closeLoginDialog();
+    return;
+  }
   if (event.target.closest("[data-open-drawer]")) { openOverlay("drawer"); return; }
   if (event.target.closest("[data-open-search]")) { openOverlay("search"); return; }
   if (event.target.closest("[data-open-menu]")) { openOverlay("menu"); return; }
@@ -1495,15 +1612,15 @@ async function onSubmit(event) {
     if (button) button.disabled = true;
     const result = await auth.loginAccount(data.email, data.password);
     if (!result.ok) {
-      note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，無法登入。"
-        : (result.message || "沒有登入。");
+      if (note) {
+        note.textContent = result.code === "unconfigured"
+          ? "沒有接上 Supabase，無法登入。"
+          : (result.message || "沒有登入。");
+      }
       if (button) button.disabled = false;
       return;
     }
-    if (!auth.getProfile()) {
-      note.textContent = "已通過登入，但還沒有個人資料。請確認已完成信箱驗證。";
-    }
+    closeLoginDialog({ restore: false });
     return;
   }
   if (event.target.id === "register-form") {
@@ -1548,14 +1665,14 @@ async function onSubmit(event) {
     });
     if (!result.ok) {
       note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，驗證信沒有寄出，帳號也沒有建立。"
+        ? "沒有接上 Supabase，帳號沒有建立。"
         : (result.message || "沒有完成註冊。");
       if (button) button.disabled = false;
       return;
     }
     if (result.needsVerification) {
       event.target.reset();
-      note.textContent = "驗證信已寄出。請到信箱完成驗證。完成後角色是待核准，管理者核准前不能使用管理功能。";
+      note.textContent = "帳號已記下，但這個專案仍要求驗證信，所以現在還不能登入。";
       if (button) button.disabled = false;
       return;
     }
@@ -1585,7 +1702,18 @@ function onInput(event) {
 }
 
 function onKey(event) {
-  if (event.key === "Escape") closeOverlays();
+  if (loginUi.open && event.key === "Tab") {
+    trapLoginTab(event);
+    return;
+  }
+  if (event.key === "Escape") {
+    if (loginUi.open) {
+      event.preventDefault();
+      closeLoginDialog();
+      return;
+    }
+    closeOverlays();
+  }
 }
 
 function bindLooks() {
@@ -1688,6 +1816,14 @@ function boot() {
   document.addEventListener("change", onChange);
   document.addEventListener("input", onInput);
   document.addEventListener("keydown", onKey);
+  document.addEventListener("focusin", (event) => {
+    if (!loginUi.open) return;
+    const panel = document.querySelector("#login-dialog .login-panel");
+    if (panel && !panel.contains(event.target)) {
+      const email = panel.querySelector('input[name="email"]');
+      (email || panel).focus();
+    }
+  });
   window.addEventListener("popstate", () => {
     renderMain();
     bindColorSwipes();
@@ -1698,6 +1834,8 @@ function boot() {
     refreshChrome();
   });
   auth.onChange(() => {
+    authReady = true;
+    if ((auth.getProfile() || auth.getSession()) && loginUi.open) closeLoginDialog({ restore: false });
     if (page === "account" || page === "cart") renderMain();
     refreshChrome();
   });

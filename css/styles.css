@@ -1502,3 +1502,48 @@ h1, h2, h3,
   .profile-dl { grid-template-columns: 1fr; gap: 2px; }
   .profile-dl dt { margin-top: 10px; }
 }
+
+.login-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+.login-dialog[hidden] { display: none !important; }
+.login-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+}
+.login-panel {
+  position: relative;
+  width: min(400px, 100%);
+  max-height: min(560px, calc(100vh - 48px));
+  overflow: auto;
+  background: var(--ivory);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+  padding: 22px 24px 26px;
+}
+.login-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.login-head h2 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.login-head .icon-btn { flex: none; }
+.login-panel .account-form { max-width: none; }
+.login-quiet { min-height: calc(100vh - 240px); }

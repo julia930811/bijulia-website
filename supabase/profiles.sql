@@ -7,16 +7,15 @@
 --   SUPABASE_ANON_KEY
 -- 靜態網站沒有建置步驟，請把這兩個值填進 js/supabase.env.js。
 --
--- Authentication → Providers → Email：打開 Confirm email。
+-- Authentication → Providers → Email：關掉 Confirm email。一個電子郵件只能註冊一次。
 -- Authentication → URL Configuration：加入
 --   http://127.0.0.1:4173/account/
 --   以及正式網址的 /account/
 --
--- 註冊並完成信箱驗證後，才會新增 public.profiles，角色固定是 pending。
--- 網站不能把任何人改成 super_admin。
--- 店主信箱是 jiayiwu009@gmail.com。驗證完成後，在 SQL editor 把自己改成管理者：
---   update public.profiles set role = 'super_admin' where email = 'jiayiwu009@gmail.com';
--- 之後店主登入 /account/，對待核准的列按「核准」，角色會改成 customer。
+-- 註冊當下就新增 public.profiles，不用等信箱驗證。
+-- 一般帳號的角色是 pending。只有 jiayiwu009@gmail.com 是 super_admin。
+-- 同一個電子郵件只能有一筆帳號、一組密碼。其他信箱不會自動變成管理者。
+-- 店主登入 /account/ 後，對待核准的列按「核准」，角色會改成 customer。
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -59,22 +58,28 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.email_confirmed_at is null then
+  if tg_op = 'UPDATE' and old.email_confirmed_at is not null then
     return new;
   end if;
-  if tg_op = 'UPDATE' and old.email_confirmed_at is not null then
+  if tg_op = 'UPDATE' and new.email_confirmed_at is null then
     return new;
   end if;
   insert into public.profiles (id, email, role, name, phone, address)
   values (
     new.id,
     coalesce(new.email, ''),
-    'pending',
+    case
+      when lower(coalesce(new.email, '')) = 'jiayiwu009@gmail.com' then 'super_admin'
+      else 'pending'
+    end,
     coalesce(new.raw_user_meta_data->>'name', ''),
     coalesce(new.raw_user_meta_data->>'phone', ''),
     coalesce(new.raw_user_meta_data->>'address', '')
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update
+    set role = 'super_admin'
+    where lower(public.profiles.email) = 'jiayiwu009@gmail.com'
+      and public.profiles.role is distinct from 'super_admin';
   return new;
 end;
 $$;
@@ -99,8 +104,12 @@ begin
   if new.role not in ('pending', 'customer', 'super_admin') then
     raise exception 'invalid role';
   end if;
-  -- SQL editor 沒有登入者，才能讓店主手動把自己設成 super_admin。
-  -- 匿名金鑰沒有 update 權限，不能走這條路。
+  -- 店主信箱驗證後可以成為管理者。顧客改不了自己的 email，所以不能走這條路。
+  if lower(coalesce(new.email, old.email, '')) = 'jiayiwu009@gmail.com'
+     and new.role = 'super_admin' then
+    return new;
+  end if;
+  -- SQL editor 沒有登入者。匿名金鑰沒有 update 權限，不能走這條路。
   if auth.uid() is null then
     return new;
   end if;
@@ -150,3 +159,8 @@ create policy profiles_update_own_or_admin
   to authenticated
   using (id = auth.uid() or public.is_super_admin())
   with check (id = auth.uid() or public.is_super_admin());
+
+update public.profiles
+set role = 'super_admin'
+where lower(email) = 'jiayiwu009@gmail.com'
+  and role is distinct from 'super_admin';

@@ -6,9 +6,9 @@ export const site = {
   freeShipping: 2000,
   shippingFee: 60,
   bank: {
-    name: "",
+    name: "中國信託富錦分行（2134）",
     holder: "",
-    account: "",
+    account: "(822) 134540149232",
   },
 };
 
