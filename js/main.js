@@ -7,7 +7,7 @@ import {
   productsIn,
 } from "./data.js?v=20";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=1";
+import * as auth from "./auth.js?v=3";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
@@ -190,7 +190,7 @@ function shell() {
       <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
-      <a class="account-entry" href="/account/" data-mobile-login>登入</a>
+      <a class="account-entry" href="/account/" data-mobile-login>Login</a>
       <a class="account-entry" href="/account/?view=register" data-mobile-register>註冊</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
     </div>
@@ -254,8 +254,17 @@ function totals() {
     else sub += amount;
   }
   const basis = twd > 0 ? twd : sub;
-  const ship = basis === 0 ? 0 : basis >= site.freeShipping ? 0 : site.shippingFee;
+  const ship = basis === 0 ? 0 : freeShippingQualified(basis) ? 0 : site.shippingFee;
   return { sub, ship, total: sub + (twd > 0 ? 0 : ship), twd, basis };
+}
+
+function hasPriorPurchase() {
+  const history = auth.getProfile()?.purchase_history;
+  return Array.isArray(history) && history.length > 0;
+}
+
+function freeShippingQualified(basis) {
+  return basis >= site.freeShipping || hasPriorPurchase();
 }
 
 function summaryMoney(sums, twdLabel = "NT$") {
@@ -267,6 +276,7 @@ function summaryMoney(sums, twdLabel = "NT$") {
 
 function shippingNote(amount) {
   if (!amount) return "";
+  if (hasPriorPurchase()) return "買過一次，這次免運";
   if (amount >= site.freeShipping) return "免運";
   const rest = site.freeShipping - amount;
   return `再加 ${ntd(rest)} 即可免運`;
@@ -800,7 +810,7 @@ function accountView() {
 function accountSwitch(view) {
   const link = (key, href, label) => `<a href="${href}"${view === key ? ' class="is-on" aria-current="page"' : ""}>${label}</a>`;
   return `<nav class="account-switch" aria-label="帳戶">
-    ${link("login", "/account/", "登入")}
+    ${link("login", "/account/", "Login")}
     ${link("register", "/account/?view=register", "註冊")}
     ${link("pending", "/account/?view=pending", "待核准")}
     ${link("admin", "/account/?view=admin", "核准")}
@@ -862,15 +872,16 @@ function logoutButton() {
 
 function renderLogin() {
   return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "登入" }])}
-    <h1 class="page-title">登入</h1>
+    ${crumbs([{ href: "/", label: "Home" }, { label: "Login" }])}
+    <h1 class="page-title">Login</h1>
     ${accountSwitch("login")}
     ${configBanner()}
     <p class="account-copy">顧客與管理者都從這裡登入。新註冊的帳號要先完成信箱驗證，角色是待核准。待核准可以看自己的帳戶，不能核准別人。管理者核准後，角色才會改成顧客。</p>
     <form id="login-form" class="account-form">
       <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
       <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
-      <button class="btn btn-fill" type="submit">登入</button>
+      <button class="btn btn-fill" type="submit">Login</button>
+      <a class="btn" href="/account/?view=register">註冊</a>
       <p class="form-note fine" id="login-note" role="status"></p>
     </form>
   </div>`;
@@ -1007,7 +1018,7 @@ function renderAccount() {
     document.title = "註冊 — BiJulia";
     return renderRegister();
   }
-  document.title = "登入 — BiJulia";
+  document.title = "Login — BiJulia";
   return renderLogin();
 }
 
@@ -1131,7 +1142,7 @@ function accountLinksHtml() {
   const view = accountView();
   const loginOn = here && view === "login" ? ' aria-current="page"' : "";
   const registerOn = here && view === "register" ? ' aria-current="page"' : "";
-  return `<a href="/account/"${loginOn}>登入</a><a href="/account/?view=register"${registerOn}>註冊</a>`;
+  return `<a href="/account/"${loginOn}>Login</a><a href="/account/?view=register"${registerOn}>註冊</a>`;
 }
 
 function refreshAccountChrome() {
@@ -1163,7 +1174,7 @@ function refreshAccountChrome() {
     register.hidden = true;
     return;
   }
-  login.textContent = "登入";
+  login.textContent = "Login";
   login.href = "/account/";
   register.hidden = false;
   register.textContent = "註冊";
@@ -1687,8 +1698,8 @@ function boot() {
     refreshChrome();
   });
   auth.onChange(() => {
-    refreshAccountChrome();
-    if (page === "account") renderMain();
+    if (page === "account" || page === "cart") renderMain();
+    refreshChrome();
   });
   auth.init();
 }

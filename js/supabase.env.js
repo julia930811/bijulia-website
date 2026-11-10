@@ -3,5 +3,6 @@
 // SUPABASE_URL
 // SUPABASE_ANON_KEY
 // 預覽時把這兩個值填在下面。沒有建置步驟，瀏覽器讀不到 process.env。
-export const SUPABASE_URL = "";
-export const SUPABASE_ANON_KEY = "";
+// 這裡只能放 anon 或 publishable key，不能放 sb_secret_。
+export const SUPABASE_URL = "https://bypdrroxearangyyjvmn.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_vnbXUCbX1hlQzygsNlghtQ_2_M0jheZ";

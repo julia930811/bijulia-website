@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase.env.js?v=1";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase.env.js?v=2";
 
 const FULL_COLUMNS = "id, email, role, created_at, name, phone, address, tier, purchase_history";
 const CORE_COLUMNS = "id, email, role, created_at";
@@ -33,6 +33,11 @@ export function getProfile() {
     ...profile,
     purchase_history: asHistory(profile.purchase_history),
   };
+}
+
+export function previewProfile(next) {
+  profile = next;
+  emit();
 }
 
 export function onChange(fn) {

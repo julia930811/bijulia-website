@@ -46,7 +46,11 @@ create index if not exists profiles_role_idx on public.profiles (role);
 alter table public.profiles enable row level security;
 
 revoke all on table public.profiles from public, anon;
-grant select, update on table public.profiles to authenticated;
+-- 已登入者只能改網站真的會寫的欄位。role 仍由 protect_profile_role 限制，
+-- 只有 super_admin 改得成。tier、email、id、created_at 不開放，避免顧客自己改會員等級或信箱。
+revoke update on table public.profiles from authenticated;
+grant select on table public.profiles to authenticated;
+grant update (purchase_history, role) on table public.profiles to authenticated;
 
 create or replace function public.handle_user_verified()
 returns trigger

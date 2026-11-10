@@ -1411,6 +1411,10 @@ h1, h2, h3,
   font-size: 22px;
   padding-bottom: 6px;
 }
+.account-form a.btn {
+  width: 100%;
+  margin-top: 10px;
+}
 .account-table .btn {
   min-height: 36px;
   padding: 2px 12px 4px;
