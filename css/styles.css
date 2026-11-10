@@ -1333,10 +1333,12 @@ h1, h2, h3,
   border: 1px solid var(--ink);
   background: transparent;
   color: var(--ink);
-  font-family: var(--script);
-  font-size: 22px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
+  font-style: normal;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 .login-btn:hover,
@@ -1370,7 +1372,7 @@ h1, h2, h3,
   .login-btn {
     height: 28px;
     padding: 0 8px 1px;
-    font-size: 18px;
+    font-size: 13px;
   }
 }
 .mobile-nav a.account-entry {
@@ -1433,6 +1435,16 @@ h1, h2, h3,
   color: var(--ink-soft);
 }
 .profile-dl dd { margin: 0; }
+.tier-select {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 4px 8px;
+}
+.checkout-due { max-width: 440px; margin: 4px 0 22px; }
 .account-table-wrap { overflow-x: auto; margin: 12px 0 28px; }
 .account-table {
   width: 100%;
@@ -1520,7 +1532,7 @@ h1, h2, h3,
 .login-panel {
   position: relative;
   width: min(400px, 100%);
-  max-height: min(560px, calc(100vh - 48px));
+  max-height: min(680px, calc(100vh - 48px));
   overflow: auto;
   background: var(--ivory);
   color: var(--ink);

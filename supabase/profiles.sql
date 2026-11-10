@@ -16,6 +16,7 @@
 -- 一般帳號的角色是 pending。只有 jiayiwu009@gmail.com 是 super_admin。
 -- 同一個電子郵件只能有一筆帳號、一組密碼。其他信箱不會自動變成管理者。
 -- 店主登入 /account/ 後，對待核准的列按「核准」，角色會改成 customer。
+-- 會員等級只有管理者改得了。一般：買過一次，下次免運。高級：作品 9 折，而且免運。
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -45,11 +46,11 @@ create index if not exists profiles_role_idx on public.profiles (role);
 alter table public.profiles enable row level security;
 
 revoke all on table public.profiles from public, anon;
--- 已登入者只能改網站真的會寫的欄位。role 仍由 protect_profile_role 限制，
--- 只有 super_admin 改得成。tier、email、id、created_at 不開放，避免顧客自己改會員等級或信箱。
+-- 已登入者只能改網站真的會寫的欄位。role 與 tier 仍由 trigger 限制，
+-- 只有 super_admin 改得成。email、id、created_at 不開放，避免顧客自己改信箱。
 revoke update on table public.profiles from authenticated;
 grant select on table public.profiles to authenticated;
-grant update (purchase_history, role) on table public.profiles to authenticated;
+grant update (purchase_history, role, tier) on table public.profiles to authenticated;
 
 create or replace function public.handle_user_verified()
 returns trigger
@@ -140,8 +141,40 @@ as $$
   );
 $$;
 
+create or replace function public.protect_profile_tier()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  actor text;
+begin
+  if new.tier is not distinct from old.tier then
+    return new;
+  end if;
+  if new.tier not in ('一般', '高級') then
+    raise exception 'invalid tier';
+  end if;
+  if auth.uid() is null then
+    return new;
+  end if;
+  select p.role into actor from public.profiles as p where p.id = auth.uid();
+  if actor is distinct from 'super_admin' then
+    raise exception 'only super_admin can change tier';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_tier on public.profiles;
+create trigger protect_profile_tier
+  before update on public.profiles
+  for each row execute function public.protect_profile_tier();
+
 revoke all on function public.handle_user_verified() from public, anon, authenticated;
 revoke all on function public.protect_profile_role() from public, anon, authenticated;
+revoke all on function public.protect_profile_tier() from public, anon, authenticated;
 revoke all on function public.is_super_admin() from public, anon;
 grant execute on function public.is_super_admin() to authenticated;
 
@@ -164,3 +197,75 @@ update public.profiles
 set role = 'super_admin'
 where lower(email) = 'jiayiwu009@gmail.com'
   and role is distinct from 'super_admin';
+
+update public.profiles
+set tier = '一般'
+where tier is null or tier not in ('一般', '高級');
+
+alter table public.profiles drop constraint if exists profiles_tier_check;
+alter table public.profiles
+  add constraint profiles_tier_check check (tier in ('一般', '高級'));
+
+-- 顧客下單寫進這裡，不寄信給賣家。只有管理者可以讀全部訂單並核准。
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  customer_id uuid references auth.users (id) on delete set null,
+  name text not null,
+  phone text not null,
+  gmail text not null,
+  store text not null,
+  items jsonb not null default '[]'::jsonb,
+  shipping integer not null default 0,
+  total integer not null default 0,
+  status text not null default 'pending',
+  constraint orders_status_check check (status in ('pending', 'approved'))
+);
+
+alter table public.orders enable row level security;
+
+revoke all on table public.orders from public, anon, authenticated;
+grant insert on table public.orders to anon, authenticated;
+grant select, update on table public.orders to authenticated;
+
+create or replace function public.orders_on_insert()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.customer_id := auth.uid();
+  new.status := 'pending';
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_on_insert on public.orders;
+create trigger orders_on_insert
+  before insert on public.orders
+  for each row execute function public.orders_on_insert();
+
+revoke all on function public.orders_on_insert() from public, anon, authenticated;
+
+drop policy if exists orders_insert_pending on public.orders;
+create policy orders_insert_pending
+  on public.orders
+  for insert
+  to anon, authenticated
+  with check (status = 'pending');
+
+drop policy if exists orders_select_own_or_admin on public.orders;
+create policy orders_select_own_or_admin
+  on public.orders
+  for select
+  to authenticated
+  using (public.is_super_admin() or customer_id = auth.uid());
+
+drop policy if exists orders_admin_approve on public.orders;
+create policy orders_admin_approve
+  on public.orders
+  for update
+  to authenticated
+  using (public.is_super_admin() and status = 'pending')
+  with check (public.is_super_admin() and status = 'approved');

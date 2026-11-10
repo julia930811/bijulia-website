@@ -7,7 +7,7 @@ import {
   productsIn,
 } from "./data.js?v=21";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=5";
+import * as auth from "./auth.js?v=8";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || "";
@@ -193,7 +193,7 @@ function shell() {
       <a href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
       <a class="account-entry" href="/account/" data-mobile-login>Login</a>
-      <a class="account-entry" href="/account/?view=register" data-mobile-register>註冊</a>
+      <a class="account-entry" href="/account/?view=register" data-mobile-register data-open-register>註冊</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
     </div>
     <div id="login-dialog" class="login-dialog" hidden>
@@ -207,8 +207,18 @@ function shell() {
           <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
           <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
           <button class="btn btn-fill" type="submit">Login</button>
-          <a class="btn" href="/account/?view=register">註冊</a>
+          <a class="btn" href="/account/?view=register" data-open-register>註冊</a>
           <p class="form-note fine" id="login-note" role="status"></p>
+        </form>
+        <form id="register-form" class="account-form" hidden>
+          <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
+          <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
+          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
+          <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
+          <label class="field"><span>再輸入一次密碼</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
+          <button class="btn btn-fill" type="submit">註冊</button>
+          <a class="btn" href="/account/" data-show-login>Login</a>
+          <p class="form-note fine" id="register-note" role="status"></p>
         </form>
       </div>
     </div>
@@ -271,9 +281,17 @@ function totals() {
     if (product.currency === "TWD") twd += amount;
     else sub += amount;
   }
-  const basis = twd > 0 ? twd : sub;
+  const goods = twd > 0 ? twd : sub;
+  const discount = isPremiumMember() && goods ? Math.round(goods * 0.1) : 0;
+  const basis = goods;
   const ship = basis === 0 ? 0 : freeShippingQualified(basis) ? 0 : site.shippingFee;
-  return { sub, ship, total: sub + (twd > 0 ? 0 : ship), twd, basis };
+  const due = Math.max(0, goods - discount) + ship;
+  return { sub, ship, total: due, twd, basis, discount, due };
+}
+
+function isPremiumMember() {
+  const profile = auth.getProfile();
+  return profile?.role === "customer" && profile.tier === "高級";
 }
 
 function hasPriorPurchase() {
@@ -282,7 +300,7 @@ function hasPriorPurchase() {
 }
 
 function freeShippingQualified(basis) {
-  return basis >= site.freeShipping || hasPriorPurchase();
+  return isPremiumMember() || basis >= site.freeShipping || hasPriorPurchase();
 }
 
 function summaryMoney(sums, twdLabel = "NT$") {
@@ -294,10 +312,29 @@ function summaryMoney(sums, twdLabel = "NT$") {
 
 function shippingNote(amount) {
   if (!amount) return "";
+  if (isPremiumMember()) return "高級會員，9 折、免運";
   if (hasPriorPurchase()) return "買過一次，這次免運";
   if (amount >= site.freeShipping) return "免運";
   const rest = site.freeShipping - amount;
   return `再加 ${ntd(rest)} 即可免運`;
+}
+
+function dueText(sums) {
+  return sums.twd ? ntd(sums.due) : money(sums.due);
+}
+
+function discountRow(sums) {
+  if (!sums.discount) return "";
+  const amount = sums.twd ? ntd(sums.discount) : money(sums.discount);
+  return `<div class="summary-row"><span>高級會員 9 折</span><span>−${amount}</span></div>`;
+}
+
+function chargeSummary(sums) {
+  if (!sums.basis) return "";
+  return `${discountRow(sums)}
+    <div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : ntd(sums.ship)}</span></div>
+    <div class="summary-row"><strong>合計</strong><strong>${dueText(sums)}</strong></div>
+    <p class="fine">${esc(shippingNote(sums.basis))}</p>`;
 }
 
 function colorById(product, id) {
@@ -579,7 +616,7 @@ function renderProduct() {
     ? [["組數", "三張貼紙"], ["價格", "NT$50"], ["製作", "少量製作"]]
     : [["長度", product.length], ["材質", product.materials], ["製作", "手工，少量製作"]];
   const care = product.category === "sticker" ? "" : "沒有戴的時候，把項鍊放回鏈袋裡。";
-  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
+  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
   const galleryShots = pictures.filter((src) => !/worn/i.test(src));
@@ -669,11 +706,9 @@ function renderCart() {
         <aside class="summary">
           <h2>Summary</h2>
           ${summaryMoney(sums)}
-          ${sums.basis ? `<div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : ntd(sums.ship)}</span></div>
-          <div class="summary-row"><strong>合計</strong><strong>${sums.twd ? ntd(sums.twd + sums.ship) : money(sums.sub + sums.ship)}</strong></div>
-          <p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
+          ${chargeSummary(sums)}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
-          <p class="fine" style="margin-top:12px">請填寫 Request an order。付款是匯款到工作室銀行帳戶。匯款確認後，工作室會寄信通知下單成功。這個頁面不會扣款。</p>
+          <p class="fine" style="margin-top:12px">請填寫 Request an order。付款是匯款到工作室銀行帳戶。送出後訂單進到後台，管理者核准才成立，並寄訂單完成通知到你的 Gmail。這個頁面不會扣款，也不會寄信給賣家。</p>
         </aside>
       </div>
     </div>
@@ -681,16 +716,12 @@ function renderCart() {
 }
 
 function renderOrderSent() {
-  let mail = "";
-  try { mail = sessionStorage.getItem("bijulia-order-mail") || ""; } catch { /* ignore */ }
   return `
     <div class="page">
       <div class="empty">
-        <p class="kicker">Instagram</p>
-        <h1 class="page-title"><a href="${site.instagram}">${esc(site.instagramHandle)}</a></h1>
-        <p>請私訊討論更多細節。</p>
-        <a class="btn" href="${site.instagram}">${esc(site.instagramHandle)}</a>
-        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡。寄出後，工作室才會收到這筆訂單。匯款確認後，工作室會寄信到你的 Gmail，通知下單成功。</a></p>` : ""}
+        <h1 class="page-title">訂單已送出</h1>
+        <p>這筆訂單在後台等管理者核准。沒有寄信給賣家。請先匯款到工作室帳戶，核准後才成立，並寄訂單完成通知到你的 Gmail。</p>
+        <a class="btn" href="/shop/">Back to the shop</a>
       </div>
     </div>
   `;
@@ -711,8 +742,8 @@ function paymentBlock() {
       <h2>付款方式</h2>
       <p>請匯款到工作室的銀行帳戶。這個頁面不會扣款。</p>
       ${list}
-      <p>姓名、電話、Gmail 和 7-11 店名都要填。送出後會打開 Gmail，把訂單寄給工作室。請在 Gmail 按寄出。</p>
-      <p>匯款確認後，工作室會寄信到你的 Gmail，通知下單成功。</p>
+      <p>姓名、電話、Gmail 和 7-11 店名都要填。送出後訂單進到後台，不會寄信給賣家。管理者核准後，會寄訂單完成通知到這個 Gmail。</p>
+      <p>請先匯款。管理者在後台核准後，這筆訂單才成立。</p>
     </section>
   `;
 }
@@ -731,17 +762,22 @@ function renderCheckout() {
       </div>
     `;
   }
+  const sums = totals();
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { href: "/cart/", label: "Your bag" }, { label: "Request" }])}
       <h1 class="page-title">Request an order</h1>
       ${paymentBlock()}
+      <div class="checkout-due">
+        ${summaryMoney(sums)}
+        ${chargeSummary(sums)}
+      </div>
       <form id="request-form" style="max-width:440px">
           <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
           <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
           <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
           <label class="field"><span>7-11 店名</span><input name="store" required></label>
-          <button class="btn btn-fill" type="submit">Send</button>
+          <button class="btn btn-fill" type="submit">送出</button>
           <p class="form-note fine" id="request-note"></p>
       </form>
     </div>
@@ -796,7 +832,7 @@ function renderCare() {
       <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
-        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
+        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
         <h2>Returns</h2>
@@ -829,7 +865,7 @@ function accountSwitch(view) {
   const link = (key, href, label) => `<a href="${href}"${view === key ? ' class="is-on" aria-current="page"' : ""}>${label}</a>`;
   return `<nav class="account-switch" aria-label="帳戶">
     ${link("login", "/account/", "Login")}
-    ${link("register", "/account/?view=register", "註冊")}
+    ${link("register", "/account/?view=register", "註冊").replace("<a ", "<a data-open-register ")}
     ${link("pending", "/account/?view=pending", "待核准")}
     ${link("admin", "/account/?view=admin", "核准")}
   </nav>`;
@@ -877,7 +913,7 @@ function profileDl(profile, previewRole) {
     ${row("顧客編號", esc(profile.id))}
     ${row("姓名 / 電話", `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
     ${row("電子郵件 / 地址", `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
-    ${row("會員等級", esc(profile.tier || "—"))}
+    ${row("會員等級", esc(profile.tier === "高級" ? "高級" : "一般"))}
     ${row("角色", roleLabel(profile.role))}
     ${row("購買紀錄", purchaseHtml(profile.purchase_history))}
     ${row("建立時間", formatWhen(profile.created_at))}
@@ -893,22 +929,7 @@ function renderLogin() {
 }
 
 function renderRegister() {
-  return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "註冊" }])}
-    <h1 class="page-title">註冊</h1>
-    ${accountSwitch("register")}
-    ${configBanner()}
-    <p class="account-copy">留下姓名、電話、電子郵件和密碼。註冊後就建立個人資料，不用驗證信箱。一個電子郵件只能有一組密碼。角色是待核准，會員等級是一般，購買紀錄是空的。核准前不能使用管理功能。</p>
-    <form id="register-form" class="account-form">
-      <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
-      <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
-      <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-      <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
-      <label class="field"><span>再輸入一次密碼</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
-      <button class="btn btn-fill" type="submit">註冊</button>
-      <p class="form-note fine" id="register-note" role="status"></p>
-    </form>
-  </div>`;
+  return `<div class="page login-quiet"></div>`;
 }
 
 function renderPending(profile) {
@@ -926,6 +947,14 @@ function renderPending(profile) {
   </div>`;
 }
 
+function tierSelect(row) {
+  const tier = row.tier === "高級" ? "高級" : "一般";
+  return `<select class="tier-select" data-tier="${esc(row.id || "")}" data-role="${esc(row.role || "")}" data-current="${tier}" aria-label="會員等級">
+    <option value="一般"${tier === "一般" ? " selected" : ""}>一般</option>
+    <option value="高級"${tier === "高級" ? " selected" : ""}>高級</option>
+  </select>`;
+}
+
 function peopleTable(rows, approve, emptyLabel = "沒有資料") {
   const head = `<tr>
     <th>顧客編號</th><th>姓名 / 電話</th><th>電子郵件 / 地址</th><th>會員等級</th><th>角色</th><th>購買紀錄</th><th>建立時間</th>${approve ? "<th>核准</th>" : ""}
@@ -935,7 +964,7 @@ function peopleTable(rows, approve, emptyLabel = "沒有資料") {
         <td>${esc(row.id || "")}</td>
         <td>${esc(row.name || "—")} / ${esc(row.phone || "—")}</td>
         <td>${esc(row.email || "—")} / ${esc(row.address || "—")}</td>
-        <td>${esc(row.tier || "—")}</td>
+        <td>${tierSelect(row)}</td>
         <td>${roleLabel(row.role)}</td>
         <td>${purchaseHtml(row.purchase_history)}</td>
         <td>${formatWhen(row.created_at)}</td>
@@ -952,8 +981,8 @@ function renderAdmin(profile) {
       <h1 class="page-title">核准帳號</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">只有管理者登入後可以看見待核准名單。按下核准，角色會從待核准改成顧客。${esc(site.email)} 註冊後就是管理者。其他註冊的人不會自動變成管理者。</p>
-      <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號。</p>
+      <p class="account-copy">只有管理者登入後可以核准帳號和訂單，也可以調整會員等級。按下核准，帳號會從待核准改成顧客，訂單才成立。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
+      <p class="fine">現在沒有管理者登入，所以沒有名單，也沒有核准任何帳號或訂單。</p>
       <section class="account-section"><h2>待核准</h2>${peopleTable([], false, "沒有名單")}</section>
     </div>`;
   }
@@ -961,7 +990,7 @@ function renderAdmin(profile) {
     ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
     <h1 class="page-title">核准帳號</h1>
     ${configBanner()}
-    <p class="account-copy">待核准的帳號列在下面。按下核准後，角色會從待核准改成顧客。顧客只能看見自己的帳戶。</p>
+    <p class="account-copy">待核准的帳號和訂單列在下面。核准帳號後，角色改成顧客。核准訂單後，這筆訂單才成立，並打開 Gmail 把訂單完成通知寄給顧客。會員等級可以在名單裡調整。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。不會寄信給賣家。</p>
     <p class="fine">登入身分：${esc(profile.email || "")}，管理者。</p>
     <p class="form-note fine" id="admin-note" role="status"></p>
     <div id="admin-lists"><p class="fine">讀取中。</p></div>
@@ -974,7 +1003,7 @@ function renderCustomer(profile) {
     ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
     <h1 class="page-title">帳戶</h1>
     ${configBanner()}
-    <p class="account-copy">這是你自己的帳戶。角色是顧客。這裡不會列出其他人。</p>
+    <p class="account-copy">這是你自己的帳戶。角色是顧客。${profile?.tier === "高級" ? "你是高級會員，作品 9 折，而且免運。" : "你是一般會員。買過一次，下次免運。"}這裡不會列出其他人。</p>
     ${profileDl(profile, "顧客")}
     ${logoutButton()}
   </div>`;
@@ -1042,12 +1071,101 @@ async function loadAdminLists() {
     current.innerHTML = `<p class="fine">${esc(message)}</p>`;
     return;
   }
+  const orders = await auth.listOrders();
+  if (token !== adminLoad) return;
   const pending = result.rows.filter((row) => row.role === "pending");
   const customers = result.rows.filter((row) => row.role === "customer");
+  const orderRows = orders.ok ? orders.rows : [];
+  const waiting = orderRows.filter((row) => row.status === "pending");
+  const approved = orderRows.filter((row) => row.status === "approved");
+  const orderNote = orders.ok
+    ? ""
+    : `<p class="fine">${esc(orders.message || "讀不到訂單。")}</p>`;
   current.innerHTML = `
+    <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
+    <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
     <section class="account-section"><h2>待核准</h2>${pending.length ? "" : `<p class="fine">目前沒有待核准的帳號。</p>`}${peopleTable(pending, true)}</section>
     <section class="account-section"><h2>顧客</h2>${peopleTable(customers, false)}</section>
   `;
+}
+
+function ordersTable(rows, approve) {
+  const head = `<tr><th>時間</th><th>姓名 / 電話</th><th>Gmail / 7-11</th><th>作品</th><th>合計</th><th>${approve ? "核准" : "通知"}</th></tr>`;
+  const body = rows.length
+    ? rows.map((row) => `<tr>
+        <td>${formatWhen(row.created_at)}</td>
+        <td>${esc(row.name || "—")} / ${esc(row.phone || "—")}</td>
+        <td>${esc(row.gmail || "—")} / ${esc(row.store || "—")}</td>
+        <td>${esc(orderItems(row.items))}</td>
+        <td>${ntd(Number(row.total) || 0)}</td>
+        ${approve
+          ? `<td><button class="btn" type="button" data-approve-order="${esc(row.id || "")}">核准</button></td>`
+          : `<td><a class="btn" href="${esc(buildOrderNoticeUrl(row))}" target="_blank" rel="noopener">寄完成通知</a></td>`}
+      </tr>`).join("")
+    : `<tr><td colspan="6">沒有訂單</td></tr>`;
+  return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function orderItems(items) {
+  if (!Array.isArray(items) || !items.length) return "—";
+  return items.map((item) => `${item.name || "作品"} × ${item.qty || 1}`).join("、");
+}
+
+function buildOrderNoticeUrl(order) {
+  const items = orderItems(order && order.items);
+  const shipping = Number(order && order.shipping) || 0;
+  const body = [
+    `${(order && order.name) || ""} 你好，`,
+    "",
+    "你的 BiJulia 訂單已經完成。",
+    "",
+    `作品：${items === "—" ? "" : items}`,
+    `7-11：${(order && order.store) || ""}`,
+    `合計：${ntd(Number(order && order.total) || 0)}`,
+    shipping ? `運費：${ntd(shipping)}` : "運費：免運",
+  ].join("\n");
+  const query = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: String((order && order.gmail) || "").trim(),
+    su: "BiJulia 訂單完成",
+    body,
+  });
+  return `https://mail.google.com/mail/?${query.toString()}`;
+}
+
+function openOrderNotice(popup, url) {
+  if (popup && !popup.closed) {
+    popup.location.href = url;
+    return true;
+  }
+  const opened = window.open(url, "_blank", "noopener");
+  return Boolean(opened);
+}
+
+async function approveOrderRow(button) {
+  const note = document.getElementById("admin-note");
+  button.disabled = true;
+  const popup = window.open("", "_blank");
+  const result = await auth.approveOrder(button.dataset.approveOrder);
+  if (!result.ok) {
+    if (popup && !popup.closed) popup.close();
+    if (note) {
+      note.textContent = result.code === "unconfigured"
+        ? "沒有接上 Supabase，訂單沒有核准。"
+        : (result.message || "沒有核准。");
+    }
+    button.disabled = false;
+    return;
+  }
+  const url = buildOrderNoticeUrl(result.order || {});
+  const opened = openOrderNotice(popup, url);
+  if (note) {
+    note.innerHTML = opened
+      ? "訂單已核准。已打開給顧客的 Gmail，請寄出訂單完成通知。"
+      : `訂單已核准。請<a href="${esc(url)}" target="_blank" rel="noopener">打開 Gmail</a>，寄出訂單完成通知給顧客。`;
+  }
+  await loadAdminLists();
 }
 
 async function approveProfile(button) {
@@ -1065,6 +1183,28 @@ async function approveProfile(button) {
   }
   if (note) note.textContent = "已核准，角色改成顧客。";
   await loadAdminLists();
+}
+
+async function saveMemberTier(select) {
+  const note = document.getElementById("admin-note");
+  const next = select.value === "高級" ? "高級" : "一般";
+  const previous = select.getAttribute("data-current") === "高級" ? "高級" : "一般";
+  if (next === previous) return;
+  select.disabled = true;
+  const result = await auth.setMemberTier(select.getAttribute("data-tier"), next);
+  select.disabled = false;
+  if (!result.ok) {
+    select.value = previous;
+    if (note) note.textContent = result.message || "會員等級沒有改成。";
+    return;
+  }
+  select.setAttribute("data-current", next);
+  if (note) {
+    const alreadyCustomer = select.getAttribute("data-role") === "customer";
+    note.textContent = next === "高級"
+      ? (alreadyCustomer ? "已改成高級會員。作品 9 折，而且免運。" : "已改成高級會員。核准成顧客後，作品 9 折，而且免運。")
+      : "已改成一般會員。買過一次，下次免運。";
+  }
 }
 
 function renderNotFound() {
@@ -1128,10 +1268,10 @@ function drawerHtml() {
     return;
   }
   const sums = totals();
-  const totalText = sums.twd ? ntd(sums.twd + sums.ship) : money(sums.sub + sums.ship);
   body.innerHTML = items.map((item) => line(item, true)).join("");
   foot.innerHTML = `
-    <div class="summary-row"><span>Total</span><span>${totalText}</span></div>
+    ${discountRow(sums)}
+    <div class="summary-row"><span>Total</span><span>${dueText(sums)}</span></div>
     ${sums.basis ? `<p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
     <a class="btn btn-fill is-mark" href="/cart/"><img class="view-bag-mark" src="/images/view-bag.png" alt="View bag"></a>
   `;
@@ -1255,10 +1395,25 @@ function syncLoginTriggers() {
 function loginFocusables() {
   const panel = document.querySelector("#login-dialog .login-panel");
   if (!panel) return [];
-  return [...panel.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.disabled);
+  return [...panel.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.disabled && !el.closest("[hidden]"));
 }
 
-function openLoginDialog(opener) {
+function setAuthMode(mode) {
+  const root = document.getElementById("login-dialog");
+  if (!root) return;
+  const registerMode = mode === "register";
+  const loginForm = root.querySelector("#login-form");
+  const registerForm = root.querySelector("#register-form");
+  const title = root.querySelector("#login-dialog-title");
+  const close = root.querySelector("button[data-close-login]");
+  if (loginForm) loginForm.hidden = registerMode;
+  if (registerForm) registerForm.hidden = !registerMode;
+  if (title) title.textContent = registerMode ? "註冊" : "Login";
+  if (close) close.setAttribute("aria-label", registerMode ? "關閉註冊" : "關閉登入");
+  loginUi.mode = registerMode ? "register" : "login";
+}
+
+function openLoginDialog(opener, mode) {
   const root = document.getElementById("login-dialog");
   if (!root) return;
   const trigger = opener || document.querySelector("[data-header-login]");
@@ -1269,12 +1424,14 @@ function openLoginDialog(opener) {
   loginUi.open = true;
   loginUi.opener = trigger || null;
   root.hidden = false;
-  const button = root.querySelector("#login-form button[type=submit]");
+  setAuthMode(mode === "register" ? "register" : "login");
+  const form = root.querySelector(loginUi.mode === "register" ? "#register-form" : "#login-form");
+  const button = form && form.querySelector("button[type=submit]");
   if (button) button.disabled = false;
   applyOverlay();
   syncLoginTriggers();
-  const email = root.querySelector('input[name="email"]');
-  if (email) email.focus();
+  const field = form && form.querySelector("input");
+  if (field) field.focus();
 }
 
 function closeLoginDialog(options = {}) {
@@ -1287,8 +1444,8 @@ function closeLoginDialog(options = {}) {
   loginUi.returnMenu = false;
   const root = document.getElementById("login-dialog");
   if (root) root.hidden = true;
-  if (page === "account" && accountView() === "login" && !auth.getProfile() && !auth.getSession()) {
-    loginUi.dismissedOnAccount = true;
+  if (page === "account" && (accountView() === "login" || accountView() === "register") && !auth.getProfile() && !auth.getSession()) {
+    loginUi.dismissedOnAccount = accountView();
   }
   applyOverlay();
   syncLoginTriggers();
@@ -1304,10 +1461,13 @@ function closeLoginDialog(options = {}) {
 }
 
 function syncAccountLogin() {
-  if (!authReady || loginUi.open || loginUi.dismissedOnAccount) return;
-  if (page !== "account" || accountView() !== "login") return;
+  if (!authReady || loginUi.open) return;
+  if (page !== "account") return;
+  const view = accountView();
+  if (view !== "login" && view !== "register") return;
+  if (loginUi.dismissedOnAccount === view) return;
   if (auth.getProfile() || auth.getSession()) return;
-  openLoginDialog(document.querySelector("[data-header-login]"));
+  openLoginDialog(document.querySelector("[data-header-login]"), view === "register" ? "register" : "login");
 }
 
 function trapLoginTab(event) {
@@ -1381,55 +1541,8 @@ function orderSnapshot(data) {
     store: data.store,
     items,
     shipping: sums.ship,
-    total: sums.twd ? sums.twd + sums.ship : sums.sub + sums.ship,
+    total: sums.due,
   };
-}
-
-function buildGmailUrl(data) {
-  const items = store.getCart().map((item) => {
-    const product = productBySlug(item.slug);
-    const tone = product && colorById(product, item.color);
-    const label = product ? (tone ? `${product.name} (${tone.name})` : product.name) : "";
-    return product ? `${label} × ${item.qty} — ${priceText(product, item.qty)}` : "";
-  }).filter(Boolean);
-  const sums = totals();
-  const totalLine = sums.twd
-    ? `合計：${ntd(sums.twd + sums.ship)}`
-    : (sums.sub ? `飾品合計：${money(sums.sub + sums.ship)}` : "");
-  const bank = site.bank || {};
-  const bankLines = [
-    bank.name ? `銀行：${bank.name}` : "",
-    bank.holder ? `戶名：${bank.holder}` : "",
-    bank.account ? `帳號：${bank.account}` : "",
-  ].filter(Boolean);
-  const body = [
-    `${data.name} 送來一筆 BiJulia 訂單請求。`,
-    "請等匯款確認後，再寄信到客人的 Gmail，主旨寫「BiJulia 下單成功」。",
-    "",
-    `姓名：${data.name}`,
-    `電話：${data.phone}`,
-    `Gmail：${data.gmail}`,
-    `7-11 店名：${data.store}`,
-    "",
-    "作品：",
-    ...items,
-    "",
-    sums.twd ? `NT$：${ntd(sums.twd)}` : "",
-    sums.sub ? `飾品：${money(sums.sub)}` : "",
-    (sums.twd || sums.sub) ? `運費：${sums.ship === 0 ? "免運" : ntd(sums.ship)}` : "",
-    totalLine,
-    "",
-    bankLines.length ? "匯款帳戶：" : undefined,
-    ...bankLines,
-  ].filter((line) => line !== undefined).join("\n");
-  const query = new URLSearchParams({
-    view: "cm",
-    fs: "1",
-    to: site.email,
-    su: "BiJulia 訂單請求",
-    body,
-  });
-  return `https://mail.google.com/mail/?${query.toString()}`;
 }
 
 function buildRestockUrl(product, gmail) {
@@ -1451,6 +1564,12 @@ function buildRestockUrl(product, gmail) {
 }
 
 function onClick(event) {
+  const approveOrder = event.target.closest("[data-approve-order]");
+  if (approveOrder) {
+    event.preventDefault();
+    approveOrderRow(approveOrder);
+    return;
+  }
   const approve = event.target.closest("[data-approve]");
   if (approve) {
     event.preventDefault();
@@ -1529,10 +1648,22 @@ function onClick(event) {
     refreshChrome();
     return;
   }
+  const showRegister = event.target.closest("[data-open-register]");
+  if (showRegister && !auth.getProfile() && !auth.getSession()) {
+    event.preventDefault();
+    openLoginDialog(loginUi.open ? loginUi.opener : showRegister, "register");
+    return;
+  }
+  const showLogin = event.target.closest("[data-show-login]");
+  if (showLogin && !auth.getProfile() && !auth.getSession()) {
+    event.preventDefault();
+    openLoginDialog(loginUi.open ? loginUi.opener : showLogin, "login");
+    return;
+  }
   const loginTrigger = event.target.closest("[data-header-login], [data-mobile-login]");
   if (loginTrigger && !auth.getProfile() && !auth.getSession()) {
     event.preventDefault();
-    openLoginDialog(loginTrigger);
+    openLoginDialog(loginTrigger, "login");
     return;
   }
   if (event.target.closest("[data-close-login]")) {
@@ -1589,16 +1720,28 @@ async function onSubmit(event) {
       return;
     }
     data.phone = phone;
-    const url = buildGmailUrl(data);
+    const gmail = String(data.gmail || "").trim();
+    if (!/@gmail\.com$/i.test(gmail)) {
+      note.textContent = "請留下 Gmail。";
+      return;
+    }
+    data.gmail = gmail;
+    if (!String(data.name || "").trim() || !String(data.store || "").trim()) {
+      note.textContent = "姓名和 7-11 店名都要填。";
+      return;
+    }
     const order = orderSnapshot(data);
     const button = event.target.querySelector("button[type=submit]");
     if (button) button.disabled = true;
-    window.open(url, "_blank", "noopener");
-    try { sessionStorage.setItem("bijulia-order-mail", url); } catch { /* ignore */ }
-    await Promise.race([
-      auth.appendPurchase(order).catch(() => {}),
-      new Promise((resolve) => setTimeout(resolve, 2500)),
-    ]);
+    note.textContent = "送出中。";
+    const result = await auth.placeOrder(order);
+    if (!result.ok) {
+      note.textContent = result.code === "unconfigured"
+        ? "沒有接上 Supabase，訂單沒有送出。"
+        : (result.message || "訂單沒有送出。");
+      if (button) button.disabled = false;
+      return;
+    }
     store.clearCart();
     location.href = "/checkout/?sent=1";
     return;
@@ -1676,6 +1819,11 @@ async function onSubmit(event) {
 }
 
 function onChange(event) {
+  const tierSelectEl = event.target.closest("[data-tier]");
+  if (tierSelectEl) {
+    saveMemberTier(tierSelectEl);
+    return;
+  }
   if (!event.target.matches("[data-sort]")) return;
   const url = new URL(location.href);
   const value = event.target.value;
@@ -1815,8 +1963,9 @@ function boot() {
     if (!loginUi.open) return;
     const panel = document.querySelector("#login-dialog .login-panel");
     if (panel && !panel.contains(event.target)) {
-      const email = panel.querySelector('input[name="email"]');
-      (email || panel).focus();
+      const form = panel.querySelector(loginUi.mode === "register" ? "#register-form" : "#login-form");
+      const field = form && form.querySelector("input");
+      (field || panel).focus();
     }
   });
   window.addEventListener("popstate", () => {

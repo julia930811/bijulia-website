@@ -78,8 +78,8 @@ function chineseAuthError(error) {
   if (/failed to fetch|network|load failed/i.test(message)) {
     return "連不上 Supabase。";
   }
-  if (/relation|schema cache|column|profiles/i.test(message)) {
-    return "讀不到 public.profiles。請先在 BiJulia 的 Supabase 執行資料表設定。";
+  if (/relation|schema cache|column|profiles|orders/i.test(message)) {
+    return "讀不到訂單或帳戶資料表。請先在 BiJulia 的 Supabase 執行資料表設定。";
   }
   return "沒有完成。請再試一次。";
 }
@@ -217,6 +217,112 @@ export async function listProfiles() {
     return { ok: true, rows: result.data || [] };
   } catch {
     return { ok: false, code: "auth", message: "連不上 Supabase，沒有讀取名單。", rows: [] };
+  }
+}
+
+export async function placeOrder(order) {
+  if (!isConfigured()) return { ok: false, code: "unconfigured" };
+  try {
+    const supabase = await sdk();
+    const { error } = await supabase.from("orders").insert({
+      name: clean(order.name),
+      phone: clean(order.phone),
+      gmail: clean(order.gmail),
+      store: clean(order.store),
+      items: Array.isArray(order.items) ? order.items : [],
+      shipping: Number(order.shipping) || 0,
+      total: Number(order.total) || 0,
+      status: "pending",
+    });
+    if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
+    return { ok: true };
+  } catch {
+    return { ok: false, code: "auth", message: "連不上 Supabase，訂單沒有送出。" };
+  }
+}
+
+export async function listOrders() {
+  if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
+  if (!profile || profile.role !== "super_admin") {
+    return { ok: false, code: "forbidden", message: "只有管理者可以讀取訂單。", rows: [] };
+  }
+  try {
+    const supabase = await sdk();
+    const result = await supabase.from("orders").select("id, created_at, name, phone, gmail, store, items, shipping, total, status").order("created_at", { ascending: false });
+    if (result.error) return { ok: false, code: "auth", message: chineseAuthError(result.error), rows: [] };
+    return { ok: true, rows: result.data || [] };
+  } catch {
+    return { ok: false, code: "auth", message: "連不上 Supabase，沒有讀取訂單。", rows: [] };
+  }
+}
+
+export async function approveOrder(id) {
+  if (!isConfigured()) return { ok: false, code: "unconfigured" };
+  if (!profile || profile.role !== "super_admin") {
+    return { ok: false, code: "forbidden", message: "只有管理者可以核准訂單。" };
+  }
+  try {
+    const supabase = await sdk();
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status: "approved" })
+      .eq("id", id)
+      .eq("status", "pending")
+      .select("id, status, customer_id, name, phone, gmail, store, items, shipping, total, created_at")
+      .maybeSingle();
+    if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
+    if (!data || data.status !== "approved") {
+      return { ok: false, code: "missing", message: "沒有核准。這筆訂單可能已經不是待核准。" };
+    }
+    if (data.customer_id) {
+      const existing = await supabase.from("profiles").select("purchase_history").eq("id", data.customer_id).maybeSingle();
+      if (!existing.error) {
+        const next = asHistory(existing.data?.purchase_history).concat({
+          at: data.created_at,
+          name: data.name,
+          phone: data.phone,
+          gmail: data.gmail,
+          store: data.store,
+          items: data.items,
+          shipping: data.shipping,
+          total: data.total,
+        });
+        await supabase.from("profiles").update({ purchase_history: next }).eq("id", data.customer_id);
+      }
+    }
+    return { ok: true, order: data };
+  } catch {
+    return { ok: false, code: "auth", message: "連不上 Supabase，訂單沒有核准。" };
+  }
+}
+
+export async function setMemberTier(id, tier) {
+  if (!isConfigured()) return { ok: false, code: "unconfigured", message: "沒有接上 Supabase，會員等級沒有改成。" };
+  if (!profile || profile.role !== "super_admin") {
+    return { ok: false, code: "forbidden", message: "只有管理者可以調整會員等級。" };
+  }
+  const next = tier === "高級" ? "高級" : "一般";
+  try {
+    const supabase = await sdk();
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ tier: next })
+      .eq("id", id)
+      .select("id, tier")
+      .maybeSingle();
+    if (error) {
+      const raw = String(error.message || "");
+      const message = /tier|column|schema cache/i.test(raw)
+        ? "會員等級還沒寫進資料庫。請先在 Supabase 執行 profiles.sql。"
+        : chineseAuthError(error);
+      return { ok: false, code: "auth", message };
+    }
+    if (!data || data.tier !== next) {
+      return { ok: false, code: "missing", message: "會員等級沒有改成。" };
+    }
+    return { ok: true, tier: next };
+  } catch {
+    return { ok: false, code: "auth", message: "連不上 Supabase，會員等級沒有改成。" };
   }
 }
 
