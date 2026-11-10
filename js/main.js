@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=19";
+} from "./data.js?v=20";
 import * as store from "./store.js?v=2";
 import * as auth from "./auth.js?v=1";
 
@@ -103,7 +103,7 @@ function shell() {
   };
   return `
     <a class="skip" href="#app">跳至內文</a>
-    <div class="announce"><span>少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</span><span class="announce-account" data-account-links><a href="/account/">登入</a><a href="/account/?view=register">註冊</a></span></div>
+    <div class="announce"><span>少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</span></div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
@@ -121,11 +121,8 @@ function shell() {
           <a href="/customer-care/"${mark("care")}>${wordImg("care")}</a>
         </nav>
         <div class="tools">
-          <div class="account-links" data-account-links>
-            <a href="/account/">登入</a>
-            <a href="/account/?view=register">註冊</a>
-          </div>
           <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
+          <a class="login-btn" href="/account/" data-header-login>Login</a>
           <button class="icon-btn" type="button" data-open-drawer aria-label="購物袋">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
         </div>
       </div>
@@ -648,7 +645,7 @@ function renderCart() {
           <div class="summary-row"><strong>合計</strong><strong>${sums.twd ? ntd(sums.twd + sums.ship) : money(sums.sub + sums.ship)}</strong></div>
           <p class="fine">${esc(shippingNote(sums.basis))}</p>` : ""}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
-          <p class="fine" style="margin-top:12px">下單後請到 Instagram 私訊，討論更多細節。這個頁面不會扣款。</p>
+          <p class="fine" style="margin-top:12px">請填寫 Request an order。付款是匯款到工作室銀行帳戶。匯款確認後，工作室會寄信通知下單成功。這個頁面不會扣款。</p>
         </aside>
       </div>
     </div>
@@ -665,9 +662,30 @@ function renderOrderSent() {
         <h1 class="page-title"><a href="${site.instagram}">${esc(site.instagramHandle)}</a></h1>
         <p>請私訊討論更多細節。</p>
         <a class="btn" href="${site.instagram}">${esc(site.instagramHandle)}</a>
-        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡。寄出後，你的 Gmail 會收到下單成功通知。</a></p>` : ""}
+        ${mail ? `<p class="fine" style="margin-top:28px"><a class="linkish" href="${esc(mail)}">如果 Gmail 沒有打開，請按這裡。寄出後，工作室才會收到這筆訂單。匯款確認後，工作室會寄信到你的 Gmail，通知下單成功。</a></p>` : ""}
       </div>
     </div>
+  `;
+}
+
+function paymentBlock() {
+  const bank = site.bank || {};
+  const rows = [
+    ["銀行", bank.name],
+    ["戶名", bank.holder],
+    ["帳號", bank.account],
+  ].filter(([, value]) => String(value || "").trim());
+  const list = rows.length
+    ? `<dl class="pay-account">${rows.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`
+    : "";
+  return `
+    <section class="pay-block">
+      <h2>付款方式</h2>
+      <p>請匯款到工作室的銀行帳戶。這個頁面不會扣款。</p>
+      ${list}
+      <p>姓名、電話、Gmail 和 7-11 店名都要填。送出後會打開 Gmail，把訂單寄給工作室。請在 Gmail 按寄出。</p>
+      <p>匯款確認後，工作室會寄信到你的 Gmail，通知下單成功。</p>
+    </section>
   `;
 }
 
@@ -689,7 +707,7 @@ function renderCheckout() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { href: "/cart/", label: "Your bag" }, { label: "Request" }])}
       <h1 class="page-title">Request an order</h1>
-      <p class="fine" style="max-width:52ch;margin-bottom:28px">留下姓名、電話、Gmail 和 7-11 店名。這會打開 Gmail，寄給工作室，也寄到你的 Gmail，通知下單成功。請在 Gmail 按寄出。不會在這裡付款。</p>
+      ${paymentBlock()}
       <form id="request-form" style="max-width:440px">
           <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
           <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
@@ -1121,6 +1139,20 @@ function refreshAccountChrome() {
   document.querySelectorAll("[data-account-links]").forEach((slot) => {
     slot.innerHTML = html;
   });
+  const headerLogin = document.querySelector("[data-header-login]");
+  if (headerLogin) {
+    const profile = auth.getProfile();
+    const here = currentPath().startsWith("/account");
+    if (profile || auth.getSession()) {
+      headerLogin.textContent = profile?.role === "super_admin" ? "Admin" : "Account";
+      headerLogin.href = "/account/";
+    } else {
+      headerLogin.textContent = "Login";
+      headerLogin.href = "/account/";
+    }
+    if (here) headerLogin.setAttribute("aria-current", "page");
+    else headerLogin.removeAttribute("aria-current");
+  }
   const login = document.querySelector("[data-mobile-login]");
   const register = document.querySelector("[data-mobile-register]");
   if (!login || !register) return;
@@ -1245,10 +1277,18 @@ function buildGmailUrl(data) {
     return product ? `${label} × ${item.qty} — ${priceText(product, item.qty)}` : "";
   }).filter(Boolean);
   const sums = totals();
+  const totalLine = sums.twd
+    ? `合計：${ntd(sums.twd + sums.ship)}`
+    : (sums.sub ? `飾品合計：${money(sums.sub + sums.ship)}` : "");
+  const bank = site.bank || {};
+  const bankLines = [
+    bank.name ? `銀行：${bank.name}` : "",
+    bank.holder ? `戶名：${bank.holder}` : "",
+    bank.account ? `帳號：${bank.account}` : "",
+  ].filter(Boolean);
   const body = [
-    `${data.name}，你的 BiJulia 訂單已送出。`,
-    "這封信會寄到工作室，也會寄到你的 Gmail。",
-    "請到 Instagram 私訊 @2sbijulia，討論更多細節。",
+    `${data.name} 送來一筆 BiJulia 訂單請求。`,
+    "請等匯款確認後，再寄信到客人的 Gmail，主旨寫「BiJulia 下單成功」。",
     "",
     `姓名：${data.name}`,
     `電話：${data.phone}`,
@@ -1261,14 +1301,16 @@ function buildGmailUrl(data) {
     sums.twd ? `NT$：${ntd(sums.twd)}` : "",
     sums.sub ? `飾品：${money(sums.sub)}` : "",
     (sums.twd || sums.sub) ? `運費：${sums.ship === 0 ? "免運" : ntd(sums.ship)}` : "",
-    sums.twd ? `合計：${ntd(sums.twd + sums.ship)}` : "",
-    sums.sub && !sums.twd ? `飾品合計：${money(sums.sub + sums.ship)}` : "",
+    totalLine,
+    "",
+    bankLines.length ? "匯款帳戶：" : undefined,
+    ...bankLines,
   ].filter((line) => line !== undefined).join("\n");
   const query = new URLSearchParams({
     view: "cm",
     fs: "1",
-    to: `${site.email},${data.gmail}`,
-    su: "BiJulia 下單成功",
+    to: site.email,
+    su: "BiJulia 訂單請求",
     body,
   });
   return `https://mail.google.com/mail/?${query.toString()}`;

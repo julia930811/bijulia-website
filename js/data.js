@@ -5,6 +5,11 @@ export const site = {
   instagramHandle: "@2sbijulia",
   freeShipping: 2000,
   shippingFee: 60,
+  bank: {
+    name: "",
+    holder: "",
+    account: "",
+  },
 };
 
 export const products = [
