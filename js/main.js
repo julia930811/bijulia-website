@@ -196,10 +196,10 @@ function shell() {
       </div>
       <a href="/shop/">${wordImg("shop")}</a>
       <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+      <a href="/shop/?filter=best">${wordImg("best")}</a>
       <a class="menu-small" href="/shop/">${wordImg("pieces")}</a>
       <a class="menu-small" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
       <a class="menu-small" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-      <a class="menu-near" href="/shop/?filter=best">${wordImg("best")}</a>
       <a class="menu-near" href="/outfit/">${wordImg("outfit")}</a>
       <a class="menu-near" href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
