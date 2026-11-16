@@ -194,9 +194,9 @@ function shell() {
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
         <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
       </div>
-      <a href="/shop/">${wordImg("shop")}</a>
-      <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
-      <a href="/shop/?filter=best">${wordImg("best")}</a>
+      <a class="menu-near" href="/shop/">${wordImg("shop")}</a>
+      <a class="menu-near" href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+      <a class="menu-near" href="/shop/?filter=best">${wordImg("best")}</a>
       <a class="menu-small" href="/shop/">${wordImg("pieces")}</a>
       <a class="menu-small" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
       <a class="menu-small" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
