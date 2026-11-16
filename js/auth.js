@@ -275,7 +275,7 @@ export async function approveOrder(id) {
       return { ok: false, code: "missing", message: "沒有核准。這筆訂單可能已經不是待核准。" };
     }
     if (data.customer_id) {
-      const existing = await supabase.from("profiles").select("purchase_history").eq("id", data.customer_id).maybeSingle();
+      const existing = await supabase.from("profiles").select("purchase_history, tier").eq("id", data.customer_id).maybeSingle();
       if (!existing.error) {
         const next = asHistory(existing.data?.purchase_history).concat({
           at: data.created_at,
@@ -287,7 +287,11 @@ export async function approveOrder(id) {
           shipping: data.shipping,
           total: data.total,
         });
-        await supabase.from("profiles").update({ purchase_history: next }).eq("id", data.customer_id);
+        const currentTier = existing.data?.tier === "高級" || existing.data?.tier === "一般會員"
+          ? existing.data.tier
+          : "一般顧客";
+        const tier = next.length >= 3 ? "高級" : (currentTier === "一般會員" ? "一般顧客" : currentTier);
+        await supabase.from("profiles").update({ purchase_history: next, tier }).eq("id", data.customer_id);
       }
     }
     return { ok: true, order: data };
@@ -301,7 +305,7 @@ export async function setMemberTier(id, tier) {
   if (!profile || profile.role !== "super_admin") {
     return { ok: false, code: "forbidden", message: "只有管理者可以調整會員等級。" };
   }
-  const next = tier === "高級" ? "高級" : "一般";
+  const next = tier === "高級" || tier === "一般會員" || tier === "一般顧客" ? tier : "一般顧客";
   try {
     const supabase = await sdk();
     const { data, error } = await supabase
@@ -361,5 +365,94 @@ export async function appendPurchase(order) {
     return { ok: true };
   } catch {
     return { ok: false, code: "auth" };
+  }
+}
+
+function catalogError(error) {
+  const raw = `${error?.message || ""} ${error?.details || ""}`;
+  if (/schema cache|relation .*catalog|Bucket not found|bucket/i.test(raw)) {
+    return "存貨資料表還沒建立。請先在 Supabase 執行 profiles.sql。";
+  }
+  if (/row-level security|permission|not allowed/i.test(raw)) return "只有管理者可以改存貨。";
+  return "存貨沒有存起來。";
+}
+
+export async function listCatalog() {
+  if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
+  try {
+    const supabase = await sdk();
+    const result = await supabase.from("catalog").select("slug, name, price, currency, category, stock, image, description").order("created_at", { ascending: true });
+    if (result.error) return { ok: false, code: "auth", message: catalogError(result.error), rows: [] };
+    return { ok: true, rows: result.data || [] };
+  } catch {
+    return { ok: false, code: "auth", rows: [] };
+  }
+}
+
+export async function saveStock(product, stock) {
+  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
+  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改存貨。" };
+  const next = Math.max(0, Math.round(Number(stock) || 0));
+  const row = {
+    slug: product.slug,
+    name: product.name,
+    price: Number(product.price) || 0,
+    currency: product.currency || "TWD",
+    category: product.category === "sticker" ? "sticker" : "necklace",
+    stock: next,
+    image: product.image || "",
+    description: product.description || "",
+  };
+  try {
+    const supabase = await sdk();
+    const { error } = await supabase.from("catalog").upsert(row, { onConflict: "slug" });
+    if (error) return { ok: false, message: catalogError(error) };
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "存貨沒有存起來。" };
+  }
+}
+
+function productSlug(name, taken) {
+  const base = String(name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  let slug = base || `piece-${Date.now().toString(36)}`;
+  let n = 2;
+  const used = Array.isArray(taken) ? taken : [];
+  while (used.includes(slug)) {
+    slug = `${base || "piece"}-${n}`;
+    n += 1;
+  }
+  return slug;
+}
+
+export async function createProduct({ name, price, stock, category, description, file, taken }) {
+  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
+  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以上傳商品。" };
+  const slug = productSlug(name, taken);
+  const ext = String(file?.name || "photo.jpg").split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${slug}-${Date.now()}.${ext}`;
+  try {
+    const supabase = await sdk();
+    const uploaded = await supabase.storage.from("catalog").upload(path, file, {
+      contentType: file.type || "image/jpeg",
+      upsert: false,
+    });
+    if (uploaded.error) return { ok: false, message: catalogError(uploaded.error) };
+    const image = supabase.storage.from("catalog").getPublicUrl(path).data.publicUrl;
+    const row = {
+      slug,
+      name: String(name || "").trim(),
+      price: Math.max(0, Math.round(Number(price) || 0)),
+      currency: "TWD",
+      category: category === "sticker" ? "sticker" : "necklace",
+      stock: Math.max(0, Math.round(Number(stock) || 0)),
+      image,
+      description: String(description || "").trim(),
+    };
+    const inserted = await supabase.from("catalog").insert(row).select("slug, name, price, currency, category, stock, image, description").maybeSingle();
+    if (inserted.error) return { ok: false, message: catalogError(inserted.error) };
+    return { ok: true, row: inserted.data || row };
+  } catch {
+    return { ok: false, message: "商品沒有上傳。" };
   }
 }

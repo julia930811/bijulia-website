@@ -5,12 +5,12 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=21";
+} from "./data.js?v=24";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=8";
+import * as auth from "./auth.js?v=10";
 
 const page = document.body.dataset.page || "home";
-const slug = document.body.dataset.slug || "";
+const slug = document.body.dataset.slug || new URLSearchParams(location.search).get("slug") || "";
 const ui = { drawer: false, search: false, menu: false };
 const loginUi = { open: false, opener: null, returnMenu: false, dismissedOnAccount: false };
 let authReady = false;
@@ -50,6 +50,17 @@ function iconMenu() {
 }
 function iconClose() {
   return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
+}
+
+function productHref(product, suffix = "") {
+  if (!product) return "/shop/";
+  if (product.uploaded) {
+    const query = new URLSearchParams({ slug: product.slug });
+    if (suffix.startsWith("?color=")) query.set("color", suffix.slice("?color=".length).split("#")[0]);
+    const hash = suffix.includes("#") ? suffix.slice(suffix.indexOf("#")) : "";
+    return `/product/?${query.toString()}${hash}`;
+  }
+  return `/product/${product.slug}/${suffix}`;
 }
 
 function fitClass(item) {
@@ -105,7 +116,7 @@ function shell() {
   };
   return `
     <a class="skip" href="#app">跳至內文</a>
-    <div class="announce"><span>少量手工製作 · 滿 ${ntd(site.freeShipping)} 免運</span></div>
+    <div class="announce"><span>Free shipping over ${ntd(site.freeShipping)}</span></div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
@@ -135,6 +146,7 @@ function shell() {
         <div>
           <h2>${wordImg("shop")}</h2>
           <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+          <a href="/shop/?filter=best">${wordImg("best")}</a>
           <a href="/shop/">${wordImg("pieces")}</a>
           <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
           <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
@@ -148,12 +160,10 @@ function shell() {
         </div>
         <div class="footer-bottom">
           <div>
-            <h2>${wordImg("about")}</h2>
-            <a href="/outfit/">${wordImg("outfit")}</a>
+            <h2><a href="/about/">${wordImg("about")}</a></h2>
           </div>
           <div>
-            <h2>${wordImg("instagram")}</h2>
-            <a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
+            <h2><a href="/outfit/">${wordImg("outfit")}</a></h2>
           </div>
         </div>
       </div>
@@ -186,11 +196,12 @@ function shell() {
       </div>
       <a href="/shop/">${wordImg("shop")}</a>
       <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
+      <a href="/shop/?filter=best">${wordImg("best")}</a>
       <a class="menu-small" href="/shop/">${wordImg("pieces")}</a>
       <a class="menu-small" href="/shop/?filter=necklace">${wordImg("necklace")}</a>
       <a class="menu-small" href="/shop/?filter=sticker">${wordImg("sticker")}</a>
-      <a class="menu-small" href="/outfit/">${wordImg("outfit")}</a>
-      <a href="/about/">${wordImg("about")}</a>
+      <a class="menu-near" href="/outfit/">${wordImg("outfit")}</a>
+      <a class="menu-near" href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
       <button class="menu-logout" type="button" data-logout>登出</button>
@@ -228,12 +239,12 @@ function card(product) {
   const media = product.colors && product.colors.length > 1
     ? `<div class="color-swipe">
         ${product.colors.map((color) => `
-          <a href="/product/${product.slug}/?color=${esc(color.id)}">
+          <a href="${productHref(product, `?color=${esc(color.id)}`)}">
             <img src="${color.image}" alt="${esc(product.name)}，${esc(color.name)}" class="${fitClass({ ...product, image: color.image })}">
           </a>
         `).join("")}
       </div>`
-    : `<a href="/product/${product.slug}/"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>`;
+    : `<a href="${productHref(product)}"><img src="${product.image}" alt="${esc(product.name)}" class="${fitClass(product)}"></a>`;
   return `
     <article class="card">
       <div class="card-media">
@@ -241,13 +252,13 @@ function card(product) {
         ${product.soldOut
           ? `<span class="quick-add is-sold"><img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out"></span>`
           : product.colors
-            ? `<a class="quick-add" href="/product/${product.slug}/">Choose color</a>`
+            ? `<a class="quick-add" href="${productHref(product)}">Choose color</a>`
             : `<button class="quick-add" type="button" data-add="${product.slug}">Add to bag</button>`}
       </div>
       <div class="card-info">
-        <a class="card-name${product.category === "necklace" ? " is-taipei" : ""}" href="/product/${product.slug}/">${esc(product.name)}</a>
+        <a class="card-name${product.category === "necklace" ? " is-taipei" : ""}" href="${productHref(product)}">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
-        ${product.soldOut ? `<a class="card-restock" href="/product/${product.slug}/#restock">補貨後通知</a>` : ""}
+        ${product.soldOut ? `<a class="card-restock" href="${productHref(product, "#restock")}">補貨後通知</a>` : ""}
         ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
@@ -289,18 +300,23 @@ function totals() {
 }
 
 function isPremiumMember() {
-  const profile = auth.getProfile();
-  const member = profile?.role === "customer" || profile?.role === "pending";
-  return member && profile.tier === "高級";
+  return memberTier() === "高級";
 }
 
-function hasPriorPurchase() {
-  const history = auth.getProfile()?.purchase_history;
-  return Array.isArray(history) && history.length > 0;
+function isShareMember() {
+  return memberTier() === "一般會員";
+}
+
+function memberTier() {
+  const profile = auth.getProfile();
+  const member = profile?.role === "customer" || profile?.role === "pending";
+  if (!member) return "";
+  if (profile.tier === "高級" || profile.tier === "一般會員") return profile.tier;
+  return "一般顧客";
 }
 
 function freeShippingQualified(basis) {
-  return isPremiumMember() || basis >= site.freeShipping || hasPriorPurchase();
+  return isPremiumMember() || isShareMember() || basis >= site.freeShipping;
 }
 
 function summaryMoney(sums, twdLabel = "NT$") {
@@ -313,7 +329,7 @@ function summaryMoney(sums, twdLabel = "NT$") {
 function shippingNote(amount) {
   if (!amount) return "";
   if (isPremiumMember()) return "高級會員，9 折、免運";
-  if (hasPriorPurchase()) return "買過一次，這次免運";
+  if (isShareMember()) return "一般會員，這次免運";
   if (amount >= site.freeShipping) return "免運";
   const rest = site.freeShipping - amount;
   return `再加 ${ntd(rest)} 即可免運`;
@@ -368,9 +384,9 @@ function line(item, compact) {
   const limit = item.qty >= product.maxQty ? '<p class="fine">這件已到少量上限。</p>' : "";
   return `
     <article class="line">
-      <a href="/product/${product.slug}/"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
+      <a href="${productHref(product)}"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
       <div>
-        <h3 class="${product.category === "necklace" ? "is-taipei" : ""}"><a href="/product/${product.slug}/">${esc(product.name)}</a></h3>
+        <h3 class="${product.category === "necklace" ? "is-taipei" : ""}"><a href="${productHref(product)}">${esc(product.name)}</a></h3>
         ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
         <div class="qty" data-max="${product.maxQty}">
           <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="減少數量">−</button>
@@ -388,6 +404,7 @@ function line(item, compact) {
 const looks = [
   ["lace-butterfly-choker", "/images/products/lace-butterfly-choker-worn.jpg", "Lace Butterfly Choker"],
   ["ivory-lace-cross", "/images/products/ivory-lace-cross-worn.jpg", "Ivory Lace Cross"],
+  ["ivory-lace-cross", "/images/products/ivory-lace-cross.jpg", "Ivory Lace Cross"],
   ["lock-and-key-chain", "/images/products/lock-and-key-chain-worn.jpg", "Lock and Key Chain"],
   ["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn.jpg", "Comb and Chair Chain"],
   ["button-drop-necklace", "/images/products/button-drop-necklace-worn.jpg", "Button Drop Necklace"],
@@ -453,21 +470,13 @@ function renderHome() {
         <button class="look-nav look-next" type="button" aria-label="下一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
       </div>
     </section>
-    <section class="about-band" id="about-bijulia">
+    <a class="about-band" id="about-bijulia" href="/about/">
       <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
       <div class="about-copy">
         <p class="kicker">工作室</p>
         <h2>${wordImg("about", "is-title")}</h2>
       </div>
-    </section>
-    <section class="section" id="instagram">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>${wordImg("instagram")}</h2>
-          <p class="lede"><a href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a></p>
-        </div>
-      </div>
-    </section>
+    </a>
     <section class="newsletter" id="newsletter">
       <p class="kicker">信件</p>
       <h2>From the garden</h2>
@@ -482,9 +491,9 @@ function renderHome() {
 }
 
 const filterOptions = [
-  ["all", wordImg("all")],
   ["new", `<img class="new-in-mark" src="/images/new-in.png" alt="New In">`],
   ["best", wordImg("best")],
+  ["all", wordImg("pieces")],
   ["necklace", wordImg("necklace")],
   ["sticker", wordImg("sticker")],
 ];
@@ -509,7 +518,7 @@ function shopHeading(filter) {
   const collection = collectionBySlug(filter);
   if (collection) return [collection.name, collection.blurb];
   const map = {
-    all: ["Shop", ""],
+    all: ["All pieces", ""],
     new: ["New In", ""],
     best: ["Best Sellers", ""],
     necklace: ["Necklaces", ""],
@@ -520,7 +529,7 @@ function shopHeading(filter) {
 
 function shopTitle(title) {
   if (title === "New In") return `<img class="title-mark" src="/images/new-in.png" alt="New In">`;
-  if (title === "Shop") return wordImg("shop", "is-title");
+  if (title === "All pieces") return wordImg("pieces", "is-title");
   if (title === "Necklaces") return wordImg("necklace", "is-title");
   if (title === "Stickers") return wordImg("sticker", "is-title");
   if (title === "Best Sellers") return wordImg("best", "is-title");
@@ -616,7 +625,7 @@ function renderProduct() {
     ? [["組數", "三張貼紙"], ["價格", "NT$50"], ["製作", "少量製作"]]
     : [["長度", product.length], ["材質", product.materials], ["製作", "手工，少量製作"]];
   const care = product.category === "sticker" ? "" : "沒有戴的時候，把項鍊放回鏈袋裡。";
-  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
+  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
   const galleryShots = pictures.filter((src) => !/worn/i.test(src));
@@ -784,7 +793,7 @@ function renderCheckout() {
   `;
 }
 
-function renderOutfit() {
+function outfitShots() {
   const shots = [];
   looks.forEach((look) => {
     shots.push(look);
@@ -792,34 +801,91 @@ function renderOutfit() {
       shots.push(["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn-2.jpg", "Comb and Chair Chain"]);
     }
   });
+  return shots;
+}
+
+function outfitGridHtml() {
+  return `<div class="outfit-grid">
+    ${outfitShots().map(([slug, src, name]) => `
+      <article class="outfit-shot">
+        <a class="outfit-frame" href="/product/${slug}/">
+          <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
+        </a>
+        <a class="outfit-name is-taipei" href="/product/${slug}/">${esc(name)}</a>
+      </article>
+    `).join("")}
+  </div>`;
+}
+
+function renderOutfit() {
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Outfits" }])}
       <h1 class="page-title">${wordImg("outfit", "is-title")}</h1>
-      <div class="outfit-grid">
-        ${shots.map(([slug, src, name]) => `
-          <article class="outfit-shot">
-            <a class="outfit-frame" href="/product/${slug}/">
-              <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
-            </a>
-            <a class="outfit-name is-taipei" href="/product/${slug}/">${esc(name)}</a>
-          </article>
-        `).join("")}
-      </div>
+      <div class="about-panel">${outfitGridHtml()}</div>
     </div>
   `;
 }
 
+function igGrid(items) {
+  return `<div class="ig-grid">${items.map((item) => `
+    <a class="ig-cell" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">
+      <img class="photo" src="${esc(item.image)}" alt="">
+    </a>
+  `).join("")}</div>`;
+}
+
+function consignmentPanel() {
+  return `
+    <p class="lede">Consignment at <a class="linkish" href="${site.consignment}" target="_blank" rel="noopener noreferrer">Sugar Needle</a>, ${esc(site.consignmentHandle)}.</p>
+    <p class="consign-address"><a class="linkish" href="${site.consignmentMap}" target="_blank" rel="noopener noreferrer">${esc(site.consignmentAddress)}</a></p>
+    <p class="fine">${esc(site.consignmentHours)}</p>
+    <div class="consign-map">
+      <iframe title="Sugar Needle" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${encodeURIComponent(site.consignmentAddress)}&z=17&output=embed"></iframe>
+    </div>
+    ${igGrid(site.consignmentPosts || [])}
+  `;
+}
+
+function instagramPanel() {
+  return `
+    <section class="ig-profile">
+      <div class="ig-head">
+        <img class="ig-avatar photo" src="/images/logo.png" alt="">
+        <div>
+          <p class="ig-name">BiJulia</p>
+          <a class="linkish" href="${site.instagram}" target="_blank" rel="noopener noreferrer">${esc(site.instagramHandle)}</a>
+          <p class="fine">Based in Taipei. DM for purchase.</p>
+        </div>
+      </div>
+      ${igGrid(site.instagramPosts || [])}
+    </section>
+  `;
+}
+
 function renderAbout() {
+  const part = params().get("part");
+  if (part === "outfit") {
+    location.replace("/outfit/");
+    return `<div class="page"></div>`;
+  }
+  if (part === "consignment") {
+    location.replace("/about/#consignment");
+    return `<div class="page"></div>`;
+  }
+  if (part === "ig") {
+    location.replace("/customer-care/#contact");
+    return `<div class="page"></div>`;
+  }
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "About" }])}
-      <div class="story">
-        <h1 class="page-title">${wordImg("about", "is-title")}</h1>
-      </div>
-      <div class="split">
-        <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
-      </div>
+      <h1 class="page-title">${wordImg("about", "is-title")}</h1>
+      <section class="about-block" id="consignment">
+        <h2 class="page-title"><span class="script-title">Consignment</span></h2>
+        ${consignmentPanel()}
+      </section>
+      <div class="about-panel about-gate"><div class="split"><img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋"></div></div>
     </div>
   `;
 }
@@ -832,11 +898,11 @@ function renderCare() {
       <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
         <h2>Shipping</h2>
-        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
+        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
         <h2>Returns</h2>
-        <p>未穿過的項鍊可在 14 天內退回，請放回原來的袋子。貼紙只有完全未使用、仍在封套裡才能退。寄回之前請先到 Instagram 私訊告訴我們。</p>
+        <p>未穿過的項鍊可在 7 天內退回，請放回原來的袋子。貼紙只有完全未使用才能退。寄回之前請先到 Instagram 私訊告訴我們。</p>
       </section>
       <section class="care-block" id="care">
         <h2>Jewelry Care</h2>
@@ -844,7 +910,9 @@ function renderCare() {
       </section>
       <section class="care-block" id="contact">
         <h2>Contact</h2>
-        <p>訂單、修理，或關於一顆珍珠的問題，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。</p>
+        <p>訂單或修理，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。</p>
+        <p>Consignment at <a class="linkish" href="${site.consignment}" target="_blank" rel="noopener noreferrer">${esc(site.consignmentHandle)}</a>.</p>
+        ${instagramPanel()}
       </section>
     </div>
   `;
@@ -905,7 +973,7 @@ function profileDl(profile, previewRole) {
     ${row("顧客編號", esc(profile.id))}
     ${row("姓名 / 電話", `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
     ${row("電子郵件 / 地址", `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
-    ${row("會員等級", esc(profile.tier === "高級" ? "高級" : "一般"))}
+    ${row("會員等級", esc(profile.tier === "高級" || profile.tier === "一般會員" ? profile.tier : "一般顧客"))}
     ${row("角色", profile.role === "super_admin" ? "管理者" : "顧客")}
     ${row("購買紀錄", purchaseHtml(profile.purchase_history))}
     ${row("建立時間", formatWhen(profile.created_at))}
@@ -925,12 +993,12 @@ function renderRegister() {
 }
 
 function tierChoices(row) {
-  const tier = row.tier === "高級" ? "高級" : "一般";
+  const tier = row.tier === "高級" || row.tier === "一般會員" ? row.tier : "一般顧客";
   const choice = (value) => {
     const on = tier === value;
     return `<button class="tier-choice${on ? " is-on" : ""}" type="button" data-set-tier="${esc(row.id || "")}" data-tier-value="${value}"${on ? " disabled" : ""}>${value}</button>`;
   };
-  return `<span class="tier-choices">${choice("一般")}${choice("高級")}</span>`;
+  return `<span class="tier-choices">${choice("一般顧客")}${choice("一般會員")}${choice("高級")}</span>`;
 }
 
 function peopleTable(rows, emptyLabel = "沒有資料") {
@@ -958,7 +1026,7 @@ function renderAdmin(profile) {
       <h1 class="page-title">核准訂單</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單，也可以調整會員等級。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
+      <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單，也可以調整會員等級、修改存貨，以及上傳新商品。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
       <p class="fine">現在沒有管理者登入，所以沒有訂單。</p>
     </div>`;
   }
@@ -966,7 +1034,7 @@ function renderAdmin(profile) {
     ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
     <h1 class="page-title">核准訂單</h1>
     ${configBanner()}
-    <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單。待核准的訂單列在下面，核准後才成立，並打開 Gmail 把訂單完成通知寄給顧客。顧客名單裡可以直接改會員等級，改完就生效。一般會員買過一次，下次免運。高級會員作品 9 折，而且免運。不會寄信給賣家。</p>
+    <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單。待核准的訂單列在下面，核准後才成立，並打開 Gmail 把訂單完成通知寄給顧客。顧客名單裡可以直接改會員等級。下面也可以改存貨，或上傳一張照片加上新商品。不會寄信給賣家。</p>
     <p class="fine">登入身分：${esc(profile.email || "")}，管理者。</p>
     <p class="form-note fine" id="admin-note" role="status"></p>
     <div id="admin-lists"><p class="fine">讀取中。</p></div>
@@ -974,12 +1042,18 @@ function renderAdmin(profile) {
   </div>`;
 }
 
+function tierSentence(profile) {
+  if (profile?.tier === "高級") return "你是高級會員。買過三次，作品 9 折，而且免運。";
+  if (profile?.tier === "一般會員") return "你是一般會員。在社群分享商品後，下次免運。";
+  return "你是一般顧客，沒有會員優惠。";
+}
+
 function renderCustomer(profile) {
   return `<div class="page">
     ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
     <h1 class="page-title">帳戶</h1>
     ${configBanner()}
-    <p class="account-copy">這是你自己的帳戶。角色是顧客。${profile?.tier === "高級" ? "你是高級會員，作品 9 折，而且免運。" : "你是一般會員。買過一次，下次免運。"}這裡不會列出其他人。</p>
+    <p class="account-copy">這是你自己的帳戶。角色是顧客。${tierSentence(profile)}這裡不會列出其他人。</p>
     ${profileDl(profile, "顧客")}
     ${logoutButton()}
   </div>`;
@@ -1055,7 +1129,24 @@ async function loadAdminLists() {
   current.innerHTML = `
     <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
     <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
-    <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般是買過一次下次免運。高級是作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
+    <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般顧客沒有優惠。一般會員是在社群分享商品後，下次免運。買過三次會變成高級，作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
+    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。沒有改過的作品，維持現在的狀態。</p>${stockTable()}</section>
+    <section class="account-section"><h2>新商品</h2>
+      <form class="account-form" id="catalog-form">
+        <label class="field"><span>名稱</span><input name="name" type="text" required></label>
+        <label class="field"><span>價格（NT$）</span><input name="price" type="number" min="0" step="1" required></label>
+        <label class="field"><span>分類</span>
+          <select name="category">
+            <option value="necklace">Necklace</option>
+            <option value="sticker">Sticker</option>
+          </select>
+        </label>
+        <label class="field"><span>存貨</span><input name="stock" type="number" min="0" step="1" value="1" required></label>
+        <label class="field"><span>說明</span><textarea name="description" rows="3"></textarea></label>
+        <label class="field"><span>照片</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
+        <button class="btn" type="submit">上傳</button>
+      </form>
+    </section>
   `;
 }
 
@@ -1074,6 +1165,57 @@ function ordersTable(rows, approve) {
       </tr>`).join("")
     : `<tr><td colspan="6">沒有訂單</td></tr>`;
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function stockTable() {
+  const head = `<tr><th>作品</th><th>現在</th><th>存貨</th><th></th></tr>`;
+  const body = products.map((product) => {
+    const known = Number.isInteger(product.stock);
+    const state = known ? (product.stock === 0 ? "售完" : `可賣 ${product.stock}`) : (product.soldOut ? "售完" : "可賣");
+    const value = known ? product.stock : (product.soldOut ? 0 : "");
+    return `<tr data-stock-row="${esc(product.slug)}">
+      <td>${esc(product.name)}</td>
+      <td>${state}</td>
+      <td><input class="stock-input" type="number" min="0" step="1" value="${value}" aria-label="${esc(product.name)} 存貨"></td>
+      <td><button class="btn" type="button" data-save-stock="${esc(product.slug)}">儲存</button></td>
+    </tr>`;
+  }).join("");
+  return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function applyCatalog(rows) {
+  if (!Array.isArray(rows)) return;
+  for (const row of rows) {
+    const stock = Math.max(0, Math.round(Number(row.stock) || 0));
+    const existing = products.find((item) => item.slug === row.slug);
+    if (existing) {
+      existing.stock = stock;
+      existing.soldOut = stock === 0;
+      if (stock > 0) existing.maxQty = stock;
+      continue;
+    }
+    if (!row.name || !row.image) continue;
+    products.push({
+      slug: row.slug,
+      name: row.name,
+      price: Number(row.price) || 0,
+      currency: row.currency || "TWD",
+      category: row.category === "sticker" ? "sticker" : "necklace",
+      collection: "",
+      isNew: false,
+      isBestSeller: false,
+      soldOut: stock === 0,
+      stock,
+      maxQty: Math.max(stock, 1),
+      image: row.image,
+      images: [row.image],
+      length: "",
+      materials: "",
+      description: row.description || "",
+      details: "",
+      uploaded: true,
+    });
+  }
 }
 
 function orderItems(items) {
@@ -1140,25 +1282,28 @@ async function approveOrderRow(button) {
 
 async function saveMemberTier(button) {
   const note = document.getElementById("admin-note");
-  const next = button.getAttribute("data-tier-value") === "高級" ? "高級" : "一般";
+  const next = button.getAttribute("data-tier-value");
+  const tier = next === "高級" || next === "一般會員" ? next : "一般顧客";
   const row = button.closest("tr");
   const choices = row ? [...row.querySelectorAll("[data-set-tier]")] : [button];
   choices.forEach((el) => { el.disabled = true; });
-  const result = await auth.setMemberTier(button.getAttribute("data-set-tier"), next);
+  const result = await auth.setMemberTier(button.getAttribute("data-set-tier"), tier);
   if (!result.ok) {
     choices.forEach((el) => { el.disabled = el.classList.contains("is-on"); });
     if (note) note.textContent = result.message || "會員等級沒有改成。";
     return;
   }
   choices.forEach((el) => {
-    const on = el.getAttribute("data-tier-value") === next;
+    const on = el.getAttribute("data-tier-value") === tier;
     el.classList.toggle("is-on", on);
     el.disabled = on;
   });
   if (note) {
-    note.textContent = next === "高級"
+    note.textContent = tier === "高級"
       ? "已改成高級會員。作品 9 折，而且免運。"
-      : "已改成一般會員。買過一次，下次免運。";
+      : tier === "一般會員"
+        ? "已改成一般會員。在社群分享商品後，下次免運。"
+        : "已改成一般顧客。沒有會員優惠。";
   }
 }
 
@@ -1197,7 +1342,7 @@ function renderMain() {
     collections: "Collections — BiJulia",
     cart: "Your Bag — BiJulia",
     checkout: "Request an Order — BiJulia",
-    outfit: "Outfits — BiJulia",
+    outfit: "About — BiJulia",
     about: "About — BiJulia",
     care: "Customer Care — BiJulia",
     account: "帳戶 — BiJulia",
@@ -1445,7 +1590,7 @@ function renderSearch(query) {
   const { label, list } = searchPool(query);
   const box = document.getElementById("search-results");
   const rows = list.map((item) => `
-    <a class="search-hit" href="/product/${item.slug}/">
+    <a class="search-hit" href="${productHref(item)}">
       <img src="${item.image}" alt="" class="${fitClass(item)}">
       <strong class="${item.category === "necklace" ? "is-taipei" : ""}">${esc(item.name)}</strong>
       <span>${priceText(item)}</span>
@@ -1504,6 +1649,12 @@ function onClick(event) {
   if (tierButton) {
     event.preventDefault();
     saveMemberTier(tierButton);
+    return;
+  }
+  const stockButton = event.target.closest("[data-save-stock]");
+  if (stockButton) {
+    event.preventDefault();
+    saveStockRow(stockButton);
     return;
   }
   const approveOrder = event.target.closest("[data-approve-order]");
@@ -1613,7 +1764,79 @@ function onClick(event) {
   if (event.target.closest("[data-close-overlay]")) closeOverlays();
 }
 
+async function saveStockRow(button) {
+  const slug = button.getAttribute("data-save-stock") || "";
+  const product = productBySlug(slug);
+  const row = button.closest("[data-stock-row]");
+  const input = row && row.querySelector("input");
+  const note = document.getElementById("admin-note");
+  const raw = String(input && input.value || "").trim();
+  const stock = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (!product || !Number.isInteger(stock)) {
+    if (note) note.textContent = "存貨要是 0 或更大的整數。";
+    return;
+  }
+  button.disabled = true;
+  const result = await auth.saveStock(product, stock);
+  button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || "存貨沒有存起來。";
+    return;
+  }
+  applyCatalog([{ slug: product.slug, stock, name: product.name, image: product.image }]);
+  if (note) note.textContent = `${product.name} 的存貨已改成 ${stock}。`;
+  loadAdminLists();
+}
+
+async function uploadProduct(form) {
+  const note = document.getElementById("admin-note");
+  const data = new FormData(form);
+  const name = String(data.get("name") || "").trim();
+  const price = Number(data.get("price"));
+  const stock = Number(data.get("stock"));
+  const category = data.get("category") === "sticker" ? "sticker" : "necklace";
+  const description = String(data.get("description") || "").trim();
+  const file = data.get("photo");
+  if (!name || !Number.isInteger(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
+    if (note) note.textContent = "請填名稱、價格和存貨。價格和存貨都要是整數。";
+    return;
+  }
+  if (!file || !file.size) {
+    if (note) note.textContent = "請選一張照片。";
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    if (note) note.textContent = "照片要小於 8MB。";
+    return;
+  }
+  const button = form.querySelector("button");
+  if (button) button.disabled = true;
+  const result = await auth.createProduct({
+    name,
+    price,
+    stock,
+    category,
+    description,
+    file,
+    taken: products.map((item) => item.slug),
+  });
+  if (button) button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || "商品沒有上傳。";
+    return;
+  }
+  applyCatalog([result.row]);
+  form.reset();
+  if (note) note.textContent = `${name} 已上傳。`;
+  loadAdminLists();
+}
+
 async function onSubmit(event) {
+  if (event.target.id === "catalog-form") {
+    event.preventDefault();
+    uploadProduct(event.target);
+    return;
+  }
   if (event.target.id === "search-form") {
     event.preventDefault();
     return;
@@ -1915,6 +2138,14 @@ function boot() {
     refreshChrome();
   });
   auth.init();
+  auth.listCatalog().then((result) => {
+    if (!result.ok || !result.rows.length) return;
+    applyCatalog(result.rows);
+    renderMain();
+    bindLooks();
+    bindColorSwipes();
+    refreshChrome();
+  });
 }
 
 boot();

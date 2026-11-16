@@ -16,7 +16,9 @@
 -- 一般帳號的角色是 customer。只有 jiayiwu009@gmail.com 是 super_admin。
 -- 同一個電子郵件只能有一筆帳號、一組密碼。其他信箱不會自動變成管理者。
 -- 訂單仍要店主在 /account/ 核准後才成立。帳號不用核准。
--- 會員等級只有管理者改得了。一般：買過一次，下次免運。高級：作品 9 折，而且免運。
+-- 會員等級只有管理者改得了，買滿三次會自動變成高級。
+-- 一般顧客沒有會員優惠。一般會員是在社群分享商品後，下次免運。
+-- 高級是買過三次的客人，作品 9 折，而且免運。滿 NT$2,000 仍人人免運。
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -25,7 +27,7 @@ create table if not exists public.profiles (
   name text not null default '',
   phone text not null default '',
   address text not null default '', -- 7-11 店名
-  tier text not null default '一般',
+  tier text not null default '一般顧客',
   purchase_history jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   constraint profiles_role_check check (role in ('pending', 'customer', 'super_admin'))
@@ -37,7 +39,8 @@ alter table public.profiles alter column role set default 'customer';
 alter table public.profiles add column if not exists name text not null default '';
 alter table public.profiles add column if not exists phone text not null default '';
 alter table public.profiles add column if not exists address text not null default '';
-alter table public.profiles add column if not exists tier text not null default '一般';
+alter table public.profiles add column if not exists tier text not null default '一般顧客';
+alter table public.profiles alter column tier set default '一般顧客';
 alter table public.profiles add column if not exists purchase_history jsonb not null default '[]'::jsonb;
 alter table public.profiles add column if not exists created_at timestamptz not null default now();
 
@@ -154,7 +157,12 @@ begin
   if new.tier is not distinct from old.tier then
     return new;
   end if;
-  if new.tier not in ('一般', '高級') then
+  if current_setting('bijulia.allow_tier', true) = '1'
+     and old.tier = '一般會員'
+     and new.tier = '一般顧客' then
+    return new;
+  end if;
+  if new.tier not in ('一般顧客', '一般會員', '高級') then
     raise exception 'invalid tier';
   end if;
   if auth.uid() is null then
@@ -203,13 +211,14 @@ update public.profiles
 set role = 'customer'
 where role = 'pending';
 
-update public.profiles
-set tier = '一般'
-where tier is null or tier not in ('一般', '高級');
-
 alter table public.profiles drop constraint if exists profiles_tier_check;
+
+update public.profiles
+set tier = '一般顧客'
+where tier is null or tier = '一般' or tier not in ('一般顧客', '一般會員', '高級');
+
 alter table public.profiles
-  add constraint profiles_tier_check check (tier in ('一般', '高級'));
+  add constraint profiles_tier_check check (tier in ('一般顧客', '一般會員', '高級'));
 
 -- 顧客下單寫進這裡，不寄信給賣家。只有管理者可以讀全部訂單並核准。
 create table if not exists public.orders (
@@ -242,6 +251,14 @@ as $$
 begin
   new.customer_id := auth.uid();
   new.status := 'pending';
+  if auth.uid() is not null then
+    perform set_config('bijulia.allow_tier', '1', true);
+    update public.profiles
+      set tier = '一般顧客'
+      where id = auth.uid()
+        and tier = '一般會員';
+    perform set_config('bijulia.allow_tier', '', true);
+  end if;
   return new;
 end;
 $$;
@@ -274,3 +291,70 @@ create policy orders_admin_approve
   to authenticated
   using (public.is_super_admin() and status = 'pending')
   with check (public.is_super_admin() and status = 'approved');
+
+-- 管理者改存貨、上傳新商品。訪客可以讀，不能改。
+create table if not exists public.catalog (
+  slug text primary key,
+  name text not null,
+  price integer not null default 0 check (price >= 0),
+  currency text not null default 'TWD',
+  category text not null default 'necklace' check (category in ('necklace', 'sticker')),
+  stock integer not null default 0 check (stock >= 0),
+  image text not null default '',
+  description text not null default '',
+  created_at timestamptz not null default now()
+);
+
+alter table public.catalog enable row level security;
+
+revoke all on table public.catalog from public, anon, authenticated;
+grant select on table public.catalog to anon, authenticated;
+grant insert, update on table public.catalog to authenticated;
+
+drop policy if exists catalog_public_read on public.catalog;
+create policy catalog_public_read
+  on public.catalog
+  for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists catalog_admin_insert on public.catalog;
+create policy catalog_admin_insert
+  on public.catalog
+  for insert
+  to authenticated
+  with check (public.is_super_admin());
+
+drop policy if exists catalog_admin_update on public.catalog;
+create policy catalog_admin_update
+  on public.catalog
+  for update
+  to authenticated
+  using (public.is_super_admin())
+  with check (public.is_super_admin());
+
+insert into storage.buckets (id, name, public)
+values ('catalog', 'catalog', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists catalog_photo_read on storage.objects;
+create policy catalog_photo_read
+  on storage.objects
+  for select
+  to public
+  using (bucket_id = 'catalog');
+
+drop policy if exists catalog_photo_insert on storage.objects;
+create policy catalog_photo_insert
+  on storage.objects
+  for insert
+  to authenticated
+  with check (bucket_id = 'catalog' and public.is_super_admin());
+
+drop policy if exists catalog_photo_update on storage.objects;
+create policy catalog_photo_update
+  on storage.objects
+  for update
+  to authenticated
+  using (bucket_id = 'catalog' and public.is_super_admin())
+  with check (bucket_id = 'catalog' and public.is_super_admin());
