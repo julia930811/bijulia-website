@@ -387,7 +387,7 @@ h1, h2, h3, p { margin: 0; }
   vertical-align: middle;
 }
 .footer-grid .new-in-mark { height: 32px; }
-.mobile-nav .new-in-mark { height: 54px; }
+.mobile-nav .new-in-mark { height: 49.8px; }
 .filter-btn .new-in-mark { height: 36px; }
 .word-mark {
   display: inline-block;
@@ -404,8 +404,10 @@ h1, h2, h3, p { margin: 0; }
 .footer-grid h2 .word-mark { height: 57.2px; }
 .footer-grid h2 .word-mark.is-shop { height: 62.92px; }
 .mobile-nav .word-mark { height: 54px; }
-.mobile-nav .word-mark.is-best { height: 48.55px; }
-.mobile-nav .word-mark.is-care { height: 48.49px; }
+.mobile-nav .word-mark.is-best { height: 45.06px; }
+.mobile-nav .word-mark.is-about { height: 48.84px; }
+.mobile-nav .word-mark.is-outfit { height: 48.78px; }
+.mobile-nav .word-mark.is-care { height: 56.25px; }
 .mobile-nav a.sub .word-mark { height: 40px; }
 .filter-btn .word-mark { height: 34px; }
 .word-mark.is-title { display: block; height: auto; }
@@ -444,7 +446,7 @@ h1, h2, h3, p { margin: 0; }
 .nav a.menu-small.nav-text { font-size: 13.2px; }
 .mobile-nav a.menu-small { font-size: 20.4px; line-height: 1; padding-top: 2px; padding-bottom: 2px; }
 .mobile-nav a.menu-small .word-mark { height: 32.4px; }
-.mobile-nav a.menu-small .word-mark.is-pieces { height: 54px; }
+.mobile-nav a.menu-small .word-mark.is-pieces { height: 54.91px; }
 .filter-btn .word-mark.is-all { height: 36px; }
 .filter-btn .word-mark.is-necklace,
 .filter-btn .word-mark.is-sticker,
