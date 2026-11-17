@@ -398,11 +398,17 @@ h1, h2, h3, p { margin: 0; }
   vertical-align: middle;
 }
 .nav .word-mark { height: 40px; }
+.nav .word-mark.is-shop { height: 44px; }
+.nav .word-mark.is-about,
+.nav .word-mark.is-care { height: 38.4px; }
+.nav a.menu-small .word-mark.is-outfit { height: 38.4px; }
+.nav .new-in-mark { height: 30.8px; }
 .submenu .word-mark { height: 32px; }
 .footer-grid .word-mark { height: 32px; }
 .footer-grid .word-mark.is-best { height: 28.77px; }
 .footer-grid h2 .word-mark { height: 57.2px; }
-.footer-grid h2 .word-mark.is-shop { height: 62.92px; }
+.footer-grid h2 .word-mark.is-shop,
+.footer-grid h2 .word-mark.is-care { height: 62.92px; }
 .mobile-nav .word-mark { height: 54px; }
 .mobile-nav .word-mark.is-best { height: 45.06px; }
 .mobile-nav .word-mark.is-about { height: 48.84px; }
@@ -442,7 +448,7 @@ h1, h2, h3, p { margin: 0; }
 .mobile-nav .word-mark.is-sticker { height: 54px; }
 .nav .word-mark.is-necklace,
 .nav .word-mark.is-sticker { height: 30px; }
-.nav a.menu-small .word-mark { height: 24px; }
+.nav a.menu-small .word-mark { height: 26.4px; }
 .nav a.menu-small.nav-text { font-size: 13.2px; }
 .mobile-nav a.menu-small { font-size: 20.4px; line-height: 1; padding-top: 2px; padding-bottom: 2px; }
 .mobile-nav a.menu-small .word-mark { height: 32.4px; }
@@ -904,6 +910,8 @@ h1, h2, h3, p { margin: 0; }
 }
 .filter-btn.is-on { color: var(--rose-deep); border-bottom-color: var(--rose-deep); }
 .footer-grid h2 a { margin: 0; }
+.footer-shop h2 { margin-bottom: 4px; }
+.footer-shop > a { margin-top: 0; }
 .about-block { margin-top: 72px; }
 .about-block .page-title { margin-bottom: 18px; }
 .page-title .script-title {

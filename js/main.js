@@ -143,8 +143,8 @@ function shell() {
     <main id="app"></main>
     <footer class="site-footer">
       <div class="footer-grid">
-        <div>
-          <h2>${wordImg("shop")}</h2>
+        <div class="footer-shop">
+          <h2><a href="/shop/">${wordImg("shop")}</a></h2>
           <a href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
           <a href="/shop/?filter=best">${wordImg("best")}</a>
           <a href="/shop/">${wordImg("pieces")}</a>
@@ -152,7 +152,7 @@ function shell() {
           <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
         </div>
         <div>
-          <h2>${wordImg("care")}</h2>
+          <h2><a href="/customer-care/">${wordImg("care")}</a></h2>
           <a href="/customer-care/#shipping">Shipping</a>
           <a href="/customer-care/#returns">Returns</a>
           <a href="/customer-care/#care">Jewelry Care</a>
