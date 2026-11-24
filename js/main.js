@@ -5,7 +5,7 @@ import {
   productBySlug,
   collectionBySlug,
   productsIn,
-} from "./data.js?v=24";
+} from "./data.js?v=25";
 import * as store from "./store.js?v=2";
 import * as auth from "./auth.js?v=12";
 
