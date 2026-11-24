@@ -7,7 +7,7 @@ import {
   productsIn,
 } from "./data.js?v=24";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=11";
+import * as auth from "./auth.js?v=12";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || new URLSearchParams(location.search).get("slug") || "";
@@ -95,6 +95,9 @@ function wordImg(kind, extra = "") {
     about: ["/images/about-word.png", "About"],
     consignment: ["/images/consignment-word.png?v=3", "Consignment"],
     shipping: ["/images/shipping-word.png?v=3", "Shipping"],
+    returns: ["/images/return-word.png?v=1", "Return"],
+    jewelry: ["/images/jewelry-care-word.png?v=1", "Jewelry Care"],
+    contact: ["/images/contact-word.png?v=1", "Contact"],
     instagram: ["/images/instagram-word.png", "Instagram"],
   };
   const [src, alt] = map[kind];
@@ -153,12 +156,12 @@ function shell() {
           <a href="/shop/?filter=necklace">${wordImg("necklace")}</a>
           <a href="/shop/?filter=sticker">${wordImg("sticker")}</a>
         </div>
-        <div>
+        <div class="footer-care">
           <h2><a href="/customer-care/">${wordImg("care")}</a></h2>
-          <a href="/customer-care/#shipping">Shipping</a>
-          <a href="/customer-care/#returns">Returns</a>
-          <a href="/customer-care/#care">Jewelry Care</a>
-          <a href="/customer-care/#contact">Contact</a>
+          <a href="/customer-care/#shipping">${wordImg("shipping")}</a>
+          <a href="/customer-care/#returns">${wordImg("returns")}</a>
+          <a href="/customer-care/#care">${wordImg("jewelry")}</a>
+          <a href="/customer-care/#contact">${wordImg("contact")}</a>
         </div>
         <div class="footer-bottom">
           <div>
@@ -422,9 +425,9 @@ const looks = [
 ];
 
 function renderHome() {
-  const newest = products.filter((item) => item.isNew && item.category === "necklace").slice(0, 4);
-  const sellers = products.filter((item) => item.isBestSeller && item.category === "necklace").slice(0, 4);
-  const stickers = products.filter((item) => item.category === "sticker");
+  const newest = products.filter((item) => item.isNew && item.category === "necklace" && !item.unlisted).slice(0, 4);
+  const sellers = products.filter((item) => item.isBestSeller && item.category === "necklace" && !item.unlisted).slice(0, 4);
+  const stickers = products.filter((item) => item.category === "sticker" && !item.unlisted);
   return `
     <section class="hero">
       <div class="hero-copy">
@@ -551,7 +554,7 @@ function renderShop() {
   const filter = params().get("filter") || "all";
   const sort = params().get("sort") || "featured";
   const [title, lede] = shopHeading(filter);
-  const list = applySort(applyFilter(products, filter), sort);
+  const list = applySort(applyFilter(products.filter((item) => !item.unlisted), filter), sort);
   const word = "件";
   return `
     <div class="page">
@@ -616,14 +619,14 @@ function renderCollection() {
         </div>
         <img src="${collection.image}" alt="" class="${fitClass(collection)}">
       </header>
-      ${grid(productsIn(collection.slug))}
+      ${grid(productsIn(collection.slug).filter((item) => !item.unlisted))}
     </div>
   `;
 }
 
 function related(product) {
-  const same = products.filter((item) => item.collection === product.collection && item.slug !== product.slug);
-  const rest = products.filter((item) => item.slug !== product.slug && !same.includes(item));
+  const same = products.filter((item) => !item.unlisted && item.collection === product.collection && item.slug !== product.slug);
+  const rest = products.filter((item) => !item.unlisted && item.slug !== product.slug && !same.includes(item));
   return [...same, ...rest].slice(0, 4);
 }
 
@@ -672,14 +675,14 @@ function renderProduct() {
           <dl class="specs">
             ${specs.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}
           </dl>
-          ${product.soldOut ? "" : `
+          ${product.unlisted || product.soldOut ? "" : `
           <div class="qty" data-max="${Math.max(buyMax, 1)}"${toneSold ? " hidden" : ""}>
             <button type="button" data-qty-step="-1" aria-label="減少數量">−</button>
             <input data-qty-input value="1" inputmode="numeric" aria-label="數量">
             <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
           </div>`}
-          <button class="btn btn-fill${product.soldOut || toneSold ? " is-sold" : ""}" type="button"${product.soldOut || toneSold ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut || toneSold ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>
-          ${product.soldOut ? `
+          ${product.unlisted ? `<p class="fine">這件已下架。</p>` : `<button class="btn btn-fill${product.soldOut || toneSold ? " is-sold" : ""}" type="button"${product.soldOut || toneSold ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut || toneSold ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>`}
+          ${!product.unlisted && product.soldOut ? `
           <form id="restock" class="restock">
             <p class="fine">這件目前沒有存貨。留下 Gmail，補貨後會寄信通知。</p>
             <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
@@ -917,15 +920,15 @@ function renderCare() {
         <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
-        <h2>Returns</h2>
+        <h2 class="page-title">${wordImg("returns", "is-title")}</h2>
         <p>未穿過的項鍊可在 7 天內退回，請放回原來的袋子。貼紙只有完全未使用才能退。寄回之前請先到 Instagram 私訊告訴我們。</p>
       </section>
       <section class="care-block" id="care">
-        <h2>Jewelry Care</h2>
+        <h2 class="page-title">${wordImg("jewelry", "is-title")}</h2>
         <p>沒有戴的時候，把項鍊放回鏈袋裡。</p>
       </section>
       <section class="care-block" id="contact">
-        <h2>Contact</h2>
+        <h2 class="page-title">${wordImg("contact", "is-title")}</h2>
         <p>訂單或修理，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。</p>
         <p>Consignment at <a class="linkish" href="${site.consignment}" target="_blank" rel="noopener noreferrer">${esc(site.consignmentHandle)}</a>.</p>
         ${instagramPanel()}
@@ -1146,9 +1149,11 @@ async function loadAdminLists() {
     <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
     <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
     <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般顧客沒有優惠。一般會員是在社群分享商品後，下次免運。買過三次會變成高級，作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
-    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。貼紙要分顏色填。沒有改過的作品，維持現在的狀態。</p>${stockTable()}</section>
-    <section class="account-section"><h2>新商品</h2>
+    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。貼紙要分顏色填。按編輯，作品會出現在下面的新商品，可以改完再儲存。下架後商店不再顯示。</p>${stockTable()}</section>
+    <section class="account-section" id="catalog-editor"><h2>新商品</h2>
+      <p class="fine" id="catalog-editing"></p>
       <form class="account-form" id="catalog-form">
+        <input name="slug" type="hidden" value="">
         <label class="field"><span>名稱</span><input name="name" type="text" required></label>
         <label class="field"><span>價格（NT$）</span><input name="price" type="number" min="0" step="1" required></label>
         <label class="field"><span>分類</span>
@@ -1160,7 +1165,10 @@ async function loadAdminLists() {
         <label class="field"><span>存貨</span><input name="stock" type="number" min="0" step="1" value="1" required></label>
         <label class="field"><span>說明</span><textarea name="description" rows="3"></textarea></label>
         <label class="field"><span>照片</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
-        <button class="btn" type="submit">上傳</button>
+        <div class="catalog-actions">
+          <button class="btn" type="submit">上傳</button>
+          <button class="btn" type="button" data-set-listed hidden>下架</button>
+        </div>
       </form>
     </section>
   `;
@@ -1189,14 +1197,16 @@ function stockValue(known, amount, soldOut) {
 }
 
 function stockState(product) {
+  let state;
   if (product.colors && product.colors.some((color) => Number.isInteger(color.stock))) {
-    return product.colors.map((color) => (
+    state = product.colors.map((color) => (
       color.stock === 0 ? `${color.name} 售完` : `${color.name} 可賣 ${color.stock}`
     )).join(" · ");
+  } else {
+    const known = Number.isInteger(product.stock);
+    state = known ? (product.stock === 0 ? "售完" : `可賣 ${product.stock}`) : (product.soldOut ? "售完" : "可賣");
   }
-  const known = Number.isInteger(product.stock);
-  if (known) return product.stock === 0 ? "售完" : `可賣 ${product.stock}`;
-  return product.soldOut ? "售完" : "可賣";
+  return product.unlisted ? `已下架 · ${state}` : state;
 }
 
 function stockFields(product) {
@@ -1219,7 +1229,11 @@ function stockTable() {
       <td>${esc(product.name)}</td>
       <td>${esc(stockState(product))}</td>
       <td>${stockFields(product)}</td>
-      <td><button class="btn" type="button" data-save-stock="${esc(product.slug)}">儲存</button></td>
+      <td><div class="stock-actions">
+        <button class="btn" type="button" data-edit-product="${esc(product.slug)}">編輯</button>
+        <button class="btn" type="button" data-save-stock="${esc(product.slug)}">儲存</button>
+        <button class="btn" type="button" data-set-listed="${esc(product.slug)}" data-listed="${product.unlisted ? "1" : "0"}">${product.unlisted ? "上架" : "下架"}</button>
+      </div></td>
     </tr>`).join("");
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
@@ -1265,17 +1279,34 @@ function clearColorStock(product) {
   }
 }
 
+function applyCatalogFields(product, row) {
+  if (row.name) product.name = row.name;
+  if (row.price !== null && row.price !== undefined && row.price !== "") {
+    const price = Math.round(Number(row.price));
+    if (Number.isInteger(price) && price >= 0) product.price = price;
+  }
+  if (typeof row.description === "string" && row.description) product.description = row.description;
+  if (row.category === "necklace" || row.category === "sticker") product.category = row.category;
+  if (row.image && row.image !== product.image) {
+    const rest = (product.images || []).filter((src) => src !== row.image && src !== product.image);
+    product.image = row.image;
+    product.images = [row.image, ...rest];
+  }
+  if (row.listed === false) product.unlisted = true;
+  else if (row.listed === true) product.unlisted = false;
+}
+
 function applyCatalog(rows) {
   if (!Array.isArray(rows)) return;
   for (const row of rows) {
     const stock = Math.max(0, Math.round(Number(row.stock) || 0));
     const existing = products.find((item) => item.slug === row.slug);
     if (existing) {
-      const counts = colorCounts(existing, row.color_stock);
-      if (counts) {
-        applyColorStock(existing, counts);
-        continue;
-      }
+    const counts = colorCounts(existing, row.color_stock);
+    if (counts) {
+      applyColorStock(existing, counts);
+    } else if (row.stock !== null && row.stock !== undefined && row.stock !== "") {
+      const stock = Math.max(0, Math.round(Number(row.stock) || 0));
       clearColorStock(existing);
       existing.stock = stock;
       existing.soldOut = stock === 0;
@@ -1283,7 +1314,9 @@ function applyCatalog(rows) {
         for (const color of existing.colors) color.soldOut = true;
       }
       if (stock > 0) existing.maxQty = stock;
-      continue;
+    }
+    applyCatalogFields(existing, row);
+    continue;
     }
     if (!row.name || !row.image) continue;
     products.push({
@@ -1305,6 +1338,7 @@ function applyCatalog(rows) {
       description: row.description || "",
       details: "",
       uploaded: true,
+      unlisted: row.listed === false,
     });
   }
 }
@@ -1666,8 +1700,9 @@ function trapLoginTab(event) {
 
 function searchPool(query) {
   const text = query.trim().toLowerCase();
-  if (!text) return { label: "工作室的新品", list: products.filter((item) => item.isNew).slice(0, 4) };
+  if (!text) return { label: "工作室的新品", list: products.filter((item) => item.isNew && !item.unlisted).slice(0, 4) };
   const list = products.filter((item) => {
+    if (item.unlisted) return false;
     const collection = collectionBySlug(item.collection);
     const hay = [item.name, item.description, item.details, item.materials, item.category, collection ? collection.name : ""]
       .join(" ")
@@ -1748,6 +1783,18 @@ function onClick(event) {
     saveStockRow(stockButton);
     return;
   }
+  const editButton = event.target.closest("[data-edit-product]");
+  if (editButton) {
+    event.preventDefault();
+    editProduct(editButton.getAttribute("data-edit-product") || "");
+    return;
+  }
+  const listedButton = event.target.closest("[data-set-listed]");
+  if (listedButton) {
+    event.preventDefault();
+    setListedRow(listedButton);
+    return;
+  }
   const approveOrder = event.target.closest("[data-approve-order]");
   if (approveOrder) {
     event.preventDefault();
@@ -1783,7 +1830,7 @@ function onClick(event) {
   if (add) {
     event.preventDefault();
     const product = productBySlug(add.dataset.add);
-    if (!product || product.soldOut) return;
+    if (!product || product.soldOut || product.unlisted) return;
     const scope = add.closest(".pdp");
     const input = scope ? scope.querySelector("[data-qty-input]") : null;
     const qty = input ? Number(input.value) : 1;
@@ -1955,6 +2002,96 @@ async function saveStockRow(button) {
   loadAdminLists();
 }
 
+function editProduct(slug) {
+  const product = productBySlug(slug);
+  const form = document.getElementById("catalog-form");
+  const note = document.getElementById("catalog-editing");
+  if (!product || !form) return;
+  form.elements.slug.value = product.slug;
+  form.elements.name.value = product.name;
+  form.elements.price.value = String(Math.max(0, Math.round(Number(product.price) || 0)));
+  form.elements.category.value = product.category === "sticker" ? "sticker" : "necklace";
+  const counted = product.colors && product.colors.some((color) => Number.isInteger(color.stock));
+  if (counted) form.elements.stock.value = String(product.colors.reduce((sum, color) => sum + color.stock, 0));
+  else if (Number.isInteger(product.stock)) form.elements.stock.value = String(product.stock);
+  else if (product.soldOut) form.elements.stock.value = "0";
+  else form.elements.stock.value = "";
+  form.elements.description.value = product.description || "";
+  form.elements.photo.required = false;
+  const submit = form.querySelector("[type=submit]");
+  if (submit) submit.textContent = "儲存";
+  const unlist = form.querySelector("[data-set-listed]");
+  if (unlist) {
+    unlist.hidden = false;
+    unlist.setAttribute("data-set-listed", product.slug);
+    unlist.setAttribute("data-listed", product.unlisted ? "1" : "0");
+    unlist.textContent = product.unlisted ? "上架" : "下架";
+  }
+  if (note) {
+    note.textContent = counted
+      ? `正在編輯 ${product.name}。不換照片就留空。顏色存貨請在上面的表格改。`
+      : `正在編輯 ${product.name}。不換照片就留空。`;
+  }
+  const editor = document.getElementById("catalog-editor");
+  if (editor) editor.scrollIntoView({ block: "center" });
+}
+
+async function saveEditedProduct(form) {
+  const note = document.getElementById("admin-note");
+  const data = new FormData(form);
+  const product = productBySlug(String(data.get("slug") || "").trim());
+  const name = String(data.get("name") || "").trim();
+  const price = Number(data.get("price"));
+  const stock = Number(data.get("stock"));
+  const category = data.get("category") === "sticker" ? "sticker" : "necklace";
+  const description = String(data.get("description") || "").trim();
+  const file = data.get("photo");
+  if (!product || !name || !Number.isInteger(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
+    if (note) note.textContent = "請填名稱、價格和存貨。價格和存貨都要是整數。";
+    return;
+  }
+  if (file && file.size > 8 * 1024 * 1024) {
+    if (note) note.textContent = "照片要小於 8MB。";
+    return;
+  }
+  const button = form.querySelector("[type=submit]");
+  if (button) button.disabled = true;
+  const result = await auth.updateProduct({
+    product,
+    name,
+    price,
+    stock,
+    category,
+    description,
+    file: file && file.size ? file : null,
+  });
+  if (button) button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || "商品沒有存起來。";
+    return;
+  }
+  applyCatalog([result.row]);
+  if (note) note.textContent = `${name} 已儲存。`;
+  loadAdminLists();
+}
+
+async function setListedRow(button) {
+  const note = document.getElementById("admin-note");
+  const product = productBySlug(button.getAttribute("data-set-listed") || "");
+  const listed = button.getAttribute("data-listed") === "1";
+  if (!product) return;
+  button.disabled = true;
+  const result = await auth.setProductListed(product, listed);
+  button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || "沒有改成。";
+    return;
+  }
+  applyCatalog([result.row]);
+  if (note) note.textContent = listed ? `${product.name} 已上架。` : `${product.name} 已下架。`;
+  loadAdminLists();
+}
+
 async function uploadProduct(form) {
   const note = document.getElementById("admin-note");
   const data = new FormData(form);
@@ -2001,7 +2138,9 @@ async function uploadProduct(form) {
 async function onSubmit(event) {
   if (event.target.id === "catalog-form") {
     event.preventDefault();
-    uploadProduct(event.target);
+    const slug = String(new FormData(event.target).get("slug") || "").trim();
+    if (slug) saveEditedProduct(event.target);
+    else uploadProduct(event.target);
     return;
   }
   if (event.target.id === "search-form") {

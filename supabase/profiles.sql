@@ -1,7 +1,6 @@
 -- BiJulia 顧客與管理者。
 -- 在 BiJulia 自己的 Supabase SQL editor 執行一次。
 -- 不要對別人的專案執行。
---
 -- 環境變數（不要寫進 git）：
 --   SUPABASE_URL
 --   SUPABASE_ANON_KEY
@@ -304,10 +303,15 @@ create table if not exists public.catalog (
   color_stock jsonb,
   image text not null default '',
   description text not null default '',
+  -- listed 為 false 就是下架，商店、搜尋和首頁不再顯示。存貨可以是空的，避免沒填數量時被存成 0。
+  listed boolean not null default true,
   created_at timestamptz not null default now()
 );
 
 alter table public.catalog add column if not exists color_stock jsonb;
+alter table public.catalog add column if not exists listed boolean not null default true;
+alter table public.catalog alter column stock drop not null;
+alter table public.catalog alter column stock drop default;
 
 alter table public.catalog enable row level security;
 

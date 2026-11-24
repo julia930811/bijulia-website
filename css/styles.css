@@ -438,7 +438,16 @@ h1, h2, h3, p { margin: 0; }
 .about-block .page-title .word-mark.is-consignment.is-title {
   max-height: min(52px, 11vw);
 }
-.page-title .word-mark.is-shipping.is-title {
+.care-block .page-title {
+  text-align: left;
+}
+.page-title .word-mark.is-shipping.is-title,
+.page-title .word-mark.is-returns.is-title,
+.page-title .word-mark.is-jewelry.is-title,
+.page-title .word-mark.is-contact.is-title {
+  display: block;
+  margin-left: 0;
+  margin-right: auto;
   max-height: 48px;
 }
 #looks .word-mark.is-outfit.is-title { width: min(140px, 32vw); }
@@ -924,6 +933,10 @@ h1, h2, h3, p { margin: 0; }
 .footer-grid h2 a { margin: 0; }
 .footer-shop h2 { margin-bottom: 4px; }
 .footer-shop > a { margin-top: 0; }
+.footer-care { text-align: left; justify-self: start; }
+.footer-care h2 { margin-bottom: 4px; }
+.footer-care > a { width: max-content; max-width: 100%; margin-top: 0; margin-bottom: 6px; }
+.footer-care > a .word-mark { display: block; height: 32px; margin-left: 0; }
 .about-block { margin-top: 72px; }
 .about-block .page-title { margin-bottom: 18px; }
 .about-panel { margin-top: 28px; }
@@ -1509,6 +1522,15 @@ h1, h2, h3,
   font-size: 22px;
   padding-bottom: 6px;
 }
+.stock-actions,
+.catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.catalog-actions { margin-top: 8px; }
+.catalog-actions .btn { width: auto; }
 .account-form a.btn {
   width: 100%;
   margin-top: 10px;

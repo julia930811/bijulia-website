@@ -370,6 +370,7 @@ export async function appendPurchase(order) {
 
 function catalogError(error) {
   const raw = `${error?.message || ""} ${error?.details || ""}`;
+  if (/listed/i.test(raw)) return "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。";
   if (/schema cache|relation .*catalog|Bucket not found|bucket/i.test(raw)) {
     return "存貨資料表還沒建立。請先在 Supabase 執行 profiles.sql。";
   }
@@ -377,13 +378,59 @@ function catalogError(error) {
   return "存貨沒有存起來。";
 }
 
+async function upsertCatalog(row, { listedRequired = false } = {}) {
+  const supabase = await sdk();
+  let result = await supabase.from("catalog").upsert(row, { onConflict: "slug" });
+  const raw = `${result.error?.message || ""} ${result.error?.details || ""}`;
+  if (result.error && /listed/i.test(raw)) {
+    if (listedRequired || row.listed === false) {
+      return { ok: false, message: "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。" };
+    }
+    const copy = { ...row };
+    delete copy.listed;
+    result = await supabase.from("catalog").upsert(copy, { onConflict: "slug" });
+  }
+  const again = `${result.error?.message || ""} ${result.error?.details || ""}`;
+  if (result.error && row.stock === null && /null value|stock/i.test(again)) {
+    return { ok: false, message: "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。" };
+  }
+  if (result.error) return { ok: false, message: catalogError(result.error) };
+  return { ok: true };
+}
+
+function catalogRow(product, extra = {}) {
+  const row = {
+    slug: product.slug,
+    name: extra.name != null ? extra.name : product.name,
+    price: extra.price != null ? extra.price : Math.max(0, Math.round(Number(product.price) || 0)),
+    currency: product.currency || "TWD",
+    category: extra.category || (product.category === "sticker" ? "sticker" : "necklace"),
+    image: extra.image != null ? extra.image : (product.image || ""),
+    description: extra.description != null ? extra.description : (product.description || ""),
+    listed: extra.listed != null ? Boolean(extra.listed) : !product.unlisted,
+  };
+  if (extra.colorStock) row.color_stock = extra.colorStock;
+  else if (extra.stock == null && product.colorStock && typeof product.colorStock === "object") row.color_stock = product.colorStock;
+  if (extra.stock != null) row.stock = extra.stock;
+  else if (row.color_stock) row.stock = Object.values(row.color_stock).reduce((sum, count) => sum + Number(count || 0), 0);
+  else if (Number.isInteger(product.stock)) row.stock = product.stock;
+  else if (product.soldOut) row.stock = 0;
+  else row.stock = null;
+  return row;
+}
+
 export async function listCatalog() {
   if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
   try {
     const supabase = await sdk();
-    const columns = "slug, name, price, currency, category, stock, color_stock, image, description";
+    const columns = "slug, name, price, currency, category, stock, color_stock, image, description, listed";
     let result = await supabase.from("catalog").select(columns).order("created_at", { ascending: true });
-    if (result.error && /color_stock/i.test(`${result.error.message || ""} ${result.error.details || ""}`)) {
+    const first = `${result.error?.message || ""} ${result.error?.details || ""}`;
+    if (result.error && /listed/i.test(first)) {
+      result = await supabase.from("catalog").select("slug, name, price, currency, category, stock, color_stock, image, description").order("created_at", { ascending: true });
+    }
+    const second = `${result.error?.message || ""} ${result.error?.details || ""}`;
+    if (result.error && /color_stock/i.test(second)) {
       result = await supabase.from("catalog").select("slug, name, price, currency, category, stock, image, description").order("created_at", { ascending: true });
     }
     if (result.error) return { ok: false, code: "auth", message: catalogError(result.error), rows: [] };
@@ -426,12 +473,12 @@ export async function saveStock(product, stock) {
     stock: next,
     image: product.image || "",
     description: product.description || "",
+    listed: !product.unlisted,
   };
   if (colorStock) row.color_stock = colorStock;
   try {
-    const supabase = await sdk();
-    const { error } = await supabase.from("catalog").upsert(row, { onConflict: "slug" });
-    if (error) return { ok: false, message: catalogError(error) };
+    const saved = await upsertCatalog(row);
+    if (!saved.ok) return saved;
     return { ok: true };
   } catch {
     return { ok: false, message: "存貨沒有存起來。" };
@@ -479,5 +526,54 @@ export async function createProduct({ name, price, stock, category, description,
     return { ok: true, row: inserted.data || row };
   } catch {
     return { ok: false, message: "商品沒有上傳。" };
+  }
+}
+
+export async function updateProduct({ product, name, price, stock, category, description, file }) {
+  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
+  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改商品。" };
+  let image = product.image || "";
+  try {
+    const supabase = await sdk();
+    if (file && file.size) {
+      const ext = String(file.name || "photo.jpg").split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${product.slug}-${Date.now()}.${ext}`;
+      const uploaded = await supabase.storage.from("catalog").upload(path, file, {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+      if (uploaded.error) return { ok: false, message: catalogError(uploaded.error) };
+      image = supabase.storage.from("catalog").getPublicUrl(path).data.publicUrl;
+    }
+    const keepColors = Boolean(product.colors && product.colors.some((color) => Number.isInteger(color.stock)));
+    const extra = {
+      name: String(name || "").trim(),
+      price: Math.max(0, Math.round(Number(price) || 0)),
+      category: category === "sticker" ? "sticker" : "necklace",
+      description: String(description || "").trim(),
+      image,
+      listed: !product.unlisted,
+    };
+    if (keepColors) extra.colorStock = product.colorStock || Object.fromEntries(product.colors.map((color) => [color.id, color.stock]));
+    else extra.stock = Math.max(0, Math.round(Number(stock) || 0));
+    const row = catalogRow(product, extra);
+    const saved = await upsertCatalog(row);
+    if (!saved.ok) return saved;
+    return { ok: true, row };
+  } catch {
+    return { ok: false, message: "商品沒有存起來。" };
+  }
+}
+
+export async function setProductListed(product, listed) {
+  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
+  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改商品。" };
+  const row = catalogRow(product, { listed: Boolean(listed) });
+  try {
+    const saved = await upsertCatalog(row, { listedRequired: true });
+    if (!saved.ok) return saved;
+    return { ok: true, row };
+  } catch {
+    return { ok: false, message: "沒有改成。" };
   }
 }
