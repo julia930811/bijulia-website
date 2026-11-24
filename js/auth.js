@@ -381,7 +381,11 @@ export async function listCatalog() {
   if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
   try {
     const supabase = await sdk();
-    const result = await supabase.from("catalog").select("slug, name, price, currency, category, stock, image, description").order("created_at", { ascending: true });
+    const columns = "slug, name, price, currency, category, stock, color_stock, image, description";
+    let result = await supabase.from("catalog").select(columns).order("created_at", { ascending: true });
+    if (result.error && /color_stock/i.test(`${result.error.message || ""} ${result.error.details || ""}`)) {
+      result = await supabase.from("catalog").select("slug, name, price, currency, category, stock, image, description").order("created_at", { ascending: true });
+    }
     if (result.error) return { ok: false, code: "auth", message: catalogError(result.error), rows: [] };
     return { ok: true, rows: result.data || [] };
   } catch {
@@ -389,10 +393,30 @@ export async function listCatalog() {
   }
 }
 
+function wholeCount(value) {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) return Number(value.trim());
+  return null;
+}
+
 export async function saveStock(product, stock) {
   if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
   if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改存貨。" };
-  const next = Math.max(0, Math.round(Number(stock) || 0));
+  const perColor = Boolean(product.colors && product.colors.length && stock && typeof stock === "object");
+  let next = null;
+  let colorStock = null;
+  if (perColor) {
+    colorStock = {};
+    for (const color of product.colors) {
+      const count = wholeCount(stock[color.id]);
+      if (count === null) return { ok: false, message: "存貨要是 0 或更大的整數。" };
+      colorStock[color.id] = count;
+    }
+    next = product.colors.reduce((sum, color) => sum + colorStock[color.id], 0);
+  } else {
+    next = wholeCount(stock);
+    if (next === null) return { ok: false, message: "存貨要是 0 或更大的整數。" };
+  }
   const row = {
     slug: product.slug,
     name: product.name,
@@ -400,6 +424,7 @@ export async function saveStock(product, stock) {
     currency: product.currency || "TWD",
     category: product.category === "sticker" ? "sticker" : "necklace",
     stock: next,
+    color_stock: colorStock,
     image: product.image || "",
     description: product.description || "",
   };

@@ -431,6 +431,9 @@ h1, h2, h3, p { margin: 0; }
   max-height: min(97.66px, 20vw);
   max-width: 100%;
 }
+.about-block .page-title .word-mark.is-consignment.is-title {
+  max-height: min(75.7px, 15vw);
+}
 .page-title .word-mark.is-best.is-title {
   height: min(69.71px, 13.64vw);
   max-height: none;
@@ -577,6 +580,12 @@ h1, h2, h3, p { margin: 0; }
   background: #fff;
 }
 .color-option.is-on { border-color: var(--ink); }
+.color-option .color-sold {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
 .color-option img {
   width: 44px;
   height: 44px;
@@ -914,13 +923,6 @@ h1, h2, h3, p { margin: 0; }
 .footer-shop > a { margin-top: 0; }
 .about-block { margin-top: 72px; }
 .about-block .page-title { margin-bottom: 18px; }
-.page-title .script-title {
-  font-family: var(--script);
-  font-style: normal;
-  font-weight: 400;
-  font-size: min(97.66px, 20vw);
-  line-height: 0.9;
-}
 .about-panel { margin-top: 28px; }
 .about-panel.about-gate { margin-top: 72px; }
 .about-panel .lede { margin-left: 0; }
@@ -1552,6 +1554,19 @@ h1, h2, h3,
   padding: 4px 0;
   font-family: var(--sans);
   font-size: 14px;
+}
+.stock-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.stock-colors label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
 }
 .checkout-due { max-width: 440px; margin: 4px 0 22px; }
 .account-table-wrap { overflow-x: auto; margin: 12px 0 28px; }

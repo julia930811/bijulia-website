@@ -93,6 +93,8 @@ function wordImg(kind, extra = "") {
     pieces: ["/images/all-pieces-word.png", "All pieces"],
     best: ["/images/best-sellers-word.png", "Best Sellers"],
     about: ["/images/about-word.png", "About"],
+    consignment: ["/images/consignment-word.png", "Consignment"],
+    shipping: ["/images/shipping-word.png", "Shipping"],
     instagram: ["/images/instagram-word.png", "Instagram"],
   };
   const [src, alt] = map[kind];
@@ -259,7 +261,7 @@ function card(product) {
         <a class="card-name${product.category === "necklace" ? " is-taipei" : ""}" href="${productHref(product)}">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
         ${product.soldOut ? `<a class="card-restock" href="${productHref(product, "#restock")}">補貨後通知</a>` : ""}
-        ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.name)).join(" · ")}</p>` : ""}
+        ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.soldOut ? `${color.name} 售完` : color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
     </article>
@@ -357,6 +359,12 @@ function colorById(product, id) {
   return (product && product.colors ? product.colors : []).find((color) => color.id === id) || null;
 }
 
+function buyLimit(product, colorId) {
+  const tone = colorById(product, colorId);
+  if (tone && Number.isInteger(tone.stock)) return tone.stock;
+  return product ? product.maxQty : 5;
+}
+
 function colorPicker(product) {
   if (!product.colors || !product.colors.length) return "";
   const picked = Math.max(0, product.colors.findIndex((color) => color.id === params().get("color")));
@@ -365,9 +373,10 @@ function colorPicker(product) {
       <p class="fine" id="color-label">顏色</p>
       <div class="color-options" role="radiogroup" aria-labelledby="color-label">
         ${product.colors.map((color, index) => `
-          <button type="button" class="color-option${index === picked ? " is-on" : ""}" role="radio" aria-checked="${index === picked}" data-color="${esc(color.id)}" data-image="${color.image}">
+          <button type="button" class="color-option${index === picked ? " is-on" : ""}${color.soldOut ? " is-out" : ""}" role="radio" aria-checked="${index === picked}" data-color="${esc(color.id)}" data-image="${color.image}">
             <img src="${color.image}" alt="">
             <span>${esc(color.name)}</span>
+            ${color.soldOut ? `<span class="color-sold">售完</span>` : ""}
           </button>
         `).join("")}
       </div>
@@ -381,14 +390,15 @@ function line(item, compact) {
   const tone = colorById(product, item.color);
   const image = tone ? tone.image : product.image;
   const colorAttr = item.color ? ` data-color="${esc(item.color)}"` : "";
-  const limit = item.qty >= product.maxQty ? '<p class="fine">這件已到少量上限。</p>' : "";
+  const max = buyLimit(product, item.color);
+  const limit = max > 0 && item.qty >= max ? '<p class="fine">這件已到少量上限。</p>' : "";
   return `
     <article class="line">
       <a href="${productHref(product)}"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
       <div>
         <h3 class="${product.category === "necklace" ? "is-taipei" : ""}"><a href="${productHref(product)}">${esc(product.name)}</a></h3>
         ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
-        <div class="qty" data-max="${product.maxQty}">
+        <div class="qty" data-max="${Math.max(max, 1)}">
           <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="減少數量">−</button>
           <span aria-live="polite">${item.qty}</span>
           <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="增加數量">+</button>
@@ -629,6 +639,11 @@ function renderProduct() {
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
   const galleryShots = pictures.filter((src) => !/worn/i.test(src));
+  const tone = product.colors && product.colors.length
+    ? (colorById(product, params().get("color")) || product.colors[0])
+    : null;
+  const toneSold = Boolean(!product.soldOut && tone && tone.soldOut);
+  const buyMax = tone && Number.isInteger(tone.stock) ? tone.stock : product.maxQty;
   return `
     <div class="page">
       ${crumbs([
@@ -657,12 +672,12 @@ function renderProduct() {
             ${specs.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}
           </dl>
           ${product.soldOut ? "" : `
-          <div class="qty" data-max="${product.maxQty}">
+          <div class="qty" data-max="${Math.max(buyMax, 1)}"${toneSold ? " hidden" : ""}>
             <button type="button" data-qty-step="-1" aria-label="減少數量">−</button>
             <input data-qty-input value="1" inputmode="numeric" aria-label="數量">
             <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
           </div>`}
-          <button class="btn btn-fill${product.soldOut ? " is-sold" : ""}" type="button"${product.soldOut ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>
+          <button class="btn btn-fill${product.soldOut || toneSold ? " is-sold" : ""}" type="button"${product.soldOut || toneSold ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut || toneSold ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>
           ${product.soldOut ? `
           <form id="restock" class="restock">
             <p class="fine">這件目前沒有存貨。留下 Gmail，補貨後會寄信通知。</p>
@@ -882,7 +897,7 @@ function renderAbout() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "About" }])}
       <h1 class="page-title">${wordImg("about", "is-title")}</h1>
       <section class="about-block" id="consignment">
-        <h2 class="page-title"><span class="script-title">Consignment</span></h2>
+        <h2 class="page-title">${wordImg("consignment", "is-title")}</h2>
         ${consignmentPanel()}
       </section>
       <div class="about-panel about-gate"><div class="split"><img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋"></div></div>
@@ -897,7 +912,7 @@ function renderCare() {
       <h1 class="page-title">${wordImg("care", "is-title")}</h1>
       <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
       <section class="care-block" id="shipping">
-        <h2>Shipping</h2>
+        <h2 class="page-title">${wordImg("shipping", "is-title")}</h2>
         <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
       </section>
       <section class="care-block" id="returns">
@@ -1130,7 +1145,7 @@ async function loadAdminLists() {
     <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
     <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
     <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般顧客沒有優惠。一般會員是在社群分享商品後，下次免運。買過三次會變成高級，作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
-    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。沒有改過的作品，維持現在的狀態。</p>${stockTable()}</section>
+    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。貼紙要分顏色填。沒有改過的作品，維持現在的狀態。</p>${stockTable()}</section>
     <section class="account-section"><h2>新商品</h2>
       <form class="account-form" id="catalog-form">
         <label class="field"><span>名稱</span><input name="name" type="text" required></label>
@@ -1167,20 +1182,86 @@ function ordersTable(rows, approve) {
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
+function stockValue(known, amount, soldOut) {
+  if (known) return amount;
+  return soldOut ? 0 : "";
+}
+
+function stockState(product) {
+  if (product.colors && product.colors.some((color) => Number.isInteger(color.stock))) {
+    return product.colors.map((color) => (
+      color.stock === 0 ? `${color.name} 售完` : `${color.name} 可賣 ${color.stock}`
+    )).join(" · ");
+  }
+  const known = Number.isInteger(product.stock);
+  if (known) return product.stock === 0 ? "售完" : `可賣 ${product.stock}`;
+  return product.soldOut ? "售完" : "可賣";
+}
+
+function stockFields(product) {
+  if (product.colors && product.colors.length) {
+    const fields = product.colors.map((color) => {
+      const known = Number.isInteger(color.stock);
+      const value = stockValue(known, color.stock, Boolean(color.soldOut));
+      return `<label>${esc(color.name)} <input class="stock-input" type="number" min="0" step="1" value="${value}" data-color-stock="${esc(color.id)}" aria-label="${esc(color.name)} 存貨"></label>`;
+    }).join("");
+    return `<div class="stock-colors">${fields}</div>`;
+  }
+  const known = Number.isInteger(product.stock);
+  const value = stockValue(known, product.stock, Boolean(product.soldOut));
+  return `<input class="stock-input" type="number" min="0" step="1" value="${value}" aria-label="${esc(product.name)} 存貨">`;
+}
+
 function stockTable() {
   const head = `<tr><th>作品</th><th>現在</th><th>存貨</th><th></th></tr>`;
-  const body = products.map((product) => {
-    const known = Number.isInteger(product.stock);
-    const state = known ? (product.stock === 0 ? "售完" : `可賣 ${product.stock}`) : (product.soldOut ? "售完" : "可賣");
-    const value = known ? product.stock : (product.soldOut ? 0 : "");
-    return `<tr data-stock-row="${esc(product.slug)}">
+  const body = products.map((product) => `<tr data-stock-row="${esc(product.slug)}">
       <td>${esc(product.name)}</td>
-      <td>${state}</td>
-      <td><input class="stock-input" type="number" min="0" step="1" value="${value}" aria-label="${esc(product.name)} 存貨"></td>
+      <td>${esc(stockState(product))}</td>
+      <td>${stockFields(product)}</td>
       <td><button class="btn" type="button" data-save-stock="${esc(product.slug)}">儲存</button></td>
-    </tr>`;
-  }).join("");
+    </tr>`).join("");
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function wholeCount(value) {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) return Number(value.trim());
+  return null;
+}
+
+function colorCounts(product, raw) {
+  if (!product.colors || !product.colors.length) return null;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const counts = {};
+  for (const color of product.colors) {
+    const count = wholeCount(raw[color.id]);
+    if (count === null) return null;
+    counts[color.id] = count;
+  }
+  return counts;
+}
+
+function applyColorStock(product, counts) {
+  let total = 0;
+  for (const color of product.colors) {
+    const count = counts[color.id];
+    color.stock = count;
+    color.soldOut = count === 0;
+    total += count;
+  }
+  product.colorStock = counts;
+  product.stock = total;
+  product.soldOut = total === 0;
+  if (total > 0) product.maxQty = Math.max(...product.colors.filter((color) => color.stock > 0).map((color) => color.stock));
+}
+
+function clearColorStock(product) {
+  if (!product.colors) return;
+  delete product.colorStock;
+  for (const color of product.colors) {
+    delete color.stock;
+    delete color.soldOut;
+  }
 }
 
 function applyCatalog(rows) {
@@ -1189,8 +1270,17 @@ function applyCatalog(rows) {
     const stock = Math.max(0, Math.round(Number(row.stock) || 0));
     const existing = products.find((item) => item.slug === row.slug);
     if (existing) {
+      const counts = colorCounts(existing, row.color_stock);
+      if (counts) {
+        applyColorStock(existing, counts);
+        continue;
+      }
+      clearColorStock(existing);
       existing.stock = stock;
       existing.soldOut = stock === 0;
+      if (existing.colors && stock === 0) {
+        for (const color of existing.colors) color.soldOut = true;
+      }
       if (stock > 0) existing.maxQty = stock;
       continue;
     }
@@ -1685,6 +1775,7 @@ function onClick(event) {
       const title = document.querySelector(".pdp h1")?.textContent || "";
       preview.alt = `${title}, ${name}`;
     }
+    syncColorBuy(colorBtn);
     return;
   }
   const add = event.target.closest("[data-add]");
@@ -1696,7 +1787,12 @@ function onClick(event) {
     const input = scope ? scope.querySelector("[data-qty-input]") : null;
     const qty = input ? Number(input.value) : 1;
     const selected = scope ? scope.querySelector(".color-option.is-on") : null;
-    store.addToCart(product.slug, qty, product.maxQty, selected ? selected.dataset.color : "");
+    const colorId = selected ? selected.dataset.color || "" : "";
+    const tone = colorById(product, colorId);
+    if (tone && tone.soldOut) return;
+    const max = buyLimit(product, colorId);
+    if (max <= 0) return;
+    store.addToCart(product.slug, qty, max, colorId);
     openOverlay("drawer");
     return;
   }
@@ -1706,8 +1802,12 @@ function onClick(event) {
     const color = lineStep.dataset.color || "";
     const current = store.getCart().find((item) => item.slug === lineStep.dataset.slug && (item.color || "") === color);
     const step = Number(lineStep.dataset.lineStep);
+    const tone = product ? colorById(product, color) : null;
     if (product && product.soldOut && step > 0) return;
-    store.setQty(lineStep.dataset.slug, (current ? current.qty : 1) + step, product ? product.maxQty : 5, color);
+    if (tone && tone.soldOut && step > 0) return;
+    const max = product ? buyLimit(product, color) : 5;
+    if (step > 0 && max <= 0) return;
+    store.setQty(lineStep.dataset.slug, (current ? current.qty : 1) + step, max, color);
     return;
   }
   const qtyStep = event.target.closest("[data-qty-step]");
@@ -1764,27 +1864,93 @@ function onClick(event) {
   if (event.target.closest("[data-close-overlay]")) closeOverlays();
 }
 
+function syncColorBuy(colorBtn) {
+  const pdp = colorBtn.closest(".pdp");
+  if (!pdp) return;
+  const product = productBySlug(slug);
+  if (!product || product.soldOut || !product.colors) return;
+  const tone = colorById(product, colorBtn.dataset.color || "");
+  const sold = Boolean(tone && tone.soldOut);
+  const qty = pdp.querySelector(".pdp-info .qty");
+  if (qty) {
+    qty.hidden = sold;
+    if (!sold) {
+      const cap = Math.max(buyLimit(product, tone && tone.id), 1);
+      qty.dataset.max = String(cap);
+      const input = qty.querySelector("[data-qty-input]");
+      if (input) {
+        const current = Number(input.value);
+        input.value = String(Math.max(1, Math.min(cap, Number.isFinite(current) && current > 0 ? current : 1)));
+      }
+    }
+  }
+  const button = pdp.querySelector(".pdp-info > .btn.btn-fill");
+  if (!button) return;
+  button.classList.toggle("is-sold", sold);
+  button.disabled = sold;
+  if (sold) {
+    button.removeAttribute("data-add");
+    button.innerHTML = `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">`;
+    return;
+  }
+  button.setAttribute("data-add", product.slug);
+  button.textContent = "Add to bag";
+}
+
 async function saveStockRow(button) {
   const slug = button.getAttribute("data-save-stock") || "";
   const product = productBySlug(slug);
   const row = button.closest("[data-stock-row]");
-  const input = row && row.querySelector("input");
   const note = document.getElementById("admin-note");
-  const raw = String(input && input.value || "").trim();
-  const stock = /^\d+$/.test(raw) ? Number(raw) : NaN;
-  if (!product || !Number.isInteger(stock)) {
+  const reject = () => {
     if (note) note.textContent = "存貨要是 0 或更大的整數。";
+  };
+  if (!product || !row) {
+    reject();
     return;
   }
+  let payload;
+  let summary;
+  if (product.colors && product.colors.length) {
+    const colorStock = {};
+    for (const color of product.colors) {
+      const input = row.querySelector(`[data-color-stock="${color.id}"]`);
+      const raw = String(input && input.value || "").trim();
+      if (!/^\d+$/.test(raw)) {
+        reject();
+        return;
+      }
+      colorStock[color.id] = Number(raw);
+    }
+    payload = colorStock;
+    summary = product.colors.map((color) => `${color.name} ${colorStock[color.id]}`).join("、");
+  } else {
+    const input = row.querySelector("input");
+    const raw = String(input && input.value || "").trim();
+    const stock = /^\d+$/.test(raw) ? Number(raw) : NaN;
+    if (!Number.isInteger(stock)) {
+      reject();
+      return;
+    }
+    payload = stock;
+    summary = String(stock);
+  }
   button.disabled = true;
-  const result = await auth.saveStock(product, stock);
+  const result = await auth.saveStock(product, payload);
   button.disabled = false;
   if (!result.ok) {
     if (note) note.textContent = result.message || "存貨沒有存起來。";
     return;
   }
-  applyCatalog([{ slug: product.slug, stock, name: product.name, image: product.image }]);
-  if (note) note.textContent = `${product.name} 的存貨已改成 ${stock}。`;
+  const applied = { slug: product.slug, name: product.name, image: product.image };
+  if (payload && typeof payload === "object") {
+    applied.color_stock = payload;
+    applied.stock = product.colors.reduce((sum, color) => sum + payload[color.id], 0);
+  } else {
+    applied.stock = payload;
+  }
+  applyCatalog([applied]);
+  if (note) note.textContent = `${product.name} 的存貨已改成 ${summary}。`;
   loadAdminLists();
 }
 

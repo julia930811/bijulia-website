@@ -300,10 +300,14 @@ create table if not exists public.catalog (
   currency text not null default 'TWD',
   category text not null default 'necklace' check (category in ('necklace', 'sticker')),
   stock integer not null default 0 check (stock >= 0),
+  -- color_stock：貼紙各顏色的數量，例如 {"black":2,"mint":0,"blue":4}。stock 是合計。空值代表只有一個共用存貨。
+  color_stock jsonb,
   image text not null default '',
   description text not null default '',
   created_at timestamptz not null default now()
 );
+
+alter table public.catalog add column if not exists color_stock jsonb;
 
 alter table public.catalog enable row level security;
 
