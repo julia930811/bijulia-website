@@ -424,10 +424,10 @@ export async function saveStock(product, stock) {
     currency: product.currency || "TWD",
     category: product.category === "sticker" ? "sticker" : "necklace",
     stock: next,
-    color_stock: colorStock,
     image: product.image || "",
     description: product.description || "",
   };
+  if (colorStock) row.color_stock = colorStock;
   try {
     const supabase = await sdk();
     const { error } = await supabase.from("catalog").upsert(row, { onConflict: "slug" });

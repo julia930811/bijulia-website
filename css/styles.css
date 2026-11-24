@@ -431,12 +431,15 @@ h1, h2, h3, p { margin: 0; }
   max-height: min(97.66px, 20vw);
   max-width: 100%;
 }
-.about-block .page-title .word-mark.is-consignment.is-title {
-  max-height: min(75.7px, 15vw);
-}
 .page-title .word-mark.is-best.is-title {
   height: min(69.71px, 13.64vw);
   max-height: none;
+}
+.about-block .page-title .word-mark.is-consignment.is-title {
+  max-height: min(52px, 11vw);
+}
+.page-title .word-mark.is-shipping.is-title {
+  max-height: 48px;
 }
 #looks .word-mark.is-outfit.is-title { width: min(140px, 32vw); }
 #best-sellers .word-mark.is-best.is-title { width: min(196px, 46vw); }

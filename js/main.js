@@ -7,7 +7,7 @@ import {
   productsIn,
 } from "./data.js?v=24";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=10";
+import * as auth from "./auth.js?v=11";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || new URLSearchParams(location.search).get("slug") || "";
@@ -93,8 +93,8 @@ function wordImg(kind, extra = "") {
     pieces: ["/images/all-pieces-word.png", "All pieces"],
     best: ["/images/best-sellers-word.png", "Best Sellers"],
     about: ["/images/about-word.png", "About"],
-    consignment: ["/images/consignment-word.png", "Consignment"],
-    shipping: ["/images/shipping-word.png", "Shipping"],
+    consignment: ["/images/consignment-word.png?v=3", "Consignment"],
+    shipping: ["/images/shipping-word.png?v=3", "Shipping"],
     instagram: ["/images/instagram-word.png", "Instagram"],
   };
   const [src, alt] = map[kind];
@@ -361,6 +361,7 @@ function colorById(product, id) {
 
 function buyLimit(product, colorId) {
   const tone = colorById(product, colorId);
+  if (tone && tone.soldOut) return Number.isInteger(tone.stock) ? tone.stock : 0;
   if (tone && Number.isInteger(tone.stock)) return tone.stock;
   return product ? product.maxQty : 5;
 }
