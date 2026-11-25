@@ -487,13 +487,11 @@ function renderHome() {
     <a class="about-band" id="about-bijulia" href="/about/">
       <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
       <div class="about-copy">
-        <p class="kicker">工作室</p>
         <h2>${wordImg("about", "is-title")}</h2>
       </div>
     </a>
     <section class="newsletter" id="newsletter">
       <p class="kicker">信件</p>
-      <h2>From the garden</h2>
       <p class="lede">新的項鍊上架、消息，或新活動。</p>
       <form id="letter-form">
         <input type="email" name="email" required placeholder="電子郵件" aria-label="電子郵件">
@@ -813,14 +811,7 @@ function renderCheckout() {
 }
 
 function outfitShots() {
-  const shots = [];
-  looks.forEach((look) => {
-    shots.push(look);
-    if (look[0] === "comb-and-chair-chain") {
-      shots.push(["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn-2.jpg", "Comb and Chair Chain"]);
-    }
-  });
-  return shots;
+  return looks;
 }
 
 function outfitGridHtml() {

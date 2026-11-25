@@ -785,6 +785,15 @@ h1, h2, h3, p { margin: 0; }
   font-weight: 500;
   font-size: clamp(36px, 5vw, 56px);
 }
+.newsletter .btn {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  min-height: 40px;
+  padding: 0 18px 1px;
+}
 .newsletter form {
   display: flex;
   justify-content: center;
