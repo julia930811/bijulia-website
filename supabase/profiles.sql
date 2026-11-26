@@ -366,3 +366,48 @@ create policy catalog_photo_update
   to authenticated
   using (bucket_id = 'catalog' and public.is_super_admin())
   with check (bucket_id = 'catalog' and public.is_super_admin());
+
+-- 管理者上架穿搭照。訪客只能看已上架的。
+create table if not exists public.outfits (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null default '',
+  image text not null,
+  listed boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.outfits enable row level security;
+
+revoke all on table public.outfits from public, anon, authenticated;
+grant select on table public.outfits to anon, authenticated;
+grant insert, update on table public.outfits to authenticated;
+
+drop policy if exists outfits_public_read on public.outfits;
+create policy outfits_public_read
+  on public.outfits
+  for select
+  to anon, authenticated
+  using (listed = true);
+
+drop policy if exists outfits_admin_read on public.outfits;
+create policy outfits_admin_read
+  on public.outfits
+  for select
+  to authenticated
+  using (public.is_super_admin());
+
+drop policy if exists outfits_admin_insert on public.outfits;
+create policy outfits_admin_insert
+  on public.outfits
+  for insert
+  to authenticated
+  with check (public.is_super_admin());
+
+drop policy if exists outfits_admin_update on public.outfits;
+create policy outfits_admin_update
+  on public.outfits
+  for update
+  to authenticated
+  using (public.is_super_admin())
+  with check (public.is_super_admin());

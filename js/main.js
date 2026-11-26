@@ -7,7 +7,8 @@ import {
   productsIn,
 } from "./data.js?v=25";
 import * as store from "./store.js?v=2";
-import * as auth from "./auth.js?v=12";
+import * as auth from "./auth.js?v=14";
+import { t, tx, setLang, lang, productCopy, collectionCopy, shippingStory, bagLabel, pieceCount, shippingRemain } from "./lang.js?v=1";
 
 const page = document.body.dataset.page || "home";
 const slug = document.body.dataset.slug || new URLSearchParams(location.search).get("slug") || "";
@@ -120,12 +121,12 @@ function shell() {
     return on ? ' aria-current="page"' : "";
   };
   return `
-    <a class="skip" href="#app">跳至內文</a>
+    <a class="skip" href="#app">${t("跳至內文")}</a>
     <div class="announce"><span>Free shipping over ${ntd(site.freeShipping)}</span></div>
     <header class="site-header">
       <div class="header-inner">
         <div class="header-left">
-          <button class="menu-toggle" type="button" data-open-menu aria-label="開啟選單">${iconMenu()}</button>
+          <button class="menu-toggle" type="button" data-open-menu aria-label="${t("開啟選單")}">${iconMenu()}</button>
           <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt="BiJulia"></a>
         </div>
         <nav class="nav" aria-label="Primary">
@@ -139,9 +140,14 @@ function shell() {
           <a href="/customer-care/"${mark("care")}>${wordImg("care")}</a>
         </nav>
         <div class="tools">
-          <button class="icon-btn" type="button" data-open-search aria-label="搜尋">${iconSearch()}</button>
+          <div class="lang-switch" role="group" aria-label="${t("語言")}">
+            <button type="button" data-set-lang="zh" class="${lang === "zh" ? "is-on" : ""}" aria-pressed="${lang === "zh" ? "true" : "false"}">中</button>
+            <span aria-hidden="true">/</span>
+            <button type="button" data-set-lang="en" class="${lang === "en" ? "is-on" : ""}" aria-pressed="${lang === "en" ? "true" : "false"}">EN</button>
+          </div>
+          <button class="icon-btn" type="button" data-open-search aria-label="${t("搜尋")}">${iconSearch()}</button>
           <a class="login-btn" href="/account/" data-header-login>Login</a>
-          <button class="icon-btn" type="button" data-open-drawer aria-label="購物袋">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
+          <button class="icon-btn" type="button" data-open-drawer aria-label="${t("購物袋")}">${iconBag()}<span class="count" data-cart-count hidden>0</span></button>
         </div>
       </div>
     </header>
@@ -178,26 +184,26 @@ function shell() {
       </div>
     </footer>
     <div class="scrim" data-close-overlay hidden></div>
-    <aside id="drawer" class="drawer" aria-hidden="true" aria-label="購物袋">
+    <aside id="drawer" class="drawer" aria-hidden="true" aria-label="${t("購物袋")}">
       <div class="drawer-head">
         <h2><img class="your-bag-mark" src="/images/your-bag.png" alt="Your bag"></h2>
-        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉購物袋">${iconClose()}</button>
+        <button class="icon-btn" type="button" data-close-overlay aria-label="${t("關閉購物袋")}">${iconClose()}</button>
       </div>
       <div id="drawer-body"></div>
       <div class="drawer-foot" id="drawer-foot"></div>
     </aside>
     <div id="search" class="search-screen" aria-hidden="true">
       <form id="search-form" class="search-top" role="search">
-        <label class="sr-only" for="q">搜尋作品</label>
-        <input id="q" type="search" placeholder="搜尋作品" autocomplete="off">
-        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉搜尋">${iconClose()}</button>
+        <label class="sr-only" for="q">${t("搜尋作品")}</label>
+        <input id="q" type="search" placeholder="${t("搜尋作品")}" autocomplete="off">
+        <button class="icon-btn" type="button" data-close-overlay aria-label="${t("關閉搜尋")}">${iconClose()}</button>
       </form>
       <div id="search-results" class="search-results"></div>
     </div>
     <div id="mobile-nav" class="mobile-nav" aria-hidden="true">
       <div class="mobile-head">
         <a class="logo" href="/" aria-label="BiJulia"><img src="/images/logo.png" alt=""></a>
-        <button class="icon-btn" type="button" data-close-overlay aria-label="關閉選單">${iconClose()}</button>
+        <button class="icon-btn" type="button" data-close-overlay aria-label="${t("關閉選單")}">${iconClose()}</button>
       </div>
       <a class="menu-near" href="/shop/">${wordImg("shop")}</a>
       <a class="menu-near" href="/shop/?filter=new"><img class="new-in-mark" src="/images/new-in.png" alt="New In"></a>
@@ -209,29 +215,29 @@ function shell() {
       <a class="menu-near" href="/about/">${wordImg("about")}</a>
       <a href="/customer-care/">${wordImg("care")}</a>
       <img class="menu-under photo" src="/images/menu-garden.jpg" alt="">
-      <button class="menu-logout" type="button" data-logout>登出</button>
+      <button class="menu-logout" type="button" data-logout>${t("登出")}</button>
     </div>
     <div id="login-dialog" class="login-dialog" hidden>
       <div class="login-scrim" data-close-login></div>
       <div class="login-panel" role="dialog" aria-modal="true" aria-labelledby="login-dialog-title">
         <div class="login-head">
           <h2 id="login-dialog-title">Login</h2>
-          <button class="icon-btn" type="button" data-close-login aria-label="關閉登入">${iconClose()}</button>
+          <button class="icon-btn" type="button" data-close-login aria-label="${t("關閉登入")}">${iconClose()}</button>
         </div>
         <form id="login-form" class="account-form">
-          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-          <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="current-password"></label>
+          <label class="field"><span>${t("電子郵件")}</span><input name="email" type="email" required autocomplete="email"></label>
+          <label class="field"><span>${t("密碼")}</span><input name="password" type="password" required autocomplete="current-password"></label>
           <button class="btn btn-fill" type="submit">Login</button>
-          <a class="btn" href="/account/?view=register" data-open-register>註冊</a>
+          <a class="btn" href="/account/?view=register" data-open-register>${t("註冊")}</a>
           <p class="form-note fine" id="login-note" role="status"></p>
         </form>
         <form id="register-form" class="account-form" hidden>
-          <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
-          <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
-          <label class="field"><span>電子郵件</span><input name="email" type="email" required autocomplete="email"></label>
-          <label class="field"><span>密碼</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
-          <label class="field"><span>再輸入一次密碼</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
-          <button class="btn btn-fill" type="submit">註冊</button>
+          <label class="field"><span>${t("姓名")}</span><input name="name" required autocomplete="name"></label>
+          <label class="field"><span>${t("電話")}</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
+          <label class="field"><span>${t("電子郵件")}</span><input name="email" type="email" required autocomplete="email"></label>
+          <label class="field"><span>${t("密碼")}</span><input name="password" type="password" required autocomplete="new-password" minlength="6"></label>
+          <label class="field"><span>${t("再輸入一次密碼")}</span><input name="confirm" type="password" required autocomplete="new-password" minlength="6"></label>
+          <button class="btn btn-fill" type="submit">${t("註冊")}</button>
           <a class="btn" href="/account/" data-show-login>Login</a>
           <p class="form-note fine" id="register-note" role="status"></p>
         </form>
@@ -241,11 +247,12 @@ function shell() {
 }
 
 function card(product) {
+  product = productCopy(product);
   const media = product.colors && product.colors.length > 1
     ? `<div class="color-swipe">
         ${product.colors.map((color) => `
           <a href="${productHref(product, `?color=${esc(color.id)}`)}">
-            <img src="${color.image}" alt="${esc(product.name)}，${esc(color.name)}" class="${fitClass({ ...product, image: color.image })}">
+            <img src="${color.image}" alt="${esc(product.name)}${lang === "en" ? ", " : "，"}${esc(color.name)}" class="${fitClass({ ...product, image: color.image })}">
           </a>
         `).join("")}
       </div>`
@@ -263,8 +270,8 @@ function card(product) {
       <div class="card-info">
         <a class="card-name${product.category === "necklace" ? " is-taipei" : ""}" href="${productHref(product)}">${esc(product.name)}</a>
         <p class="card-price">${priceText(product)}</p>
-        ${product.soldOut ? `<a class="card-restock" href="${productHref(product, "#restock")}">補貨後通知</a>` : ""}
-        ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.soldOut ? `${color.name} 售完` : color.name)).join(" · ")}</p>` : ""}
+        ${product.soldOut ? `<a class="card-restock" href="${productHref(product, "#restock")}">${t("補貨後通知")}</a>` : ""}
+        ${product.colors ? `<p class="fine">${product.colors.map((color) => esc(color.soldOut ? tx(`${color.name} 售完`, `${color.name} sold out`) : color.name)).join(" · ")}</p>` : ""}
         ${product.unit ? `<p class="fine">${esc(product.unit)}</p>` : ""}
       </div>
     </article>
@@ -273,7 +280,7 @@ function card(product) {
 
 function grid(list) {
   if (!list.length) {
-    return `<div class="empty"><h2>Nothing in this edit yet.</h2><p class="fine">桌上暫時空著。</p></div>`;
+    return `<div class="empty"><h2>Nothing in this edit yet.</h2><p class="fine">${t("桌上暫時空著。")}</p></div>`;
   }
   return `<div class="product-grid">${list.map(card).join("")}</div>`;
 }
@@ -326,18 +333,18 @@ function freeShippingQualified(basis) {
 
 function summaryMoney(sums, twdLabel = "NT$") {
   const rows = [];
-  if (sums.sub) rows.push(`<div class="summary-row"><span>小計</span><span>${money(sums.sub)}</span></div>`);
+  if (sums.sub) rows.push(`<div class="summary-row"><span>${t("小計")}</span><span>${money(sums.sub)}</span></div>`);
   if (sums.twd) rows.push(`<div class="summary-row"><span>${esc(twdLabel)}</span><span>NT$${sums.twd.toLocaleString("en-US")}</span></div>`);
   return rows.join("");
 }
 
 function shippingNote(amount) {
   if (!amount) return "";
-  if (isPremiumMember()) return "高級會員，9 折、免運";
-  if (isShareMember()) return "一般會員，這次免運";
-  if (amount >= site.freeShipping) return "免運";
+  if (isPremiumMember()) return t("高級會員，9 折、免運");
+  if (isShareMember()) return t("一般會員，這次免運");
+  if (amount >= site.freeShipping) return t("免運");
   const rest = site.freeShipping - amount;
-  return `再加 ${ntd(rest)} 即可免運`;
+  return shippingRemain(ntd(rest));
 }
 
 function dueText(sums) {
@@ -347,14 +354,14 @@ function dueText(sums) {
 function discountRow(sums) {
   if (!sums.discount) return "";
   const amount = sums.twd ? ntd(sums.discount) : money(sums.discount);
-  return `<div class="summary-row"><span>高級會員 9 折</span><span>−${amount}</span></div>`;
+  return `<div class="summary-row"><span>${t("高級會員 9 折")}</span><span>−${amount}</span></div>`;
 }
 
 function chargeSummary(sums) {
   if (!sums.basis) return "";
   return `${discountRow(sums)}
-    <div class="summary-row"><span>運費</span><span>${sums.ship === 0 ? "免運" : ntd(sums.ship)}</span></div>
-    <div class="summary-row"><strong>合計</strong><strong>${dueText(sums)}</strong></div>
+    <div class="summary-row"><span>${t("運費")}</span><span>${sums.ship === 0 ? t("免運") : ntd(sums.ship)}</span></div>
+    <div class="summary-row"><strong>${t("合計")}</strong><strong>${dueText(sums)}</strong></div>
     <p class="fine">${esc(shippingNote(sums.basis))}</p>`;
 }
 
@@ -374,13 +381,13 @@ function colorPicker(product) {
   const picked = Math.max(0, product.colors.findIndex((color) => color.id === params().get("color")));
   return `
     <div class="color-pick">
-      <p class="fine" id="color-label">顏色</p>
+      <p class="fine" id="color-label">${t("顏色")}</p>
       <div class="color-options" role="radiogroup" aria-labelledby="color-label">
         ${product.colors.map((color, index) => `
           <button type="button" class="color-option${index === picked ? " is-on" : ""}${color.soldOut ? " is-out" : ""}" role="radio" aria-checked="${index === picked}" data-color="${esc(color.id)}" data-image="${color.image}">
             <img src="${color.image}" alt="">
             <span>${esc(color.name)}</span>
-            ${color.soldOut ? `<span class="color-sold">售完</span>` : ""}
+            ${color.soldOut ? `<span class="color-sold">${t("售完")}</span>` : ""}
           </button>
         `).join("")}
       </div>
@@ -395,7 +402,7 @@ function line(item, compact) {
   const image = tone ? tone.image : product.image;
   const colorAttr = item.color ? ` data-color="${esc(item.color)}"` : "";
   const max = buyLimit(product, item.color);
-  const limit = max > 0 && item.qty >= max ? '<p class="fine">這件已到少量上限。</p>' : "";
+  const limit = max > 0 && item.qty >= max ? `<p class="fine">${t("這件已到少量上限。")}</p>` : "";
   return `
     <article class="line">
       <a href="${productHref(product)}"><img src="${image}" alt="" class="${fitClass({ ...product, image })}"></a>
@@ -403,9 +410,9 @@ function line(item, compact) {
         <h3 class="${product.category === "necklace" ? "is-taipei" : ""}"><a href="${productHref(product)}">${esc(product.name)}</a></h3>
         ${tone ? `<p class="fine">${esc(tone.name)}</p>` : ""}
         <div class="qty" data-max="${Math.max(max, 1)}">
-          <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="減少數量">−</button>
+          <button type="button" data-line-step="-1" data-slug="${product.slug}"${colorAttr} aria-label="${t("減少數量")}">−</button>
           <span aria-live="polite">${item.qty}</span>
-          <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="增加數量">+</button>
+          <button type="button" data-line-step="1" data-slug="${product.slug}"${colorAttr} aria-label="${t("增加數量")}">+</button>
         </div>
         ${compact ? "" : limit}
         <button class="remove" type="button" data-remove="${product.slug}"${colorAttr}>Remove</button>
@@ -416,12 +423,12 @@ function line(item, compact) {
 }
 
 const looks = [
-  ["lace-butterfly-choker", "/images/products/lace-butterfly-choker-worn.jpg", "Lace Butterfly Choker"],
-  ["ivory-lace-cross", "/images/products/ivory-lace-cross-worn.jpg", "Ivory Lace Cross"],
-  ["ivory-lace-cross", "/images/products/ivory-lace-cross.jpg", "Ivory Lace Cross"],
-  ["lock-and-key-chain", "/images/products/lock-and-key-chain-worn.jpg", "Lock and Key Chain"],
-  ["comb-and-chair-chain", "/images/products/comb-and-chair-chain-worn.jpg", "Comb and Chair Chain"],
-  ["button-drop-necklace", "/images/products/button-drop-necklace-worn.jpg", "Button Drop Necklace"],
+  [t("lace-butterfly-choker"), "/images/products/lace-butterfly-choker-worn.jpg", "Lace Butterfly Choker"],
+  [t("ivory-lace-cross"), "/images/products/ivory-lace-cross-worn.jpg", "Ivory Lace Cross"],
+  [t("ivory-lace-cross"), "/images/products/ivory-lace-cross.jpg", "Ivory Lace Cross"],
+  [t("lock-and-key-chain"), "/images/products/lock-and-key-chain-worn.jpg", "Lock and Key Chain"],
+  [t("comb-and-chair-chain"), "/images/products/comb-and-chair-chain-worn.jpg", "Comb and Chair Chain"],
+  [t("button-drop-necklace"), "/images/products/button-drop-necklace-worn.jpg", "Button Drop Necklace"],
 ];
 
 function renderHome() {
@@ -434,32 +441,32 @@ function renderHome() {
         <h1><img class="wordmark" src="/images/bijulia-wordmark.png" alt="BiJulia"></h1>
       </div>
     </section>
-    <section class="scene-band" aria-label="仙女與噴水池">
-      <img src="/images/fairy-fountain.gif?v=4" alt="仙女在花噴水池旁">
+    <section class="scene-band" aria-label="${t("仙女與噴水池")}">
+      <img src="/images/fairy-fountain.gif?v=4" alt="${t("仙女在花噴水池旁")}">
       <a class="btn scene-shop" href="/shop/"><img class="shop-rest" src="/images/shop-now.png" alt="Shop now"><img class="shop-hover" src="/images/shop-now-hover.png" alt=""></a>
     </section>
     <section class="section" id="new-in">
       <div class="wrap">
         <div class="section-head"><h2><a href="/shop/?filter=new"><img class="title-mark" src="/images/new-in.png" alt="New In"></a></h2></div>
         ${grid(newest)}
-        <p class="more-link"><a class="linkish" href="/shop/?filter=new">查看全部</a></p>
+        <p class="more-link"><a class="linkish" href="/shop/?filter=new">${t("查看全部")}</a></p>
       </div>
     </section>
     <section class="section" id="best-sellers">
       <div class="wrap">
         <div class="section-head"><h2>${wordImg("best", "is-title")}</h2></div>
         ${grid(sellers)}
-        <p class="more-link"><a class="linkish" href="/shop/?filter=best">查看全部</a></p>
+        <p class="more-link"><a class="linkish" href="/shop/?filter=best">${t("查看全部")}</a></p>
       </div>
     </section>
     <section class="section sticker-feature" id="stickers">
       <div class="wrap">
         <div class="section-head">
           <h2>Shell Stickers</h2>
-          <p class="lede">三張一組 不可單賣</p>
+          <p class="lede">${t("三張一組 不可單賣")}</p>
         </div>
         <div class="sticker-stage">${stickers.map(card).join("")}</div>
-        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">看貝殼</a></p>
+        <p class="more-link"><a class="linkish" href="/collections/shell-stickers/">${t("看貝殼")}</a></p>
       </div>
     </section>
     <section class="section looks-section" id="looks">
@@ -467,34 +474,34 @@ function renderHome() {
         <div class="section-head"><h2><a href="/outfit/">${wordImg("outfit", "is-title")}</a></h2></div>
       </div>
       <div class="look-marquee">
-        <button class="look-nav look-prev" type="button" aria-label="上一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>
+        <button class="look-nav look-prev" type="button" aria-label="${t("上一張")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>
         <div class="look-track">
           ${[false, true].map((hidden) => `
             <div class="look-set"${hidden ? ' aria-hidden="true"' : ""}>
               ${looks.map(([slug, src, name]) => `
                 <article class="look">
                   <a class="look-frame" href="/product/${slug}/"${hidden ? ' tabindex="-1"' : ""}>
-                    <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
+                    <img src="${src}" alt="${esc(name)}${t("，穿搭")}" class="photo">
                   </a>
                 </article>
               `).join("")}
             </div>
           `).join("")}
         </div>
-        <button class="look-nav look-next" type="button" aria-label="下一張"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
+        <button class="look-nav look-next" type="button" aria-label="${t("下一張")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>
       </div>
     </section>
     <a class="about-band" id="about-bijulia" href="/about/">
-      <img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋">
+      <img src="/images/about-gate.jpg" alt="${t("黑色鐵花門的捲草花紋")}">
       <div class="about-copy">
         <h2>${wordImg("about", "is-title")}</h2>
       </div>
     </a>
     <section class="newsletter" id="newsletter">
-      <p class="kicker">信件</p>
-      <p class="lede">新的項鍊上架、消息，或新活動。</p>
+      <p class="kicker">${t("信件")}</p>
+      <p class="lede">${t("新的項鍊上架、消息，或新活動。")}</p>
       <form id="letter-form">
-        <input type="email" name="email" required placeholder="電子郵件" aria-label="電子郵件">
+        <input type="email" name="email" required placeholder="${t("電子郵件")}" aria-label="${t("電子郵件")}">
         <button class="btn" type="submit">Subscribe</button>
       </form>
       <p class="form-note fine" id="letter-note"></p>
@@ -528,7 +535,10 @@ function applySort(list, sort) {
 
 function shopHeading(filter) {
   const collection = collectionBySlug(filter);
-  if (collection) return [collection.name, collection.blurb];
+  if (collection) {
+    const shown = collectionCopy(collection);
+    return [shown.name, shown.blurb];
+  }
   const map = {
     all: ["All pieces", ""],
     new: ["New In", ""],
@@ -553,7 +563,6 @@ function renderShop() {
   const sort = params().get("sort") || "featured";
   const [title, lede] = shopHeading(filter);
   const list = applySort(applyFilter(products.filter((item) => !item.unlisted), filter), sort);
-  const word = "件";
   return `
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Shop" }])}
@@ -562,12 +571,12 @@ function renderShop() {
           <h1 class="page-title">${shopTitle(title)}</h1>
           ${lede ? `<p class="fine">${esc(lede)}</p>` : ""}
         </div>
-        <label class="sort">排序
-          <select data-sort aria-label="排序作品">
-            <option value="featured"${sort === "featured" ? " selected" : ""}>精選</option>
-            <option value="price-asc"${sort === "price-asc" ? " selected" : ""}>價格由低到高</option>
-            <option value="price-desc"${sort === "price-desc" ? " selected" : ""}>價格由高到低</option>
-            <option value="name"${sort === "name" ? " selected" : ""}>名稱</option>
+        <label class="sort">${t("排序")}
+          <select data-sort aria-label="${t("排序作品")}">
+            <option value="featured"${sort === "featured" ? " selected" : ""}>${t("精選")}</option>
+            <option value="price-asc"${sort === "price-asc" ? " selected" : ""}>${t("價格由低到高")}</option>
+            <option value="price-desc"${sort === "price-desc" ? " selected" : ""}>${t("價格由高到低")}</option>
+            <option value="name"${sort === "name" ? " selected" : ""}>${t("名稱")}</option>
           </select>
         </label>
       </div>
@@ -576,7 +585,7 @@ function renderShop() {
           <button class="filter-btn${filter === value ? " is-on" : ""}" type="button" data-filter="${value}" role="tab" aria-selected="${filter === value}">${label}</button>
         `).join("")}
       </div>
-      <p class="count-line">${list.length} ${word}</p>
+      <p class="count-line">${pieceCount(list.length)}</p>
       ${grid(list)}
     </div>
   `;
@@ -588,7 +597,7 @@ function renderCollections() {
       ${crumbs([{ href: "/", label: "Home" }, { label: "Collections" }])}
       <div class="section-head" style="text-align:left">
         <h1 class="page-title">Collections</h1>
-        <p class="lede" style="margin-left:0">四組飾品，以及從同一批圖印成的貝殼貼紙。</p>
+        <p class="lede" style="margin-left:0">${t("四組飾品，以及從同一批圖印成的貝殼貼紙。")}</p>
       </div>
       <div class="collection-grid">
         ${collections.map((item) => `
@@ -603,7 +612,7 @@ function renderCollections() {
 }
 
 function renderCollection() {
-  const collection = collectionBySlug(slug);
+  const collection = collectionCopy(collectionBySlug(slug));
   if (!collection) return renderNotFound();
   document.title = `${collection.name} — BiJulia`;
   return `
@@ -611,7 +620,7 @@ function renderCollection() {
       ${crumbs([{ href: "/", label: "Home" }, { href: "/collections/", label: "Collections" }, { label: collection.name }])}
       <header class="collection-hero">
         <div>
-          <p class="kicker">系列</p>
+          <p class="kicker">${t("系列")}</p>
           <h1>${esc(collection.name)}</h1>
           <p>${esc(collection.blurb)}</p>
         </div>
@@ -629,15 +638,15 @@ function related(product) {
 }
 
 function renderProduct() {
-  const product = productBySlug(slug);
+  const product = productCopy(productBySlug(slug));
   if (!product) return renderNotFound();
   document.title = `${product.name} — BiJulia`;
   const collection = collectionBySlug(product.collection);
   const specs = product.category === "sticker"
-    ? [["組數", "三張貼紙"], ["價格", "NT$50"], ["製作", "少量製作"]]
-    : [["長度", product.length], ["材質", product.materials], ["製作", "手工，少量製作"]];
-  const care = product.category === "sticker" ? "" : "沒有戴的時候，把項鍊放回鏈袋裡。";
-  const shipping = `滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊於 5–8 天內從工作室寄出。貼紙多半 3 天內寄出。`;
+    ? [[t("組數"), t("三張貼紙")], [t("價格"), "NT$50"], [t("製作"), t("少量製作")]]
+    : [[t("長度"), product.length], [t("材質"), product.materials], [t("製作"), t("手工，少量製作")]];
+  const care = product.category === "sticker" ? "" : t("沒有戴的時候，把項鍊放回鏈袋裡。");
+  const shipping = shippingStory("pdp", ntd(site.freeShipping), ntd(site.shippingFee));
   const pictures = product.images && product.images.length ? product.images : [product.image];
   const wornShots = pictures.filter((src) => /worn/i.test(src));
   const galleryShots = pictures.filter((src) => !/worn/i.test(src));
@@ -656,8 +665,8 @@ function renderProduct() {
       <article class="pdp">
         <div class="pdp-gallery">
           ${product.colors && product.colors.length
-            ? `<img data-color-preview src="${(colorById(product, params().get("color")) || product.colors[0]).image}" alt="${esc(product.name)}，${esc((colorById(product, params().get("color")) || product.colors[0]).name)}" class="${fitClass(product)}">`
-            : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? "，穿搭" : ""}" class="${src === product.image ? fitClass(product) : "photo"}">`).join("")}
+            ? `<img data-color-preview src="${(colorById(product, params().get("color")) || product.colors[0]).image}" alt="${esc(product.name)}${lang === "en" ? ", " : "，"}${esc((colorById(product, params().get("color")) || product.colors[0]).name)}" class="${fitClass(product)}">`
+            : (galleryShots.length ? galleryShots : [product.image]).map((src, index) => `<img src="${src}" alt="${esc(product.name)}${index ? t("，穿搭") : ""}" class="${src === product.image ? fitClass(product) : "photo"}">`).join("")}
           ${product.video ? `<video src="${product.video}" poster="${product.poster || product.image}" autoplay muted playsinline preload="auto" controls></video>` : ""}
         </div>
         <div class="pdp-info">
@@ -675,29 +684,29 @@ function renderProduct() {
           </dl>
           ${product.unlisted || product.soldOut ? "" : `
           <div class="qty" data-max="${Math.max(buyMax, 1)}"${toneSold ? " hidden" : ""}>
-            <button type="button" data-qty-step="-1" aria-label="減少數量">−</button>
-            <input data-qty-input value="1" inputmode="numeric" aria-label="數量">
-            <button type="button" data-qty-step="1" aria-label="增加數量">+</button>
+            <button type="button" data-qty-step="-1" aria-label="${t("減少數量")}">−</button>
+            <input data-qty-input value="1" inputmode="numeric" aria-label="${t("數量")}">
+            <button type="button" data-qty-step="1" aria-label="${t("增加數量")}">+</button>
           </div>`}
-          ${product.unlisted ? `<p class="fine">這件已下架。</p>` : `<button class="btn btn-fill${product.soldOut || toneSold ? " is-sold" : ""}" type="button"${product.soldOut || toneSold ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut || toneSold ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>`}
+          ${product.unlisted ? `<p class="fine">${t("這件已下架。")}</p>` : `<button class="btn btn-fill${product.soldOut || toneSold ? " is-sold" : ""}" type="button"${product.soldOut || toneSold ? " disabled" : ` data-add="${product.slug}"`}>${product.soldOut || toneSold ? `<img class="sold-out-mark" src="/images/sold-out.png" alt="Sold out">` : "Add to bag"}</button>`}
           ${!product.unlisted && product.soldOut ? `
           <form id="restock" class="restock">
-            <p class="fine">這件目前沒有存貨。留下 Gmail，補貨後會寄信通知。</p>
+            <p class="fine">${t("這件目前沒有存貨。留下 Gmail，補貨後會寄信通知。")}</p>
             <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
-            <button class="btn btn-fill" type="submit">補貨後通知</button>
+            <button class="btn btn-fill" type="submit">${t("補貨後通知")}</button>
             <p class="form-note fine"></p>
           </form>` : ""}
           <details open>
-            <summary>細節</summary>
+            <summary>${t("細節")}</summary>
             <p>${esc(product.details)}</p>
-            ${wornShots.length ? `<div class="detail-photos">${wornShots.map((src) => `<img class="photo" src="${src}" alt="${esc(product.name)}，穿搭">`).join("")}</div>` : ""}
+            ${wornShots.length ? `<div class="detail-photos">${wornShots.map((src) => `<img class="photo" src="${src}" alt="${esc(product.name)}${t("，穿搭")}">`).join("")}</div>` : ""}
           </details>
           <details>
-            <summary>運送</summary>
+            <summary>${t("運送")}</summary>
             <p>${esc(shipping)}</p>
           </details>
           ${care ? `<details>
-            <summary>保養</summary>
+            <summary>${t("保養")}</summary>
             <p>${esc(care)}</p>
           </details>` : ""}
         </div>
@@ -734,7 +743,7 @@ function renderCart() {
           ${summaryMoney(sums)}
           ${chargeSummary(sums)}
           <a class="btn btn-fill" href="/checkout/">Request order</a>
-          <p class="fine" style="margin-top:12px">請填寫 Request an order。付款是匯款到工作室銀行帳戶。送出後訂單進到後台，管理者核准才成立，並寄訂單完成通知到你的 Gmail。這個頁面不會扣款，也不會寄信給賣家。</p>
+          <p class="fine" style="margin-top:12px">${t("請填寫 Request an order。付款是匯款到工作室銀行帳戶。送出後訂單進到後台，管理者核准才成立，並寄訂單完成通知到你的 Gmail。這個頁面不會扣款，也不會寄信給賣家。")}</p>
         </aside>
       </div>
     </div>
@@ -745,8 +754,8 @@ function renderOrderSent() {
   return `
     <div class="page">
       <div class="empty">
-        <h1 class="page-title">訂單已送出</h1>
-        <p>這筆訂單在後台等管理者核准。沒有寄信給賣家。請先匯款到工作室帳戶，核准後才成立，並寄訂單完成通知到你的 Gmail。</p>
+        <h1 class="page-title">${t("訂單已送出")}</h1>
+        <p>${t("這筆訂單在後台等管理者核准。沒有寄信給賣家。請先匯款到工作室帳戶，核准後才成立，並寄訂單完成通知到你的 Gmail。")}</p>
         <a class="btn" href="/shop/">Back to the shop</a>
       </div>
     </div>
@@ -756,20 +765,20 @@ function renderOrderSent() {
 function paymentBlock() {
   const bank = site.bank || {};
   const rows = [
-    ["銀行", bank.name],
-    ["戶名", bank.holder],
-    ["帳號", bank.account],
+    [t("銀行"), t(bank.name)],
+    [t("戶名"), bank.holder],
+    [t("帳號"), bank.account],
   ].filter(([, value]) => String(value || "").trim());
   const list = rows.length
     ? `<dl class="pay-account">${rows.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`
     : "";
   return `
     <section class="pay-block">
-      <h2>付款方式</h2>
-      <p>請匯款到工作室的銀行帳戶。這個頁面不會扣款。</p>
+      <h2>${t("付款方式")}</h2>
+      <p>${t("請匯款到工作室的銀行帳戶。這個頁面不會扣款。")}</p>
       ${list}
-      <p>姓名、電話、Gmail 和 7-11 店名都要填。送出後訂單進到後台，不會寄信給賣家。管理者核准後，會寄訂單完成通知到這個 Gmail。</p>
-      <p>請先匯款。管理者在後台核准後，這筆訂單才成立。</p>
+      <p>${t("姓名、電話、Gmail 和 7-11 店名都要填。送出後訂單進到後台，不會寄信給賣家。管理者核准後，會寄訂單完成通知到這個 Gmail。")}</p>
+      <p>${t("請先匯款。管理者在後台核准後，這筆訂單才成立。")}</p>
     </section>
   `;
 }
@@ -782,7 +791,7 @@ function renderCheckout() {
       <div class="page">
         <div class="empty">
           <h1>Nothing to request</h1>
-          <p class="fine">購物袋是空的。</p>
+          <p class="fine">${t("購物袋是空的。")}</p>
           <a class="btn" href="/shop/">Return to the shop</a>
         </div>
       </div>
@@ -799,11 +808,11 @@ function renderCheckout() {
         ${chargeSummary(sums)}
       </div>
       <form id="request-form" style="max-width:440px">
-          <label class="field"><span>姓名</span><input name="name" required autocomplete="name"></label>
-          <label class="field"><span>電話</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
+          <label class="field"><span>${t("姓名")}</span><input name="name" required autocomplete="name"></label>
+          <label class="field"><span>${t("電話")}</span><input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="0912345678"></label>
           <label class="field"><span>Gmail</span><input name="gmail" type="email" required autocomplete="email" placeholder="name@gmail.com"></label>
-          <label class="field"><span>7-11 店名</span><input name="store" required></label>
-          <button class="btn btn-fill" type="submit">送出</button>
+          <label class="field"><span>${t("7-11 店名")}</span><input name="store" required></label>
+          <button class="btn btn-fill" type="submit">${t("送出")}</button>
           <p class="form-note fine" id="request-note"></p>
       </form>
     </div>
@@ -811,19 +820,30 @@ function renderCheckout() {
 }
 
 function outfitShots() {
-  return looks;
+  const extra = uploadedOutfits
+    .filter((row) => row.listed !== false && row.image)
+    .map((row) => [row.slug || "", row.image, row.name || "Outfit"]);
+  return looks.concat(extra);
 }
 
 function outfitGridHtml() {
   return `<div class="outfit-grid">
-    ${outfitShots().map(([slug, src, name]) => `
-      <article class="outfit-shot">
-        <a class="outfit-frame" href="/product/${slug}/">
-          <img src="${src}" alt="${esc(name)}，穿搭" class="photo">
+    ${outfitShots().map(([slug, src, name]) => {
+      const image = `<img src="${esc(src)}" alt="${esc(name)}${t("，穿搭")}" class="photo">`;
+      const label = esc(name);
+      if (!slug) {
+        return `<article class="outfit-shot">
+          <div class="outfit-frame">${image}</div>
+          <p class="outfit-name is-taipei">${label}</p>
+        </article>`;
+      }
+      return `<article class="outfit-shot">
+        <a class="outfit-frame" href="/product/${esc(slug)}/">
+          ${image}
         </a>
-        <a class="outfit-name is-taipei" href="/product/${slug}/">${esc(name)}</a>
-      </article>
-    `).join("")}
+        <a class="outfit-name is-taipei" href="/product/${esc(slug)}/">${label}</a>
+      </article>`;
+    }).join("")}
   </div>`;
 }
 
@@ -848,8 +868,8 @@ function igGrid(items) {
 function consignmentPanel() {
   return `
     <p class="lede">Consignment at <a class="linkish" href="${site.consignment}" target="_blank" rel="noopener noreferrer">Sugar Needle</a>, ${esc(site.consignmentHandle)}.</p>
-    <p class="consign-address"><a class="linkish" href="${site.consignmentMap}" target="_blank" rel="noopener noreferrer">${esc(site.consignmentAddress)}</a></p>
-    <p class="fine">${esc(site.consignmentHours)}</p>
+    <p class="consign-address"><a class="linkish" href="${site.consignmentMap}" target="_blank" rel="noopener noreferrer">${esc(t(site.consignmentAddress))}</a></p>
+    <p class="fine">${esc(t(site.consignmentHours))}</p>
     <div class="consign-map">
       <iframe title="Sugar Needle" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${encodeURIComponent(site.consignmentAddress)}&z=17&output=embed"></iframe>
     </div>
@@ -895,7 +915,7 @@ function renderAbout() {
         <h2 class="page-title">${wordImg("consignment", "is-title")}</h2>
         ${consignmentPanel()}
       </section>
-      <div class="about-panel about-gate"><div class="split"><img src="/images/about-gate.jpg" alt="黑色鐵花門的捲草花紋"></div></div>
+      <div class="about-panel about-gate"><div class="split"><img src="/images/about-gate.jpg" alt="${t("黑色鐵花門的捲草花紋")}"></div></div>
     </div>
   `;
 }
@@ -905,22 +925,24 @@ function renderCare() {
     <div class="page">
       ${crumbs([{ href: "/", label: "Home" }, { label: "Customer Care" }])}
       <h1 class="page-title">${wordImg("care", "is-title")}</h1>
-      <p class="fine" style="max-width:48ch;margin:8px 0 12px">這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。</p>
+      <p class="fine" style="max-width:48ch;margin:8px 0 12px">${t("這是一間小工作室。需要人回答的時候，請到 Instagram 私訊。")}</p>
       <section class="care-block" id="shipping">
         <h2 class="page-title">${wordImg("shipping", "is-title")}</h2>
-        <p>滿 ${ntd(site.freeShipping)} 免運。未滿則運費 ${ntd(site.shippingFee)}。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。項鍊裝在麻布袋裡，5–8 天內寄出。貼紙放進封套，多半 3 天內寄出。</p>
+        <p>${shippingStory("care", ntd(site.freeShipping), ntd(site.shippingFee))}</p>
       </section>
       <section class="care-block" id="returns">
         <h2 class="page-title">${wordImg("returns", "is-title")}</h2>
-        <p>未穿過的項鍊可在 7 天內退回，請放回原來的袋子。貼紙只有完全未使用才能退。寄回之前請先到 Instagram 私訊告訴我們。</p>
+        <p>${t("未穿過的項鍊可在 7 天內退回，請放回原來的袋子。貼紙只有完全未使用才能退。寄回之前請先到 Instagram 私訊告訴我們。")}</p>
       </section>
       <section class="care-block" id="care">
         <h2 class="page-title">${wordImg("jewelry", "is-title")}</h2>
-        <p>沒有戴的時候，把項鍊放回鏈袋裡。</p>
+        <p>${t("沒有戴的時候，把項鍊放回鏈袋裡。")}</p>
       </section>
       <section class="care-block" id="contact">
         <h2 class="page-title">${wordImg("contact", "is-title")}</h2>
-        <p>訂單或修理，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。</p>
+        <p>${lang === "en"
+          ? `For an order or a repair, send an Instagram message to <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>.`
+          : `訂單或修理，請到 Instagram 私訊 <a class="linkish" href="${site.instagram}">${esc(site.instagramHandle)}</a>。`}</p>
         <p>Consignment at <a class="linkish" href="${site.consignment}" target="_blank" rel="noopener noreferrer">${esc(site.consignmentHandle)}</a>.</p>
         ${instagramPanel()}
       </section>
@@ -930,7 +952,7 @@ function renderCare() {
 
 function configBanner() {
   if (auth.isConfigured()) return "";
-  return `<div class="account-banner" role="status">尚未接上 BiJulia 的 Supabase。需要環境變數 SUPABASE_URL 與 SUPABASE_ANON_KEY。這個畫面沒有讀取或寫入任何帳號。</div>`;
+  return `<div class="account-banner" role="status">${t("尚未接上 BiJulia 的 Supabase。需要環境變數 SUPABASE_URL 與 SUPABASE_ANON_KEY。這個畫面沒有讀取或寫入任何帳號。")}</div>`;
 }
 
 function accountView() {
@@ -941,10 +963,10 @@ function accountView() {
 
 function accountSwitch(view) {
   const link = (key, href, label) => `<a href="${href}"${view === key ? ' class="is-on" aria-current="page"' : ""}>${label}</a>`;
-  return `<nav class="account-switch" aria-label="帳戶">
+  return `<nav class="account-switch" aria-label="${t("帳戶")}">
     ${link("login", "/account/", "Login")}
-    ${link("register", "/account/?view=register", "註冊").replace("<a ", "<a data-open-register ")}
-    ${link("admin", "/account/?view=admin", "核准訂單")}
+    ${link("register", "/account/?view=register", t("註冊")).replace("<a ", "<a data-open-register ")}
+    ${link("admin", "/account/?view=admin", t("核准訂單"))}
   </nav>`;
 }
 
@@ -952,11 +974,11 @@ function formatWhen(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return esc(value);
-  return esc(date.toLocaleString("zh-Hant", { hour12: false }));
+  return esc(date.toLocaleString(lang === "en" ? "en-GB" : "zh-Hant", { hour12: false }));
 }
 
 function purchaseHtml(history) {
-  if (!Array.isArray(history) || !history.length) return "尚無";
+  if (!Array.isArray(history) || !history.length) return t("尚無");
   return history.map((order) => {
     const when = order && order.at ? formatWhen(order.at) : "";
     const items = Array.isArray(order && order.items)
@@ -970,28 +992,28 @@ function profileDl(profile, previewRole) {
   const row = (label, value) => `<dt>${label}</dt><dd>${value}</dd>`;
   if (!profile) {
     return `<dl class="profile-dl">
-      ${row("顧客編號", "—")}
-      ${row("姓名 / 電話", "—")}
-      ${row("電子郵件 / 地址", "—")}
-      ${row("會員等級", "—")}
-      ${row("角色", previewRole)}
-      ${row("購買紀錄", "尚無")}
-      ${row("建立時間", "—")}
+      ${row(t("顧客編號"), "—")}
+      ${row(t("姓名 / 電話"), "—")}
+      ${row(t("電子郵件 / 地址"), "—")}
+      ${row(t("會員等級"), "—")}
+      ${row(t("角色"), previewRole)}
+      ${row(t("購買紀錄"), t("尚無"))}
+      ${row(t("建立時間"), "—")}
     </dl>`;
   }
   return `<dl class="profile-dl">
-    ${row("顧客編號", esc(profile.id))}
-    ${row("姓名 / 電話", `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
-    ${row("電子郵件 / 地址", `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
-    ${row("會員等級", esc(profile.tier === "高級" || profile.tier === "一般會員" ? profile.tier : "一般顧客"))}
-    ${row("角色", profile.role === "super_admin" ? "管理者" : "顧客")}
-    ${row("購買紀錄", purchaseHtml(profile.purchase_history))}
-    ${row("建立時間", formatWhen(profile.created_at))}
+    ${row(t("顧客編號"), esc(profile.id))}
+    ${row(t("姓名 / 電話"), `${esc(profile.name || "—")} / ${esc(profile.phone || "—")}`)}
+    ${row(t("電子郵件 / 地址"), `${esc(profile.email || "—")} / ${esc(profile.address || "—")}`)}
+    ${row(t("會員等級"), esc(t(profile.tier === "高級" || profile.tier === "一般會員" ? profile.tier : "一般顧客")))}
+    ${row(t("角色"), profile.role === "super_admin" ? t("管理者") : t("顧客"))}
+    ${row(t("購買紀錄"), purchaseHtml(profile.purchase_history))}
+    ${row(t("建立時間"), formatWhen(profile.created_at))}
   </dl>`;
 }
 
 function logoutButton() {
-  return `<div class="account-actions"><button class="btn" type="button" data-logout>登出</button></div>`;
+  return `<div class="account-actions"><button class="btn" type="button" data-logout>${t("登出")}</button></div>`;
 }
 
 function renderLogin() {
@@ -1006,14 +1028,14 @@ function tierChoices(row) {
   const tier = row.tier === "高級" || row.tier === "一般會員" ? row.tier : "一般顧客";
   const choice = (value) => {
     const on = tier === value;
-    return `<button class="tier-choice${on ? " is-on" : ""}" type="button" data-set-tier="${esc(row.id || "")}" data-tier-value="${value}"${on ? " disabled" : ""}>${value}</button>`;
+    return `<button class="tier-choice${on ? " is-on" : ""}" type="button" data-set-tier="${esc(row.id || "")}" data-tier-value="${value}"${on ? " disabled" : ""}>${t(value)}</button>`;
   };
   return `<span class="tier-choices">${choice("一般顧客")}${choice("一般會員")}${choice("高級")}</span>`;
 }
 
-function peopleTable(rows, emptyLabel = "沒有資料") {
+function peopleTable(rows, emptyLabel = t("沒有資料")) {
   const head = `<tr>
-    <th>顧客編號</th><th>姓名 / 電話</th><th>電子郵件 / 地址</th><th>會員等級</th><th>角色</th><th>購買紀錄</th><th>建立時間</th>
+    <th>${t("顧客編號")}</th><th>${t("姓名 / 電話")}</th><th>${t("電子郵件 / 地址")}</th><th>${t("會員等級")}</th><th>${t("角色")}</th><th>${t("購買紀錄")}</th><th>${t("建立時間")}</th>
   </tr>`;
   const body = rows.length
     ? rows.map((row) => `<tr>
@@ -1021,7 +1043,7 @@ function peopleTable(rows, emptyLabel = "沒有資料") {
         <td>${esc(row.name || "—")} / ${esc(row.phone || "—")}</td>
         <td>${esc(row.email || "—")} / ${esc(row.address || "—")}</td>
         <td>${tierChoices(row)}</td>
-        <td>顧客</td>
+        <td>${t("顧客")}</td>
         <td>${purchaseHtml(row.purchase_history)}</td>
         <td>${formatWhen(row.created_at)}</td>
       </tr>`).join("")
@@ -1032,49 +1054,49 @@ function peopleTable(rows, emptyLabel = "沒有資料") {
 function renderAdmin(profile) {
   if (!profile) {
     return `<div class="page">
-      ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
-      <h1 class="page-title">核准訂單</h1>
+      ${crumbs([{ href: "/", label: "Home" }, { label: t("核准") }])}
+      <h1 class="page-title">${t("核准訂單")}</h1>
       ${accountSwitch("admin")}
       ${configBanner()}
-      <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單，也可以調整會員等級、修改存貨，以及上傳新商品。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。${esc(site.email)} 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。</p>
-      <p class="fine">現在沒有管理者登入，所以沒有訂單。</p>
+      <p class="account-copy">${t("顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單，也可以調整會員等級、修改存貨，以及上傳新商品。一般顧客沒有會員優惠。一般會員在社群分享商品後，下次免運。高級會員是買過三次的客人，作品 9 折，而且免運。")}${esc(site.email)}${t(" 註冊後就是管理者。不會寄信給賣家。核准訂單後會打開 Gmail，把訂單完成通知寄給顧客。")}</p>
+      <p class="fine">${t("現在沒有管理者登入，所以沒有訂單。")}</p>
     </div>`;
   }
   return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "核准" }])}
-    <h1 class="page-title">核准訂單</h1>
+    ${crumbs([{ href: "/", label: "Home" }, { label: t("核准") }])}
+    <h1 class="page-title">${t("核准訂單")}</h1>
     ${configBanner()}
-    <p class="account-copy">顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單。待核准的訂單列在下面，核准後才成立，並打開 Gmail 把訂單完成通知寄給顧客。顧客名單裡可以直接改會員等級。下面也可以改存貨，或上傳一張照片加上新商品。不會寄信給賣家。</p>
-    <p class="fine">登入身分：${esc(profile.email || "")}，管理者。</p>
+    <p class="account-copy">${t("顧客註冊後就是顧客，不用驗證信箱，也不用核准帳號。管理者只核准訂單。待核准的訂單列在下面，核准後才成立，並打開 Gmail 把訂單完成通知寄給顧客。顧客名單裡可以直接改會員等級。下面也可以改存貨，或上傳一張照片加上新商品。不會寄信給賣家。")}</p>
+    <p class="fine">${t("登入身分：")}${esc(profile.email || "")}${t("，管理者。")}</p>
     <p class="form-note fine" id="admin-note" role="status"></p>
-    <div id="admin-lists"><p class="fine">讀取中。</p></div>
+    <div id="admin-lists"><p class="fine">${t("讀取中。")}</p></div>
     ${logoutButton()}
   </div>`;
 }
 
 function tierSentence(profile) {
-  if (profile?.tier === "高級") return "你是高級會員。買過三次，作品 9 折，而且免運。";
-  if (profile?.tier === "一般會員") return "你是一般會員。在社群分享商品後，下次免運。";
-  return "你是一般顧客，沒有會員優惠。";
+  if (profile?.tier === "高級") return t("你是高級會員。買過三次，作品 9 折，而且免運。");
+  if (profile?.tier === "一般會員") return t("你是一般會員。在社群分享商品後，下次免運。");
+  return t("你是一般顧客，沒有會員優惠。");
 }
 
 function renderCustomer(profile) {
   return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
-    <h1 class="page-title">帳戶</h1>
+    ${crumbs([{ href: "/", label: "Home" }, { label: t("帳戶") }])}
+    <h1 class="page-title">${t("帳戶")}</h1>
     ${configBanner()}
-    <p class="account-copy">這是你自己的帳戶。角色是顧客。${tierSentence(profile)}這裡不會列出其他人。</p>
-    ${profileDl(profile, "顧客")}
+    <p class="account-copy">${t("這是你自己的帳戶。角色是顧客。")}${tierSentence(profile)}${lang === "en" ? " " : ""}${t("這裡不會列出其他人。")}</p>
+    ${profileDl(profile, t("顧客"))}
     ${logoutButton()}
   </div>`;
 }
 
 function renderSignedInWithoutProfile() {
   return `<div class="page">
-    ${crumbs([{ href: "/", label: "Home" }, { label: "帳戶" }])}
-    <h1 class="page-title">帳戶</h1>
+    ${crumbs([{ href: "/", label: "Home" }, { label: t("帳戶") }])}
+    <h1 class="page-title">${t("帳戶")}</h1>
     ${configBanner()}
-    <p class="account-copy">已登入。註冊後就是顧客，不用驗證信箱，也不用等管理者核准。</p>
+    <p class="account-copy">${t("已登入。註冊後就是顧客，不用驗證信箱，也不用等管理者核准。")}</p>
     ${logoutButton()}
   </div>`;
 }
@@ -1083,28 +1105,28 @@ function renderAccount() {
   const profile = auth.getProfile();
   const session = auth.getSession();
   if (profile?.role === "super_admin") {
-    document.title = "核准訂單 — BiJulia";
+    document.title = t("核准訂單 — BiJulia");
     return renderAdmin(profile);
   }
   if (profile?.role === "pending") {
-    document.title = "帳戶 — BiJulia";
+    document.title = t("帳戶 — BiJulia");
     return renderCustomer(profile);
   }
   if (profile) {
-    document.title = "帳戶 — BiJulia";
+    document.title = t("帳戶 — BiJulia");
     return renderCustomer(profile);
   }
   if (session) {
-    document.title = "帳戶 — BiJulia";
+    document.title = t("帳戶 — BiJulia");
     return renderSignedInWithoutProfile();
   }
   const view = accountView();
   if (view === "admin") {
-    document.title = "核准訂單 — BiJulia";
+    document.title = t("核准訂單 — BiJulia");
     return renderAdmin(null);
   }
   if (view === "register") {
-    document.title = "註冊 — BiJulia";
+    document.title = t("註冊 — BiJulia");
     return renderRegister();
   }
   document.title = "Login — BiJulia";
@@ -1112,6 +1134,7 @@ function renderAccount() {
 }
 
 let adminLoad = 0;
+let uploadedOutfits = [];
 async function loadAdminLists() {
   const box = document.getElementById("admin-lists");
   if (!box) return;
@@ -1122,8 +1145,8 @@ async function loadAdminLists() {
   if (!current) return;
   if (!result.ok) {
     const message = result.code === "unconfigured"
-      ? "沒有接上 Supabase，沒有讀取名單。"
-      : (result.message || "讀不到名單。");
+      ? t("沒有接上 Supabase，沒有讀取名單。")
+      : (result.message || t("讀不到名單。"));
     current.innerHTML = `<p class="fine">${esc(message)}</p>`;
     return;
   }
@@ -1135,38 +1158,69 @@ async function loadAdminLists() {
   const approved = orderRows.filter((row) => row.status === "approved");
   const orderNote = orders.ok
     ? ""
-    : `<p class="fine">${esc(orders.message || "讀不到訂單。")}</p>`;
+    : `<p class="fine">${esc(orders.message || t("讀不到訂單。"))}</p>`;
+  const outfits = await auth.listOutfits();
+  if (token !== adminLoad) return;
+  if (outfits.ok) uploadedOutfits = outfits.rows;
   current.innerHTML = `
-    <section class="account-section"><h2>待核准訂單</h2>${orderNote}${waiting.length ? "" : `<p class="fine">目前沒有待核准的訂單。</p>`}${ordersTable(waiting, true)}</section>
-    <section class="account-section"><h2>已核准訂單</h2>${ordersTable(approved, false)}</section>
-    <section class="account-section"><h2>顧客</h2><p class="fine">直接改會員等級。一般顧客沒有優惠。一般會員是在社群分享商品後，下次免運。買過三次會變成高級，作品 9 折，而且免運。</p>${peopleTable(customers)}</section>
-    <section class="account-section"><h2>存貨</h2><p class="fine">改數量後按儲存。0 就是售完。貼紙要分顏色填。按編輯，作品會出現在下面的新商品，可以改完再儲存。下架後商店不再顯示。</p>${stockTable()}</section>
-    <section class="account-section" id="catalog-editor"><h2>新商品</h2>
+    <section class="account-section"><h2>${t("待核准訂單")}</h2>${orderNote}${waiting.length ? "" : `<p class="fine">${t("目前沒有待核准的訂單。")}</p>`}${ordersTable(waiting, true)}</section>
+    <section class="account-section"><h2>${t("已核准訂單")}</h2>${ordersTable(approved, false)}</section>
+    <section class="account-section"><h2>${t("顧客")}</h2><p class="fine">${t("直接改會員等級。一般顧客沒有優惠。一般會員是在社群分享商品後，下次免運。買過三次會變成高級，作品 9 折，而且免運。")}</p>${peopleTable(customers)}</section>
+    <section class="account-section"><h2>${t("存貨")}</h2><p class="fine">${t("改數量後按儲存。0 就是售完。貼紙要分顏色填。按編輯，作品會出現在下面的新商品，可以改完再儲存。下架後商店不再顯示。")}</p>${stockTable()}</section>
+    <section class="account-section" id="catalog-editor"><h2>${t("新商品")}</h2>
       <p class="fine" id="catalog-editing"></p>
       <form class="account-form" id="catalog-form">
         <input name="slug" type="hidden" value="">
-        <label class="field"><span>名稱</span><input name="name" type="text" required></label>
-        <label class="field"><span>價格（NT$）</span><input name="price" type="number" min="0" step="1" required></label>
-        <label class="field"><span>分類</span>
+        <label class="field"><span>${t("名稱")}</span><input name="name" type="text" required></label>
+        <label class="field"><span>${t("價格（NT$）")}</span><input name="price" type="number" min="0" step="1" required></label>
+        <label class="field"><span>${t("分類")}</span>
           <select name="category">
             <option value="necklace">Necklace</option>
             <option value="sticker">Sticker</option>
           </select>
         </label>
-        <label class="field"><span>存貨</span><input name="stock" type="number" min="0" step="1" value="1" required></label>
-        <label class="field"><span>說明</span><textarea name="description" rows="3"></textarea></label>
-        <label class="field"><span>照片</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
+        <label class="field"><span>${t("存貨")}</span><input name="stock" type="number" min="0" step="1" value="1" required></label>
+        <label class="field"><span>${t("說明")}</span><textarea name="description" rows="3"></textarea></label>
+        <label class="field"><span>${t("照片")}</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
         <div class="catalog-actions">
-          <button class="btn" type="submit">上傳</button>
-          <button class="btn" type="button" data-set-listed hidden>下架</button>
+          <button class="btn" type="submit">${t("上傳")}</button>
+          <button class="btn" type="button" data-set-listed hidden>${t("下架")}</button>
         </div>
       </form>
     </section>
+    ${outfitEditor()}
   `;
 }
 
+function outfitEditor() {
+  const options = products.map((product) => `<option value="${esc(product.slug)}">${esc(product.name)}</option>`).join("");
+  const rows = uploadedOutfits.map((row) => `<tr>
+      <td>${row.image ? `<img class="photo outfit-admin-thumb" src="${esc(row.image)}" alt="">` : ""}</td>
+      <td>${esc(row.name || "—")}</td>
+      <td><button class="btn" type="button" data-set-outfit="${esc(row.id || "")}" data-outfit-listed="${row.listed === false ? "1" : "0"}">${row.listed === false ? t("上架") : t("下架")}</button></td>
+    </tr>`).join("");
+  const table = uploadedOutfits.length
+    ? `<div class="account-table-wrap"><table class="account-table"><thead><tr><th>${t("照片")}</th><th>${t("名稱")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    : "";
+  return `<section class="account-section" id="outfit-editor"><h2>${t("上架 Outfit")}</h2>
+    <p class="fine">${t("只有管理者可以加穿搭照。上架後會出現在 Outfit。")}</p>
+    <form class="account-form" id="outfit-form">
+      <label class="field"><span>${t("名稱")}</span><input name="name" type="text" required></label>
+      <label class="field"><span>${t("連結作品")}</span>
+        <select name="slug">
+          <option value="">${t("不連結")}</option>
+          ${options}
+        </select>
+      </label>
+      <label class="field"><span>${t("照片")}</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
+      <button class="btn" type="submit">${t("上架")}</button>
+    </form>
+    ${table}
+  </section>`;
+}
+
 function ordersTable(rows, approve) {
-  const head = `<tr><th>時間</th><th>姓名 / 電話</th><th>Gmail / 7-11</th><th>作品</th><th>合計</th><th>${approve ? "核准" : "通知"}</th></tr>`;
+  const head = `<tr><th>${t("時間")}</th><th>${t("姓名 / 電話")}</th><th>Gmail / 7-11</th><th>${t("作品")}</th><th>${t("合計")}</th><th>${approve ? t("核准") : t("通知")}</th></tr>`;
   const body = rows.length
     ? rows.map((row) => `<tr>
         <td>${formatWhen(row.created_at)}</td>
@@ -1175,10 +1229,10 @@ function ordersTable(rows, approve) {
         <td>${esc(orderItems(row.items))}</td>
         <td>${ntd(Number(row.total) || 0)}</td>
         ${approve
-          ? `<td><button class="btn" type="button" data-approve-order="${esc(row.id || "")}">核准</button></td>`
-          : `<td><a class="btn" href="${esc(buildOrderNoticeUrl(row))}" target="_blank" rel="noopener">寄完成通知</a></td>`}
+          ? `<td><button class="btn" type="button" data-approve-order="${esc(row.id || "")}">${t("核准")}</button></td>`
+          : `<td><a class="btn" href="${esc(buildOrderNoticeUrl(row))}" target="_blank" rel="noopener">${t("寄完成通知")}</a></td>`}
       </tr>`).join("")
-    : `<tr><td colspan="6">沒有訂單</td></tr>`;
+    : `<tr><td colspan="6">${t("沒有訂單")}</td></tr>`;
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -1191,13 +1245,13 @@ function stockState(product) {
   let state;
   if (product.colors && product.colors.some((color) => Number.isInteger(color.stock))) {
     state = product.colors.map((color) => (
-      color.stock === 0 ? `${color.name} 售完` : `${color.name} 可賣 ${color.stock}`
+      color.stock === 0 ? tx(`${color.name} 售完`, `${color.name} sold out`) : tx(`${color.name} 可賣 ${color.stock}`, `${color.name}, ${color.stock} in stock`)
     )).join(" · ");
   } else {
     const known = Number.isInteger(product.stock);
-    state = known ? (product.stock === 0 ? "售完" : `可賣 ${product.stock}`) : (product.soldOut ? "售完" : "可賣");
+    state = known ? (product.stock === 0 ? t("售完") : tx(`可賣 ${product.stock}`, `${product.stock} in stock`)) : (product.soldOut ? t("售完") : t("可賣"));
   }
-  return product.unlisted ? `已下架 · ${state}` : state;
+  return product.unlisted ? tx(`已下架 · ${state}`, `Unlisted · ${state}`) : state;
 }
 
 function stockFields(product) {
@@ -1205,25 +1259,25 @@ function stockFields(product) {
     const fields = product.colors.map((color) => {
       const known = Number.isInteger(color.stock);
       const value = stockValue(known, color.stock, Boolean(color.soldOut));
-      return `<label>${esc(color.name)} <input class="stock-input" type="number" min="0" step="1" value="${value}" data-color-stock="${esc(color.id)}" aria-label="${esc(color.name)} 存貨"></label>`;
+      return `<label>${esc(color.name)} <input class="stock-input" type="number" min="0" step="1" value="${value}" data-color-stock="${esc(color.id)}" aria-label="${esc(color.name)} ${t("存貨")}"></label>`;
     }).join("");
     return `<div class="stock-colors">${fields}</div>`;
   }
   const known = Number.isInteger(product.stock);
   const value = stockValue(known, product.stock, Boolean(product.soldOut));
-  return `<input class="stock-input" type="number" min="0" step="1" value="${value}" aria-label="${esc(product.name)} 存貨">`;
+  return `<input class="stock-input" type="number" min="0" step="1" value="${value}" aria-label="${esc(product.name)} ${t("存貨")}">`;
 }
 
 function stockTable() {
-  const head = `<tr><th>作品</th><th>現在</th><th>存貨</th><th></th></tr>`;
+  const head = `<tr><th>${t("作品")}</th><th>${t("現在")}</th><th>${t("存貨")}</th><th></th></tr>`;
   const body = products.map((product) => `<tr data-stock-row="${esc(product.slug)}">
       <td>${esc(product.name)}</td>
       <td>${esc(stockState(product))}</td>
       <td>${stockFields(product)}</td>
       <td><div class="stock-actions">
-        <button class="btn" type="button" data-edit-product="${esc(product.slug)}">編輯</button>
-        <button class="btn" type="button" data-save-stock="${esc(product.slug)}">儲存</button>
-        <button class="btn" type="button" data-set-listed="${esc(product.slug)}" data-listed="${product.unlisted ? "1" : "0"}">${product.unlisted ? "上架" : "下架"}</button>
+        <button class="btn" type="button" data-edit-product="${esc(product.slug)}">${t("編輯")}</button>
+        <button class="btn" type="button" data-save-stock="${esc(product.slug)}">${t("儲存")}</button>
+        <button class="btn" type="button" data-set-listed="${esc(product.slug)}" data-listed="${product.unlisted ? "1" : "0"}">${product.unlisted ? t("上架") : t("下架")}</button>
       </div></td>
     </tr>`).join("");
   return `<div class="account-table-wrap"><table class="account-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
@@ -1336,27 +1390,39 @@ function applyCatalog(rows) {
 
 function orderItems(items) {
   if (!Array.isArray(items) || !items.length) return "—";
-  return items.map((item) => `${item.name || "作品"} × ${item.qty || 1}`).join("、");
+  return items.map((item) => `${item.name || t("作品")} × ${item.qty || 1}`).join(tx("、", ", "));
 }
 
 function buildOrderNoticeUrl(order) {
   const items = orderItems(order && order.items);
   const shipping = Number(order && order.shipping) || 0;
-  const body = [
-    `${(order && order.name) || ""} 你好，`,
-    "",
-    "你的 BiJulia 訂單已經完成。",
-    "",
-    `作品：${items === "—" ? "" : items}`,
-    `7-11：${(order && order.store) || ""}`,
-    `合計：${ntd(Number(order && order.total) || 0)}`,
-    shipping ? `運費：${ntd(shipping)}` : "運費：免運",
-  ].join("\n");
+  const name = (order && order.name) || "";
+  const body = (lang === "en"
+    ? [
+        `Hello ${name},`,
+        "",
+        "Your BiJulia order is complete.",
+        "",
+        `Pieces: ${items === "—" ? "" : items}`,
+        `7-Eleven: ${(order && order.store) || ""}`,
+        `Total: ${ntd(Number(order && order.total) || 0)}`,
+        shipping ? `Shipping: ${ntd(shipping)}` : "Shipping: free",
+      ]
+    : [
+        `${name} 你好，`,
+        "",
+        t("你的 BiJulia 訂單已經完成。"),
+        "",
+        `作品：${items === "—" ? "" : items}`,
+        `7-11：${(order && order.store) || ""}`,
+        `合計：${ntd(Number(order && order.total) || 0)}`,
+        shipping ? `運費：${ntd(shipping)}` : t("運費：免運"),
+      ]).join("\n");
   const query = new URLSearchParams({
     view: "cm",
     fs: "1",
     to: String((order && order.gmail) || "").trim(),
-    su: "BiJulia 訂單完成",
+    su: lang === "en" ? "BiJulia order complete" : t("BiJulia 訂單完成"),
     body,
   });
   return `https://mail.google.com/mail/?${query.toString()}`;
@@ -1380,8 +1446,8 @@ async function approveOrderRow(button) {
     if (popup && !popup.closed) popup.close();
     if (note) {
       note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，訂單沒有核准。"
-        : (result.message || "沒有核准。");
+        ? t("沒有接上 Supabase，訂單沒有核准。")
+        : (result.message || t("沒有核准。"));
     }
     button.disabled = false;
     return;
@@ -1390,8 +1456,11 @@ async function approveOrderRow(button) {
   const opened = openOrderNotice(popup, url);
   if (note) {
     note.innerHTML = opened
-      ? "訂單已核准。已打開給顧客的 Gmail，請寄出訂單完成通知。"
-      : `訂單已核准。請<a href="${esc(url)}" target="_blank" rel="noopener">打開 Gmail</a>，寄出訂單完成通知給顧客。`;
+      ? t("訂單已核准。已打開給顧客的 Gmail，請寄出訂單完成通知。")
+      : tx(
+          `訂單已核准。請<a href="${esc(url)}" target="_blank" rel="noopener">${t("打開 Gmail")}</a>，寄出訂單完成通知給顧客。`,
+          `The order is approved. Please <a href="${esc(url)}" target="_blank" rel="noopener">open Gmail</a> and send the completion note to the customer.`
+        );
   }
   await loadAdminLists();
 }
@@ -1406,7 +1475,7 @@ async function saveMemberTier(button) {
   const result = await auth.setMemberTier(button.getAttribute("data-set-tier"), tier);
   if (!result.ok) {
     choices.forEach((el) => { el.disabled = el.classList.contains("is-on"); });
-    if (note) note.textContent = result.message || "會員等級沒有改成。";
+    if (note) note.textContent = result.message || t("會員等級沒有改成。");
     return;
   }
   choices.forEach((el) => {
@@ -1416,10 +1485,10 @@ async function saveMemberTier(button) {
   });
   if (note) {
     note.textContent = tier === "高級"
-      ? "已改成高級會員。作品 9 折，而且免運。"
+      ? t("已改成高級會員。作品 9 折，而且免運。")
       : tier === "一般會員"
-        ? "已改成一般會員。在社群分享商品後，下次免運。"
-        : "已改成一般顧客。沒有會員優惠。";
+        ? t("已改成一般會員。在社群分享商品後，下次免運。")
+        : t("已改成一般顧客。沒有會員優惠。");
   }
 }
 
@@ -1429,7 +1498,7 @@ function renderNotFound() {
     <div class="page">
       <div class="empty">
         <h1>This page has wandered off</h1>
-        <p class="fine">你要的那一件也許換了名字，或是路徑打錯了。</p>
+        <p class="fine">${t("你要的那一件也許換了名字，或是路徑打錯了。")}</p>
         <a class="btn" href="/shop/">Back to the shop</a>
       </div>
     </div>
@@ -1461,7 +1530,7 @@ function renderMain() {
     outfit: "About — BiJulia",
     about: "About — BiJulia",
     care: "Customer Care — BiJulia",
-    account: "帳戶 — BiJulia",
+    account: t("帳戶 — BiJulia"),
   };
   if (titles[page]) document.title = titles[page];
   root.innerHTML = (views[page] || renderNotFound)();
@@ -1479,7 +1548,7 @@ function drawerHtml() {
   const body = document.getElementById("drawer-body");
   const foot = document.getElementById("drawer-foot");
   if (!items.length) {
-    body.innerHTML = `<div class="empty"><h2><img class="empty-bag-mark" src="/images/your-bag-empty.png" alt="Your bag is empty"></h2><p class="fine">一條項鍊或一枚貝殼，可以先放在這裡。</p></div>`;
+    body.innerHTML = `<div class="empty"><h2><img class="empty-bag-mark" src="/images/your-bag-empty.png" alt="Your bag is empty"></h2><p class="fine">${t("一條項鍊或一枚貝殼，可以先放在這裡。")}</p></div>`;
     foot.innerHTML = `<a class="btn btn-fill" href="/shop/">Shop the atelier</a>`;
     return;
   }
@@ -1497,13 +1566,13 @@ function accountLinksHtml() {
   const profile = auth.getProfile();
   const here = currentPath().startsWith("/account");
   if (profile || auth.getSession()) {
-    const label = profile?.role === "super_admin" ? "管理者" : "帳戶";
+    const label = profile?.role === "super_admin" ? t("管理者") : t("帳戶");
     return `<a href="/account/"${here ? ' aria-current="page"' : ""}>${label}</a>`;
   }
   const view = accountView();
   const loginOn = here && view === "login" ? ' aria-current="page"' : "";
   const registerOn = here && view === "register" ? ' aria-current="page"' : "";
-  return `<a href="/account/"${loginOn}>Login</a><a href="/account/?view=register"${registerOn}>註冊</a>`;
+  return `<a href="/account/"${loginOn}>Login</a><a href="/account/?view=register"${registerOn}>${t("註冊")}</a>`;
 }
 
 function refreshAccountChrome() {
@@ -1535,7 +1604,7 @@ function refreshChrome() {
     node.hidden = cartN === 0;
   });
   const bagBtn = document.querySelector("[data-open-drawer]");
-  if (bagBtn) bagBtn.setAttribute("aria-label", cartN ? `購物袋，${cartN} 件` : "購物袋");
+  if (bagBtn) bagBtn.setAttribute("aria-label", bagLabel(cartN));
   drawerHtml();
   refreshAccountChrome();
 }
@@ -1605,8 +1674,8 @@ function setAuthMode(mode) {
   const close = root.querySelector("button[data-close-login]");
   if (loginForm) loginForm.hidden = registerMode;
   if (registerForm) registerForm.hidden = !registerMode;
-  if (title) title.textContent = registerMode ? "註冊" : "Login";
-  if (close) close.setAttribute("aria-label", registerMode ? "關閉註冊" : "關閉登入");
+  if (title) title.textContent = registerMode ? t("註冊") : "Login";
+  if (close) close.setAttribute("aria-label", registerMode ? t("關閉註冊") : t("關閉登入"));
   loginUi.mode = registerMode ? "register" : "login";
 }
 
@@ -1691,7 +1760,7 @@ function trapLoginTab(event) {
 
 function searchPool(query) {
   const text = query.trim().toLowerCase();
-  if (!text) return { label: "工作室的新品", list: products.filter((item) => item.isNew && !item.unlisted).slice(0, 4) };
+  if (!text) return { label: t("工作室的新品"), list: products.filter((item) => item.isNew && !item.unlisted).slice(0, 4) };
   const list = products.filter((item) => {
     if (item.unlisted) return false;
     const collection = collectionBySlug(item.collection);
@@ -1700,7 +1769,7 @@ function searchPool(query) {
       .toLowerCase();
     return hay.includes(text);
   });
-  return { label: list.length ? "作品" : "沒有這個名字的作品", list };
+  return { label: list.length ? t("作品") : t("沒有這個名字的作品"), list };
 }
 
 function renderSearch(query) {
@@ -1713,7 +1782,7 @@ function renderSearch(query) {
       <span>${priceText(item)}</span>
     </a>
   `).join("");
-  const empty = query.trim() && !list.length ? `<p class="fine">試試玫瑰、珍珠、蕾絲或貝殼。</p>` : "";
+  const empty = query.trim() && !list.length ? `<p class="fine">${t("試試玫瑰、珍珠、蕾絲或貝殼。")}</p>` : "";
   box.innerHTML = `<p class="search-label">${esc(label)}</p>${rows}${empty}`;
 }
 
@@ -1744,24 +1813,39 @@ function orderSnapshot(data) {
 }
 
 function buildRestockUrl(product, gmail) {
-  const body = [
-    `請在 ${product.name} 補貨時通知我。`,
-    "補貨後請寄到這個 Gmail。",
-    "",
-    `作品：${product.name}`,
-    `Gmail：${gmail}`,
-  ].join("\n");
+  const body = (lang === "en"
+    ? [
+        `Please tell me when ${product.name} is back.`,
+        "Please write to this Gmail when it's back.",
+        "",
+        `Piece: ${product.name}`,
+        `Gmail: ${gmail}`,
+      ]
+    : [
+        `請在 ${product.name} 補貨時通知我。`,
+        t("補貨後請寄到這個 Gmail。"),
+        "",
+        `作品：${product.name}`,
+        `Gmail：${gmail}`,
+      ]).join("\n");
   const query = new URLSearchParams({
     view: "cm",
     fs: "1",
     to: `${site.email},${gmail}`,
-    su: "BiJulia 補貨通知",
+    su: lang === "en" ? "BiJulia restock note" : t("BiJulia 補貨通知"),
     body,
   });
   return `https://mail.google.com/mail/?${query.toString()}`;
 }
 
 function onClick(event) {
+  const langButton = event.target.closest("[data-set-lang]");
+  if (langButton) {
+    event.preventDefault();
+    setLang(langButton.getAttribute("data-set-lang") || "zh");
+    rebuildPage();
+    return;
+  }
   const tierButton = event.target.closest("[data-set-tier]");
   if (tierButton) {
     event.preventDefault();
@@ -1781,9 +1865,15 @@ function onClick(event) {
     return;
   }
   const listedButton = event.target.closest("[data-set-listed]");
-  if (listedButton) {
+  if (listedButton && listedButton.closest("#catalog-form, [data-stock-row]")) {
     event.preventDefault();
     setListedRow(listedButton);
+    return;
+  }
+  const outfitButton = event.target.closest("[data-set-outfit]");
+  if (outfitButton) {
+    event.preventDefault();
+    setOutfitRow(outfitButton);
     return;
   }
   const approveOrder = event.target.closest("[data-approve-order]");
@@ -1942,7 +2032,7 @@ async function saveStockRow(button) {
   const row = button.closest("[data-stock-row]");
   const note = document.getElementById("admin-note");
   const reject = () => {
-    if (note) note.textContent = "存貨要是 0 或更大的整數。";
+    if (note) note.textContent = t("存貨要是 0 或更大的整數。");
   };
   if (!product || !row) {
     reject();
@@ -1978,7 +2068,7 @@ async function saveStockRow(button) {
   const result = await auth.saveStock(product, payload);
   button.disabled = false;
   if (!result.ok) {
-    if (note) note.textContent = result.message || "存貨沒有存起來。";
+    if (note) note.textContent = result.message || t("存貨沒有存起來。");
     return;
   }
   const applied = { slug: product.slug, name: product.name, image: product.image };
@@ -1989,7 +2079,7 @@ async function saveStockRow(button) {
     applied.stock = payload;
   }
   applyCatalog([applied]);
-  if (note) note.textContent = `${product.name} 的存貨已改成 ${summary}。`;
+  if (note) note.textContent = tx(`${product.name} 的存貨已改成 ${summary}。`, `${product.name} stock is now ${summary}.`);
   loadAdminLists();
 }
 
@@ -2010,18 +2100,18 @@ function editProduct(slug) {
   form.elements.description.value = product.description || "";
   form.elements.photo.required = false;
   const submit = form.querySelector("[type=submit]");
-  if (submit) submit.textContent = "儲存";
+  if (submit) submit.textContent = t("儲存");
   const unlist = form.querySelector("[data-set-listed]");
   if (unlist) {
     unlist.hidden = false;
     unlist.setAttribute("data-set-listed", product.slug);
     unlist.setAttribute("data-listed", product.unlisted ? "1" : "0");
-    unlist.textContent = product.unlisted ? "上架" : "下架";
+    unlist.textContent = product.unlisted ? t("上架") : t("下架");
   }
   if (note) {
     note.textContent = counted
-      ? `正在編輯 ${product.name}。不換照片就留空。顏色存貨請在上面的表格改。`
-      : `正在編輯 ${product.name}。不換照片就留空。`;
+      ? tx(`正在編輯 ${product.name}。不換照片就留空。顏色存貨請在上面的表格改。`, `Editing ${product.name}. Leave the photo empty to keep it. Change color stock in the table above.`)
+      : tx(`正在編輯 ${product.name}。不換照片就留空。`, `Editing ${product.name}. Leave the photo empty to keep it.`);
   }
   const editor = document.getElementById("catalog-editor");
   if (editor) editor.scrollIntoView({ block: "center" });
@@ -2038,11 +2128,11 @@ async function saveEditedProduct(form) {
   const description = String(data.get("description") || "").trim();
   const file = data.get("photo");
   if (!product || !name || !Number.isInteger(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-    if (note) note.textContent = "請填名稱、價格和存貨。價格和存貨都要是整數。";
+    if (note) note.textContent = t("請填名稱、價格和存貨。價格和存貨都要是整數。");
     return;
   }
   if (file && file.size > 8 * 1024 * 1024) {
-    if (note) note.textContent = "照片要小於 8MB。";
+    if (note) note.textContent = t("照片要小於 8MB。");
     return;
   }
   const button = form.querySelector("[type=submit]");
@@ -2058,11 +2148,11 @@ async function saveEditedProduct(form) {
   });
   if (button) button.disabled = false;
   if (!result.ok) {
-    if (note) note.textContent = result.message || "商品沒有存起來。";
+    if (note) note.textContent = result.message || t("商品沒有存起來。");
     return;
   }
   applyCatalog([result.row]);
-  if (note) note.textContent = `${name} 已儲存。`;
+  if (note) note.textContent = tx(`${name} 已儲存。`, `${name} is saved.`);
   loadAdminLists();
 }
 
@@ -2075,11 +2165,61 @@ async function setListedRow(button) {
   const result = await auth.setProductListed(product, listed);
   button.disabled = false;
   if (!result.ok) {
-    if (note) note.textContent = result.message || "沒有改成。";
+    if (note) note.textContent = result.message || t("沒有改成。");
     return;
   }
   applyCatalog([result.row]);
-  if (note) note.textContent = listed ? `${product.name} 已上架。` : `${product.name} 已下架。`;
+  if (note) note.textContent = listed ? tx(`${product.name} 已上架。`, `${product.name} is listed.`) : tx(`${product.name} 已下架。`, `${product.name} is unlisted.`);
+  loadAdminLists();
+}
+
+async function uploadOutfit(form) {
+  const note = document.getElementById("admin-note");
+  const data = new FormData(form);
+  const name = String(data.get("name") || "").trim();
+  const slug = String(data.get("slug") || "").trim();
+  const file = data.get("photo");
+  if (!name) {
+    if (note) note.textContent = t("請填穿搭名稱。");
+    return;
+  }
+  if (!file || !file.size) {
+    if (note) note.textContent = t("請選一張穿搭照片。");
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    if (note) note.textContent = t("照片要小於 8MB。");
+    return;
+  }
+  const button = form.querySelector("[type=submit]");
+  if (button) button.disabled = true;
+  const result = await auth.createOutfit({ name, slug, file });
+  if (button) button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || t("穿搭沒有上架。");
+    return;
+  }
+  if (result.row) uploadedOutfits = uploadedOutfits.concat(result.row);
+  form.reset();
+  if (note) note.textContent = tx(`${name} 已上架到 Outfit。`, `${name} is now in Outfits.`);
+  loadAdminLists();
+}
+
+async function setOutfitRow(button) {
+  const note = document.getElementById("admin-note");
+  const id = button.getAttribute("data-set-outfit") || "";
+  const listed = button.getAttribute("data-outfit-listed") === "1";
+  const current = uploadedOutfits.find((row) => row.id === id);
+  if (!id) return;
+  button.disabled = true;
+  const result = await auth.setOutfitListed(id, listed);
+  button.disabled = false;
+  if (!result.ok) {
+    if (note) note.textContent = result.message || t("沒有改成。");
+    return;
+  }
+  const name = (result.row && result.row.name) || (current && current.name) || t("這張穿搭");
+  if (note) note.textContent = listed ? tx(`${name} 已上架。`, `${name} is listed.`) : tx(`${name} 已從 Outfit 拿下。`, `${name} was taken off Outfits.`);
   loadAdminLists();
 }
 
@@ -2093,15 +2233,15 @@ async function uploadProduct(form) {
   const description = String(data.get("description") || "").trim();
   const file = data.get("photo");
   if (!name || !Number.isInteger(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-    if (note) note.textContent = "請填名稱、價格和存貨。價格和存貨都要是整數。";
+    if (note) note.textContent = t("請填名稱、價格和存貨。價格和存貨都要是整數。");
     return;
   }
   if (!file || !file.size) {
-    if (note) note.textContent = "請選一張照片。";
+    if (note) note.textContent = t("請選一張照片。");
     return;
   }
   if (file.size > 8 * 1024 * 1024) {
-    if (note) note.textContent = "照片要小於 8MB。";
+    if (note) note.textContent = t("照片要小於 8MB。");
     return;
   }
   const button = form.querySelector("button");
@@ -2117,12 +2257,12 @@ async function uploadProduct(form) {
   });
   if (button) button.disabled = false;
   if (!result.ok) {
-    if (note) note.textContent = result.message || "商品沒有上傳。";
+    if (note) note.textContent = result.message || t("商品沒有上傳。");
     return;
   }
   applyCatalog([result.row]);
   form.reset();
-  if (note) note.textContent = `${name} 已上傳。`;
+  if (note) note.textContent = tx(`${name} 已上傳。`, `${name} is uploaded.`);
   loadAdminLists();
 }
 
@@ -2132,6 +2272,11 @@ async function onSubmit(event) {
     const slug = String(new FormData(event.target).get("slug") || "").trim();
     if (slug) saveEditedProduct(event.target);
     else uploadProduct(event.target);
+    return;
+  }
+  if (event.target.id === "outfit-form") {
+    event.preventDefault();
+    uploadOutfit(event.target);
     return;
   }
   if (event.target.id === "search-form") {
@@ -2144,11 +2289,11 @@ async function onSubmit(event) {
     const note = document.getElementById("letter-note");
     const email = input.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      note.textContent = "請留下有效的電子郵件。";
+      note.textContent = t("請留下有效的電子郵件。");
       return;
     }
     try { localStorage.setItem("bijulia-letter", email); } catch { /* ignore */ }
-    note.textContent = "謝謝。在訂閱名單接上之前，這個地址只留在這台瀏覽器裡。";
+    note.textContent = t("謝謝。在訂閱名單接上之前，這個地址只留在這台瀏覽器裡。");
     input.value = "";
     return;
   }
@@ -2157,13 +2302,13 @@ async function onSubmit(event) {
     const gmail = String(new FormData(event.target).get("gmail") || "").trim();
     const note = event.target.querySelector(".form-note");
     if (!/@gmail\.com$/i.test(gmail)) {
-      note.textContent = "請留下 Gmail。";
+      note.textContent = t("請留下 Gmail。");
       return;
     }
     const product = productBySlug(slug);
     if (!product) return;
     window.open(buildRestockUrl(product, gmail), "_blank", "noopener");
-    note.textContent = "Gmail 已打開。請按寄出，補貨後才會寄到這個地址。";
+    note.textContent = t("Gmail 已打開。請按寄出，補貨後才會寄到這個地址。");
     return;
   }
   if (event.target.id === "request-form") {
@@ -2172,29 +2317,29 @@ async function onSubmit(event) {
     const note = event.target.querySelector(".form-note");
     const phone = String(data.phone || "").replace(/\D/g, "");
     if (!/^09\d{8}$/.test(phone)) {
-      note.textContent = "電話要是 09 開頭的十個數字。";
+      note.textContent = t("電話要是 09 開頭的十個數字。");
       return;
     }
     data.phone = phone;
     const gmail = String(data.gmail || "").trim();
     if (!/@gmail\.com$/i.test(gmail)) {
-      note.textContent = "請留下 Gmail。";
+      note.textContent = t("請留下 Gmail。");
       return;
     }
     data.gmail = gmail;
     if (!String(data.name || "").trim() || !String(data.store || "").trim()) {
-      note.textContent = "姓名和 7-11 店名都要填。";
+      note.textContent = t("姓名和 7-11 店名都要填。");
       return;
     }
     const order = orderSnapshot(data);
     const button = event.target.querySelector("button[type=submit]");
     if (button) button.disabled = true;
-    note.textContent = "送出中。";
+    note.textContent = t("送出中。");
     const result = await auth.placeOrder(order);
     if (!result.ok) {
       note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，訂單沒有送出。"
-        : (result.message || "訂單沒有送出。");
+        ? t("沒有接上 Supabase，訂單沒有送出。")
+        : (result.message || t("訂單沒有送出。"));
       if (button) button.disabled = false;
       return;
     }
@@ -2212,8 +2357,8 @@ async function onSubmit(event) {
     if (!result.ok) {
       if (note) {
         note.textContent = result.code === "unconfigured"
-          ? "沒有接上 Supabase，無法登入。"
-          : (result.message || "沒有登入。");
+          ? t("沒有接上 Supabase，無法登入。")
+          : (result.message || t("沒有登入。"));
       }
       if (button) button.disabled = false;
       return;
@@ -2227,29 +2372,29 @@ async function onSubmit(event) {
     const note = document.getElementById("register-note");
     const phone = String(data.phone || "").replace(/\D/g, "");
     if (!String(data.name || "").trim()) {
-      note.textContent = "請留下姓名。";
+      note.textContent = t("請留下姓名。");
       return;
     }
     if (!/^09\d{8}$/.test(phone)) {
-      note.textContent = "電話要是 09 開頭的十個數字。";
+      note.textContent = t("電話要是 09 開頭的十個數字。");
       return;
     }
     const email = String(data.email || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      note.textContent = "請留下有效的電子郵件。";
+      note.textContent = t("請留下有效的電子郵件。");
       return;
     }
     if (String(data.password || "").length < 6) {
-      note.textContent = "密碼至少要六個字。";
+      note.textContent = t("密碼至少要六個字。");
       return;
     }
     if (data.password !== data.confirm) {
-      note.textContent = "兩次密碼不一樣。";
+      note.textContent = t("兩次密碼不一樣。");
       return;
     }
     const button = event.target.querySelector("button[type=submit]");
     if (button) button.disabled = true;
-    note.textContent = "送出中。";
+    note.textContent = t("送出中。");
     const result = await auth.registerAccount({
       name: String(data.name).trim(),
       phone,
@@ -2259,18 +2404,18 @@ async function onSubmit(event) {
     });
     if (!result.ok) {
       note.textContent = result.code === "unconfigured"
-        ? "沒有接上 Supabase，帳號沒有建立。"
-        : (result.message || "沒有完成註冊。");
+        ? t("沒有接上 Supabase，帳號沒有建立。")
+        : (result.message || t("沒有完成註冊。"));
       if (button) button.disabled = false;
       return;
     }
     if (result.needsVerification) {
       event.target.reset();
-      note.textContent = "帳號已記下，但這個專案仍要求驗證信，所以現在還不能登入。";
+      note.textContent = t("帳號已記下，但這個專案仍要求驗證信，所以現在還不能登入。");
       if (button) button.disabled = false;
       return;
     }
-    note.textContent = "已註冊並登入。不用驗證信箱，也不用等管理者核准。";
+    note.textContent = t("已註冊並登入。不用驗證信箱，也不用等管理者核准。");
   }
 }
 
@@ -2394,7 +2539,25 @@ function bindColorSwipes() {
   });
 }
 
+function rebuildPage() {
+  ui.drawer = false;
+  ui.search = false;
+  ui.menu = false;
+  loginUi.open = false;
+  [...document.body.children].forEach((node) => {
+    if (node.tagName === "SCRIPT" || node.tagName === "NOSCRIPT") return;
+    node.remove();
+  });
+  document.body.insertAdjacentHTML("afterbegin", shell());
+  renderMain();
+  bindLooks();
+  bindColorSwipes();
+  refreshChrome();
+  applyOverlay();
+}
+
 function boot() {
+  setLang(lang);
   document.body.insertAdjacentHTML("afterbegin", shell());
   renderMain();
   bindLooks();
@@ -2441,6 +2604,13 @@ function boot() {
     renderMain();
     bindLooks();
     bindColorSwipes();
+    refreshChrome();
+  });
+  auth.listOutfits().then((result) => {
+    if (!result.ok) return;
+    uploadedOutfits = result.rows;
+    if (page !== "outfit") return;
+    renderMain();
     refreshChrome();
   });
 }

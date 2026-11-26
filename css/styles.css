@@ -198,6 +198,27 @@ h1, h2, h3, p { margin: 0; }
 }
 .submenu a:hover { color: var(--rose-deep); }
 .tools { display: flex; justify-content: flex-end; align-items: center; }
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 2px;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.lang-switch button {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  padding: 6px 3px;
+}
+.lang-switch button.is-on { color: var(--ink); }
+.lang-switch span { padding: 0 1px; }
 .icon-btn, .menu-toggle {
   position: relative;
   width: 42px;
@@ -679,6 +700,12 @@ h1, h2, h3, p { margin: 0; }
   font-size: 28px;
   line-height: 1.25;
   font-weight: 400;
+}
+.outfit-admin-thumb {
+  width: 72px;
+  height: 96px;
+  object-fit: cover;
+  display: block;
 }
 .collection-grid {
   display: grid;

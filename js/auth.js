@@ -1,4 +1,5 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase.env.js?v=2";
+import { t } from "./lang.js?v=1";
 
 const FULL_COLUMNS = "id, email, role, created_at, name, phone, address, tier, purchase_history";
 const CORE_COLUMNS = "id, email, role, created_at";
@@ -61,27 +62,27 @@ function chineseAuthError(error) {
   const message = String(error?.message || "");
   const code = String(error?.code || "");
   if (/invalid login credentials/i.test(message) || code === "invalid_credentials") {
-    return "電子郵件或密碼不對。";
+    return t("電子郵件或密碼不對。");
   }
   if (/email not confirmed/i.test(message) || code === "email_not_confirmed") {
-    return "請先到信箱完成驗證，再登入。";
+    return t("請先到信箱完成驗證，再登入。");
   }
   if (/already registered|already been registered|user already exists/i.test(message) || code === "user_already_exists") {
-    return "這個電子郵件已經有密碼。請用原來的密碼登入。";
+    return t("這個電子郵件已經有密碼。請用原來的密碼登入。");
   }
   if (/password/i.test(message) && /short|at least|least|weak|6/i.test(message)) {
-    return "密碼至少要六個字。";
+    return t("密碼至少要六個字。");
   }
   if (/rate limit|over_email_send_rate_limit/i.test(message) || code === "over_email_send_rate_limit") {
-    return "寄信太頻繁，請稍後再試。";
+    return t("寄信太頻繁，請稍後再試。");
   }
   if (/failed to fetch|network|load failed/i.test(message)) {
-    return "連不上 Supabase。";
+    return t("連不上 Supabase。");
   }
   if (/relation|schema cache|column|profiles|orders/i.test(message)) {
-    return "讀不到訂單或帳戶資料表。請先在 BiJulia 的 Supabase 執行資料表設定。";
+    return t("讀不到訂單或帳戶資料表。請先在 BiJulia 的 Supabase 執行資料表設定。");
   }
-  return "沒有完成。請再試一次。";
+  return t("沒有完成。請再試一次。");
 }
 
 async function sdk() {
@@ -157,7 +158,7 @@ export async function registerAccount({ name, phone, email, address, password })
     if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
     const identities = data.user?.identities;
     if (data.user && Array.isArray(identities) && identities.length === 0) {
-      return { ok: false, code: "exists", message: "這個電子郵件已經有密碼。請用原來的密碼登入。" };
+      return { ok: false, code: "exists", message: t("這個電子郵件已經有密碼。請用原來的密碼登入。") };
     }
     session = data.session || null;
     profile = null;
@@ -165,7 +166,7 @@ export async function registerAccount({ name, phone, email, address, password })
     if (session) emit();
     return { ok: true, needsVerification: !data.session };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，帳號沒有建立。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，帳號沒有建立。") };
   }
 }
 
@@ -184,7 +185,7 @@ export async function loginAccount(email, password) {
     emit();
     return { ok: true, profile: getProfile() };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，沒有登入。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，沒有登入。") };
   }
 }
 
@@ -205,7 +206,7 @@ export async function logoutAccount() {
 export async function listProfiles() {
   if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
   if (!profile || profile.role !== "super_admin") {
-    return { ok: false, code: "forbidden", message: "這個帳號不能讀取其他人的資料。", rows: [] };
+    return { ok: false, code: "forbidden", message: t("這個帳號不能讀取其他人的資料。"), rows: [] };
   }
   try {
     const supabase = await sdk();
@@ -216,7 +217,7 @@ export async function listProfiles() {
     if (result.error) return { ok: false, code: "auth", message: chineseAuthError(result.error), rows: [] };
     return { ok: true, rows: result.data || [] };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，沒有讀取名單。", rows: [] };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，沒有讀取名單。"), rows: [] };
   }
 }
 
@@ -237,14 +238,14 @@ export async function placeOrder(order) {
     if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
     return { ok: true };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，訂單沒有送出。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，訂單沒有送出。") };
   }
 }
 
 export async function listOrders() {
   if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
   if (!profile || profile.role !== "super_admin") {
-    return { ok: false, code: "forbidden", message: "只有管理者可以讀取訂單。", rows: [] };
+    return { ok: false, code: "forbidden", message: t("只有管理者可以讀取訂單。"), rows: [] };
   }
   try {
     const supabase = await sdk();
@@ -252,14 +253,14 @@ export async function listOrders() {
     if (result.error) return { ok: false, code: "auth", message: chineseAuthError(result.error), rows: [] };
     return { ok: true, rows: result.data || [] };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，沒有讀取訂單。", rows: [] };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，沒有讀取訂單。"), rows: [] };
   }
 }
 
 export async function approveOrder(id) {
   if (!isConfigured()) return { ok: false, code: "unconfigured" };
   if (!profile || profile.role !== "super_admin") {
-    return { ok: false, code: "forbidden", message: "只有管理者可以核准訂單。" };
+    return { ok: false, code: "forbidden", message: t("只有管理者可以核准訂單。") };
   }
   try {
     const supabase = await sdk();
@@ -272,7 +273,7 @@ export async function approveOrder(id) {
       .maybeSingle();
     if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
     if (!data || data.status !== "approved") {
-      return { ok: false, code: "missing", message: "沒有核准。這筆訂單可能已經不是待核准。" };
+      return { ok: false, code: "missing", message: t("沒有核准。這筆訂單可能已經不是待核准。") };
     }
     if (data.customer_id) {
       const existing = await supabase.from("profiles").select("purchase_history, tier").eq("id", data.customer_id).maybeSingle();
@@ -296,14 +297,14 @@ export async function approveOrder(id) {
     }
     return { ok: true, order: data };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，訂單沒有核准。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，訂單沒有核准。") };
   }
 }
 
 export async function setMemberTier(id, tier) {
-  if (!isConfigured()) return { ok: false, code: "unconfigured", message: "沒有接上 Supabase，會員等級沒有改成。" };
+  if (!isConfigured()) return { ok: false, code: "unconfigured", message: t("沒有接上 Supabase，會員等級沒有改成。") };
   if (!profile || profile.role !== "super_admin") {
-    return { ok: false, code: "forbidden", message: "只有管理者可以調整會員等級。" };
+    return { ok: false, code: "forbidden", message: t("只有管理者可以調整會員等級。") };
   }
   const next = tier === "高級" || tier === "一般會員" || tier === "一般顧客" ? tier : "一般顧客";
   try {
@@ -317,23 +318,23 @@ export async function setMemberTier(id, tier) {
     if (error) {
       const raw = String(error.message || "");
       const message = /tier|column|schema cache/i.test(raw)
-        ? "會員等級還沒寫進資料庫。請先在 Supabase 執行 profiles.sql。"
+        ? t("會員等級還沒寫進資料庫。請先在 Supabase 執行 profiles.sql。")
         : chineseAuthError(error);
       return { ok: false, code: "auth", message };
     }
     if (!data || data.tier !== next) {
-      return { ok: false, code: "missing", message: "會員等級沒有改成。" };
+      return { ok: false, code: "missing", message: t("會員等級沒有改成。") };
     }
     return { ok: true, tier: next };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，會員等級沒有改成。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，會員等級沒有改成。") };
   }
 }
 
 export async function approveCustomer(id) {
   if (!isConfigured()) return { ok: false, code: "unconfigured" };
   if (!profile || profile.role !== "super_admin") {
-    return { ok: false, code: "forbidden", message: "只有管理者可以核准。" };
+    return { ok: false, code: "forbidden", message: t("只有管理者可以核准。") };
   }
   try {
     const supabase = await sdk();
@@ -346,11 +347,11 @@ export async function approveCustomer(id) {
       .maybeSingle();
     if (error) return { ok: false, code: "auth", message: chineseAuthError(error) };
     if (!data || data.role !== "customer") {
-      return { ok: false, code: "missing", message: "沒有核准。這筆帳號可能已經不是待核准。" };
+      return { ok: false, code: "missing", message: t("沒有核准。這筆帳號可能已經不是待核准。") };
     }
     return { ok: true };
   } catch {
-    return { ok: false, code: "auth", message: "連不上 Supabase，角色沒有變更。" };
+    return { ok: false, code: "auth", message: t("連不上 Supabase，角色沒有變更。") };
   }
 }
 
@@ -370,12 +371,12 @@ export async function appendPurchase(order) {
 
 function catalogError(error) {
   const raw = `${error?.message || ""} ${error?.details || ""}`;
-  if (/listed/i.test(raw)) return "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。";
+  if (/listed/i.test(raw)) return t("下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。");
   if (/schema cache|relation .*catalog|Bucket not found|bucket/i.test(raw)) {
-    return "存貨資料表還沒建立。請先在 Supabase 執行 profiles.sql。";
+    return t("存貨資料表還沒建立。請先在 Supabase 執行 profiles.sql。");
   }
-  if (/row-level security|permission|not allowed/i.test(raw)) return "只有管理者可以改存貨。";
-  return "存貨沒有存起來。";
+  if (/row-level security|permission|not allowed/i.test(raw)) return t("只有管理者可以改存貨。");
+  return t("存貨沒有存起來。");
 }
 
 async function upsertCatalog(row, { listedRequired = false } = {}) {
@@ -384,7 +385,7 @@ async function upsertCatalog(row, { listedRequired = false } = {}) {
   const raw = `${result.error?.message || ""} ${result.error?.details || ""}`;
   if (result.error && /listed/i.test(raw)) {
     if (listedRequired || row.listed === false) {
-      return { ok: false, message: "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。" };
+      return { ok: false, message: t("下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。") };
     }
     const copy = { ...row };
     delete copy.listed;
@@ -392,7 +393,7 @@ async function upsertCatalog(row, { listedRequired = false } = {}) {
   }
   const again = `${result.error?.message || ""} ${result.error?.details || ""}`;
   if (result.error && row.stock === null && /null value|stock/i.test(again)) {
-    return { ok: false, message: "下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。" };
+    return { ok: false, message: t("下架欄位還沒建立。請先在 Supabase 執行 profiles.sql。") };
   }
   if (result.error) return { ok: false, message: catalogError(result.error) };
   return { ok: true };
@@ -447,8 +448,8 @@ function wholeCount(value) {
 }
 
 export async function saveStock(product, stock) {
-  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
-  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改存貨。" };
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以改存貨。") };
   const perColor = Boolean(product.colors && product.colors.length && stock && typeof stock === "object");
   let next = null;
   let colorStock = null;
@@ -456,13 +457,13 @@ export async function saveStock(product, stock) {
     colorStock = {};
     for (const color of product.colors) {
       const count = wholeCount(stock[color.id]);
-      if (count === null) return { ok: false, message: "存貨要是 0 或更大的整數。" };
+      if (count === null) return { ok: false, message: t("存貨要是 0 或更大的整數。") };
       colorStock[color.id] = count;
     }
     next = product.colors.reduce((sum, color) => sum + colorStock[color.id], 0);
   } else {
     next = wholeCount(stock);
-    if (next === null) return { ok: false, message: "存貨要是 0 或更大的整數。" };
+    if (next === null) return { ok: false, message: t("存貨要是 0 或更大的整數。") };
   }
   const row = {
     slug: product.slug,
@@ -481,7 +482,7 @@ export async function saveStock(product, stock) {
     if (!saved.ok) return saved;
     return { ok: true };
   } catch {
-    return { ok: false, message: "存貨沒有存起來。" };
+    return { ok: false, message: t("存貨沒有存起來。") };
   }
 }
 
@@ -498,8 +499,8 @@ function productSlug(name, taken) {
 }
 
 export async function createProduct({ name, price, stock, category, description, file, taken }) {
-  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
-  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以上傳商品。" };
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以上傳商品。") };
   const slug = productSlug(name, taken);
   const ext = String(file?.name || "photo.jpg").split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const path = `${slug}-${Date.now()}.${ext}`;
@@ -525,13 +526,13 @@ export async function createProduct({ name, price, stock, category, description,
     if (inserted.error) return { ok: false, message: catalogError(inserted.error) };
     return { ok: true, row: inserted.data || row };
   } catch {
-    return { ok: false, message: "商品沒有上傳。" };
+    return { ok: false, message: t("商品沒有上傳。") };
   }
 }
 
 export async function updateProduct({ product, name, price, stock, category, description, file }) {
-  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
-  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改商品。" };
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以改商品。") };
   let image = product.image || "";
   try {
     const supabase = await sdk();
@@ -561,19 +562,81 @@ export async function updateProduct({ product, name, price, stock, category, des
     if (!saved.ok) return saved;
     return { ok: true, row };
   } catch {
-    return { ok: false, message: "商品沒有存起來。" };
+    return { ok: false, message: t("商品沒有存起來。") };
   }
 }
 
 export async function setProductListed(product, listed) {
-  if (!isConfigured()) return { ok: false, message: "沒有接上 Supabase。" };
-  if (profile?.role !== "super_admin") return { ok: false, message: "只有管理者可以改商品。" };
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以改商品。") };
   const row = catalogRow(product, { listed: Boolean(listed) });
   try {
     const saved = await upsertCatalog(row, { listedRequired: true });
     if (!saved.ok) return saved;
     return { ok: true, row };
   } catch {
-    return { ok: false, message: "沒有改成。" };
+    return { ok: false, message: t("沒有改成。") };
+  }
+}
+
+function outfitError(error) {
+  const raw = `${error?.message || ""} ${error?.details || ""}`;
+  if (/schema cache|relation .*outfits|Bucket not found|bucket/i.test(raw)) {
+    return t("穿搭資料表還沒建立。請先在 Supabase 執行 profiles.sql。");
+  }
+  if (/row-level security|permission|not allowed/i.test(raw)) return t("只有管理者可以上架穿搭。");
+  return t("穿搭沒有上架。");
+}
+
+export async function listOutfits() {
+  if (!isConfigured()) return { ok: false, code: "unconfigured", rows: [] };
+  try {
+    const supabase = await sdk();
+    const result = await supabase.from("outfits").select("id, name, slug, image, listed, created_at").order("created_at", { ascending: true });
+    if (result.error) return { ok: false, message: outfitError(result.error), rows: [] };
+    return { ok: true, rows: result.data || [] };
+  } catch {
+    return { ok: false, rows: [] };
+  }
+}
+
+export async function createOutfit({ name, slug, file }) {
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以上架穿搭。") };
+  const ext = String(file?.name || "photo.jpg").split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `outfits/${Date.now()}.${ext}`;
+  try {
+    const supabase = await sdk();
+    const uploaded = await supabase.storage.from("catalog").upload(path, file, {
+      contentType: file.type || "image/jpeg",
+      upsert: false,
+    });
+    if (uploaded.error) return { ok: false, message: outfitError(uploaded.error) };
+    const image = supabase.storage.from("catalog").getPublicUrl(path).data.publicUrl;
+    const row = {
+      name: String(name || "").trim(),
+      slug: String(slug || "").trim(),
+      image,
+      listed: true,
+    };
+    const inserted = await supabase.from("outfits").insert(row).select("id, name, slug, image, listed, created_at").maybeSingle();
+    if (inserted.error) return { ok: false, message: outfitError(inserted.error) };
+    return { ok: true, row: inserted.data || row };
+  } catch {
+    return { ok: false, message: t("穿搭沒有上架。") };
+  }
+}
+
+export async function setOutfitListed(id, listed) {
+  if (!isConfigured()) return { ok: false, message: t("沒有接上 Supabase。") };
+  if (profile?.role !== "super_admin") return { ok: false, message: t("只有管理者可以上架穿搭。") };
+  try {
+    const supabase = await sdk();
+    const result = await supabase.from("outfits").update({ listed: Boolean(listed) }).eq("id", id).select("id, name, slug, image, listed, created_at").maybeSingle();
+    if (result.error) return { ok: false, message: outfitError(result.error) };
+    if (!result.data) return { ok: false, message: t("沒有改成。") };
+    return { ok: true, row: result.data };
+  } catch {
+    return { ok: false, message: t("沒有改成。") };
   }
 }
